@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Skill(markitdown)",
-      "Skill(markitdown:*)"
+      "Skill(markitdown:*)",
+      "Bash(brew install:*)",
+      "Bash(pdftoppm:*)"
     ]
   }
 }
