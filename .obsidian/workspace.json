@@ -1,0 +1,206 @@
+{
+  "main": {
+    "id": "35a5b3cf5381fc36",
+    "type": "split",
+    "children": [
+      {
+        "id": "91e2874a37f29f2c",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "db3f0ead9992e3bb",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "OP/opentelemetry-guide.md",
+                "mode": "preview",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "opentelemetry-guide"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "c9bb60a19c330f08",
+    "type": "split",
+    "children": [
+      {
+        "id": "c084e910cd30dd95",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "82af3ed03fca550f",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "da649c7bdf5bfe8c",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "b2583bc155992162",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 371.5
+  },
+  "right": {
+    "id": "18704fb929da8db0",
+    "type": "split",
+    "children": [
+      {
+        "id": "08b2c4f067fcc4ca",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "8db5e932c2037b20",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "OP/opentelemetry-guide.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks for opentelemetry-guide"
+            }
+          },
+          {
+            "id": "bdf9580e9b2583e8",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "AI/ch07-finetuning/7.2-Memory_Bottlenecks.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links from 7.2-Memory_Bottlenecks"
+            }
+          },
+          {
+            "id": "3ad156d9df965a98",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "73935d3e433480ef",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "All properties"
+            }
+          },
+          {
+            "id": "62fd77b5f9b82a37",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "AI/ch07-finetuning/7.2-Memory_Bottlenecks.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline of 7.2-Memory_Bottlenecks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "bases:Create new base": false
+    }
+  },
+  "active": "82af3ed03fca550f",
+  "lastOpenFiles": [
+    "AI/create_agent 开发指南.md",
+    "other/language-codes-in-llm-era.md",
+    "OP/vertex-ai-provisioned-throughput-学习笔记.md",
+    "OP/static-code-analysis-guide.md",
+    "OP/helm-eks-学习笔记.md",
+    "OP/opentelemetry-guide.md",
+    "model-hub-config-guide.md",
+    "AI/ch07-finetuning/7.2-Memory_Bottlenecks.md",
+    "AI/ch07-finetuning/7.1-When_to_Finetune.md",
+    "AI/ch07-finetuning/7.0-Finetuning_Overview.md",
+    "AI/ch02-foundation-models/2.2-Post_Training_and_Sampling.md",
+    "AI/ch02-foundation-models/2.1-Modeling_Architecture_and_Size.md",
+    "AI/ch02-foundation-models/2.0-Understanding_Foundation_Models_and_Training_Data.md",
+    "2026-03-04.md",
+    "Untitled.canvas",
+    "AI/ch01-ai-engineering/1.3-Planning_AI_Applications.md",
+    "AI/ch01-ai-engineering/1.1-The_Rise_of_AI_Engineering.md"
+  ]
+}
