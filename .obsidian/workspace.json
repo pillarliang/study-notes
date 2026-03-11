@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "OP/opentelemetry-guide.md",
+                "file": "AI/create_agent 开发指南.md",
                 "mode": "preview",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "opentelemetry-guide"
+              "title": "create_agent 开发指南"
             }
           }
         ]
@@ -78,7 +78,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 371.5
+    "width": 200
   },
   "right": {
     "id": "18704fb929da8db0",
@@ -94,7 +94,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "OP/opentelemetry-guide.md",
+                "file": "AI/create_agent 开发指南.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -104,7 +104,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks for opentelemetry-guide"
+              "title": "Backlinks for create_agent 开发指南"
             }
           },
           {
@@ -113,12 +113,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "AI/ch07-finetuning/7.2-Memory_Bottlenecks.md",
+                "file": "AI/create_agent 开发指南.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Outgoing links from 7.2-Memory_Bottlenecks"
+              "title": "Outgoing links from create_agent 开发指南"
             }
           },
           {
@@ -165,7 +165,8 @@
               "title": "Outline of 7.2-Memory_Bottlenecks"
             }
           }
-        ]
+        ],
+        "currentTab": 2
       }
     ],
     "direction": "horizontal",
@@ -183,14 +184,22 @@
       "bases:Create new base": false
     }
   },
-  "active": "82af3ed03fca550f",
+  "active": "db3f0ead9992e3bb",
   "lastOpenFiles": [
+    "AI/Plaud Model Hub 架构学习笔记.md",
     "AI/create_agent 开发指南.md",
+    "DEV/temporal_notes.md",
+    "images/image-20260218101858868.png",
+    "images/chapter3.pdf",
+    "images/chapter2.pdf",
+    "work/model-hub-config-guide.md",
+    "OP/opentelemetry-guide.md",
+    "OP/observability",
+    "OP/observer",
     "other/language-codes-in-llm-era.md",
     "OP/vertex-ai-provisioned-throughput-学习笔记.md",
     "OP/static-code-analysis-guide.md",
     "OP/helm-eks-学习笔记.md",
-    "OP/opentelemetry-guide.md",
     "model-hub-config-guide.md",
     "AI/ch07-finetuning/7.2-Memory_Bottlenecks.md",
     "AI/ch07-finetuning/7.1-When_to_Finetune.md",

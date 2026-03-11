@@ -386,6 +386,22 @@ def process_request():
     )
 ```
 
+> **重要区分：日志注入 vs Span Attributes**
+>
+> `LoggingInstrumentor` 自动注入到日志中的**只有** `otelTraceID`、`otelSpanID`、`otelTraceSampled` 三个字段，用于实现日志与 trace 的关联。
+>
+> 通过 `span.set_attribute("task_id", "xxx")` 设置的**自定义 Span Attributes 不会出现在日志中**，它们只存在于 trace 后端（Jaeger/Tempo）。两者的数据流向不同：
+>
+> ```
+> LoggingInstrumentor 注入  →  日志记录（CloudWatch/Loki）
+>                               ↑ 只有 trace_id, span_id, trace_sampled
+>
+> span.set_attribute()      →  Span 数据（Jaeger/Tempo）
+>                               ↑ 自定义属性只在这里可见
+> ```
+>
+> 如果需要在日志中也包含业务属性，必须通过 `logger.info("msg", extra={"task_id": "xxx"})` 或 `ContextVar` 等机制显式传入，OTel 不会自动帮你同步。
+
 ---
 
 ## 5. 完整工作流程

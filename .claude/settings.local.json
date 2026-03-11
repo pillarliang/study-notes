@@ -4,7 +4,12 @@
       "Skill(markitdown)",
       "Skill(markitdown:*)",
       "Bash(brew install:*)",
-      "Bash(pdftoppm:*)"
+      "Bash(pdftoppm:*)",
+      "Skill(mubu-mindmap)",
+      "Skill(mubu-mindmap:*)",
+      "WebFetch(domain:mp.weixin.qq.com)",
+      "mcp__docs-langchain__search_docs_by_lang_chain",
+      "mcp__plugin_context7_context7__query-docs"
     ]
   }
 }
