@@ -9,7 +9,24 @@
       "Skill(mubu-mindmap:*)",
       "WebFetch(domain:mp.weixin.qq.com)",
       "mcp__docs-langchain__search_docs_by_lang_chain",
-      "mcp__plugin_context7_context7__query-docs"
+      "mcp__plugin_context7_context7__query-docs",
+      "Bash(grep -n \"@tool\" /Users/liangzhu/Documents/work/plaud-tools/packages/tools/src/plaud_tools/speaker/*.py)",
+      "Bash(uv run:*)",
+      "Bash(env)",
+      "mcp__plugin_context7_context7__resolve-library-id",
+      "Bash(uv sync:*)",
+      "Bash(export COMPOSIO_API_KEY=\"ak_0X2CdaynPxyEzpwdKzNs\")",
+      "Bash(export COMPOSIO_USER_ID=demo-user)",
+      "Bash(export LLM_API_KEY=\"\")",
+      "Bash(export LLM_MODEL=gemini-2.5-flash)",
+      "Bash(export LLM_BASE_URL=\"https://generativelanguage.googleapis.com/v1beta/openai/\")",
+      "Bash(uv pip:*)",
+      "Bash(kill 41706)",
+      "Bash(kill 38031)",
+      "Bash(export GMAIL_AUTH_CONFIG_ID=ac_C2m6VE6YswYP)",
+      "Bash(xargs kill:*)",
+      "Bash(python3:*)",
+      "Bash(lsof -i :9000 -sTCP:LISTEN)"
     ]
   }
 }
