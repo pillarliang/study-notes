@@ -655,9 +655,16 @@ if response.tool_calls:
 
 ## 11. Tool 调用与流式输出的关系
 
-这是一个常见的混淆点：**MCP 的 `tools/call` 不支持流式返回，但整体 Agent 架构中 LLM 的输出可以是流式的。**
+这里有两个层面容易混淆，需要先区分清楚：
 
-### 11.1 `tools/call` 是请求-响应模式
+```
+传输层（Streamable HTTP）：消息怎么在网络上走 → SSE 是传输管道
+协议层（JSON-RPC/MCP）：  消息的语义         → tools/call 的 result 必须完整
+```
+
+**结论先行：** `tools/call` 的**结果内容**不能流式拆分（协议层约束），但传输这个结果的管道本身（SSE）可以同时承载进度通知。
+
+### 11.1 `tools/call` 是请求-响应模式（协议层）
 
 `tools/call` 是标准的 JSON-RPC 请求-响应（第 2.3 节的"打电话，一问一答"）：
 
@@ -670,18 +677,57 @@ if response.tool_calls:
 {"jsonrpc": "2.0", "id": 42, "result": {"content": [...], "isError": false}}
 ```
 
-一个 `id=42` 的请求只能对应**一个** `id=42` 的响应，没有机制把结果拆成多次返回。
+`id=42` 的请求只能对应**一个**完整的 `id=42` 响应，不能把 result 的内容拆碎分多次返回——这是 JSON-RPC **协议语义**层面的约束，与传输方式无关。
 
-### 11.2 Streamable HTTP 的 SSE ≠ Tool 流式输出
+### 11.2 Streamable HTTP 传输 `tools/call` 的实际过程（传输层）
 
-第 6.2 节提到的 SSE 流用于 Server → Client 的**通知**（notification），例如 `notifications/tools/list_changed`。通知是"发短信"——没有 id，不配对任何请求。**SSE 不能把一个 `tools/call` 的结果拆成多次推送。**
+虽然 result 必须完整，但 **SSE 确实是传输 `tools/call` 响应的管道**。客户端发一个 POST，服务端用 SSE stream 回应，stream 里可以包含多个 event：
 
 ```
-tools/call    = 一问一答（请求-响应），结果必须一次性返回
-SSE 通知      = 单向推送事件（工具列表变更、资源更新等），不是 tool 结果的流式输出
+Client                                  Server
+  |                                        |
+  |── POST /mcp (tools/call, id=42) ──→   |
+  |                                        | 工具执行中...
+  |←── SSE: notifications/progress(10%) ──|  ← 进度通知（无 id）
+  |←── SSE: notifications/progress(80%) ──|  ← 进度通知（无 id）
+  |                                        | 执行完毕
+  |←── SSE: {"id":42,"result":{完整内容}} ─|  ← 唯一的配对响应
+  |←── SSE stream 关闭 ───────────────── |
 ```
 
-### 11.3 流式发生在 Client 侧的 LLM 调用
+对应的 SSE 报文如下：
+
+```http
+HTTP/1.1 200 OK
+Content-Type: text/event-stream
+
+data: {"jsonrpc":"2.0","method":"notifications/progress","params":{"progress":10,"total":100}}
+
+data: {"jsonrpc":"2.0","method":"notifications/progress","params":{"progress":80,"total":100}}
+
+data: {"jsonrpc":"2.0","id":42,"result":{"content":[{"type":"text","text":"搜索结果..."}],"isError":false}}
+```
+
+关键点：
+
+- SSE 里**有且仅有一个** `id=42` 的 result event（配对响应）
+- 其余 event 都是**没有 id 的 notification**（进度更新、列表变更等）
+- **tool 的输出内容本身没有流式**——不存在 `result_chunk` 这种拆分机制
+
+```
+SSE 能做的：在工具跑完之前，通过 notifications/progress 推送进度
+SSE 不能做的：把 tool 的 result 内容拆成多块逐步返回
+```
+
+### 11.3 三种能力对比
+
+| 能力 | 支持？ | 机制 |
+|------|--------|------|
+| Tool 输出内容分块流式 | ❌ 不支持 | 协议层禁止拆分 result |
+| 工具运行中的进度更新 | ✅ 支持 | `notifications/progress`（通过 SSE 传输） |
+| 调用工具前后 LLM 文本流式 | ✅ 支持 | LLM API 层，与 MCP 无关 |
+
+### 11.4 流式发生在 Client 侧的 LLM 调用
 
 在典型的 Agent 架构中（如第 9 节），流式输出发生在 **Client 侧调用 LLM** 的环节，而不是 MCP tool 返回结果的环节：
 
@@ -711,7 +757,7 @@ result = await session.call_tool(tool_name, arguments=tool_args)
 tool_output = result.content[0].text
 ```
 
-### 11.4 Server 内部调 LLM 的 Tool
+### 11.5 Server 内部调 LLM 的 Tool
 
 有些 MCP Tool 在 Server 内部调用 LLM（例如 `draft_email` 用 LLM 把笔记润色为邮件）。这种情况下：
 
@@ -719,7 +765,7 @@ tool_output = result.content[0].text
 - 所以 Server 内部通常直接用非流式调用，等 LLM 完整生成后一次性返回
 - 这是合理的设计选择，不是缺陷
 
-### 11.5 长时间任务的替代方案：Task Polling
+### 11.6 长时间任务的替代方案：Task Polling
 
 对于耗时较长的 tool（如深度研究），可以用**任务轮询**模式绕开阻塞：
 
@@ -734,12 +780,85 @@ tool_output = result.content[0].text
 
 本质是把一个长操作拆成"启动"和"查询结果"两次独立的请求-响应。
 
-### 11.6 总结
+> **注意：** 上面的 `tasks/get` 是伪代码示意，MCP 协议**没有内置**异步任务机制。两步都是普通的 `session.call_tool()`，"启动"和"查询"是 Server 端自定义的两个工具名称。
+
+#### Python 实现示例
+
+**Server 端（异步执行 + 内存状态存储）：**
+
+```python
+import asyncio, uuid, json
+from mcp.server import Server
+
+app = Server("research-server")
+task_store: dict = {}  # 简单内存存储
+
+@app.call_tool()
+async def call_tool(name: str, arguments: dict):
+    if name == "start_deep_research":
+        task_id = str(uuid.uuid4())
+        task_store[task_id] = {"status": "running", "result": None}
+        # 后台异步执行，立即返回 task_id，不阻塞
+        asyncio.create_task(_run_research(task_id, arguments["query"]))
+        return [{"type": "text", "text": task_id}]
+
+    elif name == "get_task_status":
+        task = task_store.get(arguments["task_id"], {"status": "not_found"})
+        return [{"type": "text", "text": json.dumps(task)}]
+
+async def _run_research(task_id: str, query: str):
+    await asyncio.sleep(10)  # 模拟耗时操作
+    task_store[task_id] = {"status": "completed", "result": f"{query} 的研究结果..."}
+```
+
+**Client 端（轮询直到完成）：**
+
+```python
+import asyncio, json
+from mcp import ClientSession, StdioServerParameters
+from mcp.client.stdio import stdio_client
+
+async def run_with_polling():
+    async with stdio_client(StdioServerParameters(command="python", args=["server.py"])) as (r, w):
+        async with ClientSession(r, w) as session:
+            await session.initialize()
+
+            # 第 1 步：启动任务，立即拿到 task_id
+            result = await session.call_tool("start_deep_research", {"query": "MCP 协议"})
+            task_id = result.content[0].text
+            print(f"任务已启动，task_id = {task_id}")
+
+            # 第 2 步：轮询直到完成
+            while True:
+                status_result = await session.call_tool("get_task_status", {"task_id": task_id})
+                task = json.loads(status_result.content[0].text)
+
+                if task["status"] == "completed":
+                    print(f"完成！结果：{task['result']}")
+                    break
+                elif task["status"] == "running":
+                    print("还在跑，3 秒后再查...")
+                    await asyncio.sleep(3)
+                else:
+                    print(f"异常状态：{task['status']}")
+                    break
+```
+
+**伪代码与实际方法的对应关系：**
+
+| 笔记伪代码 | 实际 Python 方法 |
+|------------|-----------------|
+| `tools/call("deep_research")` | `session.call_tool("start_deep_research", {...})` |
+| `tasks/get({taskId})` | `session.call_tool("get_task_status", {"task_id": ...})` |
+
+### 11.7 总结
 
 | 环节 | 是否流式 | 原因 |
 |------|---------|------|
 | Client 侧 LLM → 用户 | ✅ 可流式 | LLM API 支持 streaming |
-| Client → MCP Server (tools/call) | ❌ 非流式 | JSON-RPC 请求-响应，一问一答 |
+| tools/call 结果内容 | ❌ 不可拆分 | JSON-RPC 协议层：result 必须完整 |
+| tools/call 运行中进度 | ✅ 可推送 | `notifications/progress` 通过 SSE 传输 |
+| Streamable HTTP 传输 tools/call | SSE 管道 | POST → SSE stream（含 notifications + 最终 result） |
 | MCP Server 内部 LLM 调用 | 无意义 | 即使内部流式，也无法流式返回给 Client |
 | 长时间任务 | 非阻塞 | Task polling 模式替代 |
 
