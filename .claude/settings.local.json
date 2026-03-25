@@ -26,7 +26,10 @@
       "Bash(export GMAIL_AUTH_CONFIG_ID=ac_C2m6VE6YswYP)",
       "Bash(xargs kill:*)",
       "Bash(python3:*)",
-      "Bash(lsof -i :9000 -sTCP:LISTEN)"
+      "Bash(lsof -i :9000 -sTCP:LISTEN)",
+      "Bash(rm \"OP/.DS_Store\")",
+      "Bash(rmdir OP)",
+      "Bash(grep -v \"^.$\")"
     ]
   }
 }
