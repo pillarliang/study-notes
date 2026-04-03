@@ -892,6 +892,50 @@ Client client = Client.builder()
 5. **监控 spillover 比例** — 如果溢出持续发生，考虑增加 GSU 比按量付溢出费更划算
 6. **请求级别重试配置** — 关键请求可设置更高的重试次数，非关键请求可降低
 
+### 10.5 多 Region 高可用架构
+
+#### 为什么 GSU 溢出到 PayGo 还不够？
+
+GSU 满了以后默认会自动溢出到同 region 的 PayGo，但 **PayGo 本身也有容量上限**：
+
+- PayGo 是多租户共享池，高峰期该 region 的 PayGo 容量也可能紧张，溢出请求照样会收到 **429 错误**
+- PayGo 配额（QPM/TPM）是 **per-project per-region** 的，单个 region 的配额有天花板
+
+因此，仅依赖"同 region GSU + 自动溢出"在极端场景下仍存在不可用风险。
+
+#### 推荐做法：双 Region 架构
+
+在同一个 project 下设置两个 region，一个购买 GSU，另一个作为纯 PayGo 后备：
+
+```text
+请求进来
+  │
+  ▼
+Region A (如 europe-north1) — 有 GSU
+  ├── GSU 未满 → PT 处理 ✅ (低成本、有保障)
+  ├── GSU 满了 → 自动溢出到同 region PayGo
+  │     ├── PayGo 有容量 → 处理 ✅ (按量计费)
+  │     └── PayGo 也限流 → 429 ❌
+  │
+  ▼ (429 时 failover)
+Region B (如 us-central1) — 纯 PayGo
+  └── 独立的 PayGo 容量池 → 处理 ✅
+```
+
+#### 方案对比
+
+| 方案 | 优点 | 风险 |
+| --- | --- | --- |
+| 单 region（GSU + 自动溢出） | 架构简单，溢出自动处理 | PayGo 容量也有上限，高峰期可能全部 429 |
+| 双 region（GSU region + 纯 PayGo region） | 双容量池，可用性更高 | 跨 region 延迟略高，需客户端做路由/failover |
+
+#### 实现要点
+
+- 客户端需要实现 **failover 逻辑**：当 Region A 返回 429 时，将请求重试到 Region B
+- Region B 不需要购买 GSU，只使用 PayGo，因此没有固定成本
+- 两个 region 的 PayGo 配额相互独立，相当于总可用配额翻倍
+- 结合 [第9节](#9-错误处理与重试策略) 的重试策略，可在重试逻辑中加入跨 region failover
+
 ---
 
 > **参考链接**:
