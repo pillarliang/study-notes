@@ -29,7 +29,8 @@
       "Bash(lsof -i :9000 -sTCP:LISTEN)",
       "Bash(rm \"OP/.DS_Store\")",
       "Bash(rmdir OP)",
-      "Bash(grep -v \"^.$\")"
+      "Bash(grep -v \"^.$\")",
+      "Bash(find /Users/liangzhu/Documents/dev/claude-code-source -name \"*.ts\" -exec grep -l \"StreamingToolExecutor\\\\|getRemainingResults\" {} \\\\;)"
     ]
   }
 }

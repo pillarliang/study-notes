@@ -475,7 +475,7 @@ result.push({ text: staticJoined, cacheScope: 'global' })
 result.push({ text: dynamicJoined, cacheScope: null })
 ```
 
-**`cacheScope: 'global'`** 意味着这段 prompt 的 KV cache 可以跨用户、跨会话共享——因为内容对所有人都一样（身份介绍、系统规则、工程约束这些不会因用户不同而变化）。而动态部分（你的 memory、你的环境信息）每个人都不同，没法共享，所以标记为 `null`（不缓存）。
+`**cacheScope: 'global'**` 意味着这段 prompt 的 KV cache 可以跨用户、跨会话共享——因为内容对所有人都一样（身份介绍、系统规则、工程约束这些不会因用户不同而变化）。而动态部分（你的 memory、你的环境信息）每个人都不同，没法共享，所以标记为 `null`（不缓存）。
 
 #### 用一个比喻理解
 
