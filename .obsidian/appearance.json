@@ -1,4 +1,7 @@
 {
   "accentColor": "",
-  "cssTheme": "GitHub Theme"
+  "cssTheme": "Atom",
+  "theme": "moonstone",
+  "baseFontSize": 15,
+  "baseFontSizeAction": false
 }
