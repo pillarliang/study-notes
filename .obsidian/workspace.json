@@ -11,10 +11,14 @@
             "id": "c083ae1008203e28",
             "type": "leaf",
             "state": {
-              "type": "empty",
-              "state": {},
+              "type": "markdown",
+              "state": {
+                "file": "AI/harness-engineering/三个-Scaling-维度的统一框架-学习笔记.md",
+                "mode": "preview",
+                "source": false
+              },
               "icon": "lucide-file",
-              "title": "New tab"
+              "title": "三个-Scaling-维度的统一框架-学习笔记"
             }
           }
         ]
@@ -74,7 +78,8 @@
       }
     ],
     "direction": "horizontal",
-    "width": 200
+    "width": 200,
+    "collapsed": true
   },
   "right": {
     "id": "18704fb929da8db0",
@@ -180,8 +185,10 @@
       "bases:Create new base": false
     }
   },
-  "active": "82af3ed03fca550f",
+  "active": "c083ae1008203e28",
   "lastOpenFiles": [
+    "Clippings-1/Harness Engineering 在讨论什么：三个 Scaling 维度的统一框架.md",
+    "Clippings-1",
     "Clippings-1/Attachments/Image 4.png",
     "Clippings-1/Attachments/Image 2.png",
     "Clippings-1/Attachments/Image 1.jpg",
@@ -193,10 +200,8 @@
     "Clippings-1/Attachments/Image 7.png",
     "Clippings-1/Attachments/Image 6.png",
     "Clippings-1/Attachments/Image 5.png",
-    "Clippings-1/Attachments/Image 4.jpg",
     "Clippings-1/Attachments",
     "Clippings/Karpathy 最新分享：用 LLM 搭建个人知识库，告别 RAG 的低效循环.md",
-    "Clippings-1",
     "AI/harness-engineering/book1-claude-code-c5-c6-学习笔记.md",
     "Clippings",
     "AI/harness-engineering/book1-claude-code-c3-c4-学习笔记.md",
