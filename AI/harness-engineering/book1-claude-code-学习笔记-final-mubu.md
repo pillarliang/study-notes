@@ -1,0 +1,249 @@
+- Harness Engineering 学习笔记：以 Claude Code 为样本
+  - 导读 + 序言
+    - 核心关注点：不稳定的模型如何被收束成一套能稳定运转的工程结构
+    - 三个阅读前提
+      - 重点在 harness 如何组织约束与执行，而非模型能力
+      - 重点在运行时结构为什么必须这样长出来，而非逐条解释函数
+      - 重点在结构怎样变成团队可复用的制度，而非个人技巧
+    - 什么是 Harness Engineering
+      - 一套始终在起作用的管控机制，约束模型在工程环境中的行为边界
+      - Prompt 决定它怎么说话，Harness 决定它怎么做事
+      - 讲结构：基于源码把决定系统可靠性的结构讲清楚
+      - 提原则：把实现背后的判断提炼成更一般的工程原则
+    - 六条核心判断
+      - 错误路径要按主路径设计——失败不是例外，是日常状态
+      - 验证必须进入完成定义——没经过验证的输出不算完成
+      - 权限是系统器官，不是附属功能——嵌入系统核心
+      - 上下文是资源，不是垃圾桶——context window 有限，必须主动治理
+      - 多 agent 靠角色分离，不靠人海战术——价值在于职责拆分
+      - 团队制度比个人技巧重要——可复用的制度 > 不可复制的个人经验
+    - 为什么 Claude Code 值得研究
+      - 用 query loop 管理状态——没有假定模型会持续正确
+      - 用权限和调度约束工具——没有假定调用天然安全
+      - 引入 memory/CLAUDE.md/compact/session memory——没有假定上下文越多越好
+      - 为 prompt too long/max output tokens 设计恢复路径——没有把错误视为偶发事件
+      - 把 synthesis 和 verification 单独拆开——没有把多 agent 直接等同于更强能力
+    - 从"回答"到"执行"的质变
+      - 纯聊天模型的错误是"说错话"，agent 的错误是"做错事"
+      - 核心问题不再是模型是否聪明，而是系统是否提供了足够约束
+  - 第 1 章：Harness 五层结构总览
+    - 第 1 层：System Prompt 分层拼装——不同职责的规则分开管理
+    - 第 2 层：Query Loop 带状态多轮执行——记住上一轮发生了什么
+    - 第 3 层：工具调度——系统决定工具怎么跑，而不是模型说了算
+    - 第 4 层：Bash 高密度规约——能力越大，规矩越细
+    - 第 5 层：错误即主路径——错误不是意外，是必须预设恢复方案的日常
+    - 五层统一逻辑
+      - 模型会犯错 → 需要规则手册
+      - 任务是多步骤的 → 需要工作循环管理状态
+      - 工具会扩大错误后果 → 工具调用要受调度
+      - 有些工具特别危险 → 要配特别细的规矩
+      - 失败会反复出现 → 错误处理要成为正式流程
+    - 原则 1：Agent 系统的关键能力是约束执行
+  - 第 2 章：Prompt 控制平面
+    - 2.1 Prompt 是控制平面，不是人设
+      - 人设解决"它像什么"，控制平面解决"能做什么、什么时候做、做错了怎么办"
+      - prompt 是一组按职责分段组装的规则模块
+    - 2.2 Prompt 从一开始就是分层的
+      - 第一类：身份和总任务说明——交互式 agent + 安全约束
+      - 第二类：系统级规则——权限审批、拒绝后不重试、上下文自动压缩等
+      - 第三类：工程性指令——不越权优化、不隐瞒验证失败、不制造不必要的抽象
+    - 2.3 Prompt 来源的优先级链
+      - override（最高）→ coordinator → agent → custom → default（最低）
+      - 遵循"越具体越优先"原则
+      - Proactive Mode 特殊处理：agent prompt 叠加在 default 之上，不替换基线纪律
+    - 2.4 Prompt 连接着记忆系统
+      - Memory 上下文装配：project/local/team/auto memory 整理成统一格式拼入 prompt
+      - Memory 保存规则也是 Prompt 的一部分：采集标准、存储格式、索引规范、淘汰策略、验证机制
+      - prompt 本身变成了记忆系统的操作手册
+    - 2.5 Prompt 的缓存与计算成本
+      - 第一级：Section 级缓存
+        - cacheBreak: false——可缓存，加载一次直到 /clear 或 /compact 才重算
+        - cacheBreak: true（DANGEROUS_ 前缀）——每轮重算，必须写明原因
+      - 第二级：Boundary 分隔
+        - 静态内容（所有用户一样）放前面，标记 cacheScope: 'global'
+        - 动态内容（每个用户/会话不同）集中到末尾
+        - 控制爆炸半径：不稳定部分集中隔离，保护前面稳定内容的缓存收益
+    - 2.6 用户可以覆盖 prompt，但不能跳过结构
+    - 原则 2：Prompt 的价值，在于它是否被纳入一套清楚的控制结构
+  - 第 3 章：Query Loop——agent 系统的心跳
+    - 3.1 Agent 的第一个标志：带状态的执行循环
+      - query()：入口壳函数
+      - queryLoop()：核心——维护跨迭代状态，处理前置治理，流式阶段，工具执行/恢复/压缩/继续/终止
+    - 3.2 State 类型：10 个跨迭代状态字段
+      - messages——完整对话历史
+      - toolUseContext——工具使用上下文
+      - autoCompactTracking——自动压缩追踪
+      - maxOutputTokensRecoveryCount——输出截断恢复计数
+      - hasAttemptedReactiveCompact——是否已尝试响应式压缩
+      - maxOutputTokensOverride——输出 token 上限的临时覆盖值
+      - pendingToolUseSummary——待处理的工具使用摘要
+      - stopHookActive——stop hook 是否激活
+      - turnCount——当前轮次计数
+      - transition——转换原因
+    - 3.3 先清理上下文，再调用模型：调用前的 8 步流水线
+      - memory 预取 → skill discovery → compact boundary 截取 → tool result budget
+      - history snip → microcompact → context collapse → autocompact
+      - 把"上下文整理"放在"模型推理"之前
+    - 3.4 流式消费
+      - 模型输出是 SSE 事件流，每个 content_block_stop 就 yield 一条 AssistantMessage
+      - StreamingToolExecutor：工具与模型输出在时间上重叠
+        - 并发安全工具（如 Read）立刻启动，可同时跑
+        - 非并发安全工具（如 Bash）排队等待前面所有工具完成
+      - for await 循环内四个并发关注点：工具提交、结果收割、错误拦截、回退处理
+      - Bash 出错会级联取消兄弟工具（只有 Bash 会触发 sibling abort）
+    - 3.5 中断处理
+      - 中断时必须补齐 synthetic tool_result——API 要求每个 tool_use 有对应 tool_result
+      - 只要系统向外承诺了一段执行，就要在中断时把账补平
+    - 3.6 恢复机制
+      - prompt-too-long 恢复：三层修复链
+        - 第一层：collapse drain——零成本纯本地操作，commit 所有 staged 折叠
+        - 第二层：reactive compact——调模型生成摘要，仅尝试一次
+        - 第三层：truncateHead——砍掉最早的对话组重试
+        - 三层都失败则暴露错误给用户，跳过 stop hooks
+      - max-output-tokens 恢复：三层递进
+        - 第一层：丢弃 8k 断稿，提升到 64k 重发
+        - 第二层：保留断稿 + 注入恢复指令（no apology/no recap/拆小块），最多 3 次
+        - 第三层：恢复穷尽，暴露原始错误
+      - Withhold 机制：先扣住错误自己修，修不了再放出去
+      - Death spiral 防护：API 错误时跳过 stop hooks，防止往爆掉的上下文继续加料
+    - 3.7 停止条件：7 种不同的结束方式
+      - streaming 正常完成且有 tool_use → 执行工具，继续下一轮
+      - 没有 tool_use → 运行 stop hooks 判定
+      - 被用户中断 → 补齐 synthetic tool_result，干净退出
+      - prompt-too-long → collapse → compact 恢复链
+      - max-output-tokens → 提升上限或注入续写指令
+      - stop hook 阻塞 → 带反馈继续下一轮
+      - API 错误 → 直接返回错误
+    - 3.8 QueryEngine：循环属于会话生命周期
+      - QueryEngine 状态跨 turn 存活：mutableMessages/totalUsage/permissionDenials 等
+      - queryLoop 状态单 turn 内存活：turnCount/autoCompactTracking 等
+      - submitMessage() 串起两层
+    - 原则 3：Agent 系统的核心能力，是维持可恢复的执行循环
+  - 第 4 章：工具、权限与中断
+    - 4.1 工具是动作，动作会留下结果，结果会接触真实世界
+    - 4.2 工具调度与 contextModifier 的顺序保障
+      - 并发执行（多个只读操作）vs 串行执行（涉及写操作或状态变更）
+      - contextModifier 按原始 assistant block 顺序应用，不按实际完成顺序
+      - 并发可以提高吞吐，但不能打乱因果顺序
+    - 4.3 工具执行流水线
+      - 前置校验：权限检查（allow/deny/ask）
+      - 执行中：hooks 触发、telemetry 记录、中断监听
+      - 执行后：结果合并、contextModifier、synthetic error 生成
+    - 4.4 权限三态系统
+      - allow——规则明确允许 → 直接执行
+      - deny——规则明确拒绝 → 直接拒绝
+      - ask——系统自己也不该替用户做决定 → 进入协调器/分类器/交互式审批
+    - 4.5 PermissionResult 类型系统
+      - 不是简单 boolean，而是携带原因和元数据的专门类型
+    - 4.6 StreamingToolExecutor 的中断语义
+      - Synthetic Error：sibling_error | user_interrupted | streaming_fallback
+      - interruptBehavior：cancel（立刻取消）vs block（继续跑完，阻塞用户新消息）
+    - 4.7 Bash 为什么最危险
+      - 第一层：Prompt 级明确规则——禁改 git config、禁跳 hooks、禁 git add .、禁默认 commit/push
+      - 第二层：运行时安全分析——解析 shell 语义、提取命令前缀、匹配安全规则、超 50 子命令直接要求确认
+      - 高风险能力不应享受通用能力的待遇
+    - 原则 4：工具是受管执行接口；权限是 agent 系统的基本器官
+  - 第 5 章：上下文治理——Memory、CLAUDE.md 与 Compact 是预算制度
+    - 5.1 上下文不是仓库，是一笔昂贵的预算
+    - 5.2 CLAUDE.md 体系——长期指令不能和临场对话混在一起
+      - 四层加载：managed memory → user memory → project memory → local memory
+      - 离当前工作目录越近、越偏向私有和本地的规则，优先级越高
+      - 内容进入 system prompt，不会被 compact 摘要掉
+      - @include 机制：限制文本扩展名，最大递归深度 5
+      - 条件规则：.claude/rules/*.md 用 glob 模式匹配当前工作路径
+    - 5.3 MEMORY.md 是索引，不是日记本
+      - 保存 memory 两步：写独立文件 + 在 MEMORY.md 加一行指针
+      - 硬限制：最多 200 行 / 25KB
+      - 长期记忆必须分成"入口"和"正文"
+    - 5.4 Session memory——短期连续性的预结构化摘要
+      - 9 个栏目：Current State / Task specification / Files and Functions / Workflow / Errors & Corrections / Codebase Documentation / Learnings / Key results / Worklog
+      - 写入阶段：post-sampling hook，后台 subagent 增量更新
+      - 读取阶段：autocompact 时优先用 session memory 代替调模型生成摘要
+      - 预算控制：单栏目 2,000 tokens，总预算 12,000 tokens
+    - 5.5 自动 compact——上下文治理首先是预算治理
+      - 预算计算：先给 compact 本身预扣 20,000 tokens 输出空间
+      - Circuit breaker：连续失败 3 次后熔断，本 session 后续 autocompact 全部跳过
+      - 递归保护：session_memory/compact/marble_origami 来源的请求跳过 autocompact
+      - 功能门控：REACTIVE_COMPACT 开启时抑制主动 autocompact；CONTEXT_COLLAPSE 开启时由 collapse 接管
+    - 5.6 compactConversation()——摘要要重建可继续工作的上下文
+      - 第一步：压缩前清洗——剥离图片和即将补回的 attachment
+      - 第二步：摘要失败时 truncateHeadForPTLRetry——按 API round 分组砍掉最早的组，最多重试 3 次
+      - 第三步：compact 后环境重建
+        - 清空旧 readFileState
+        - 重建 file attachments（最多 5 个，总预算 50K tokens）
+        - 补回 plan/plan mode/invoked skills/deferred tools/agent listing/MCP instructions
+        - 执行 hooks，写 compact boundary
+      - 增量 diff 与全量重播：compact 后传空消息数组让 diff 函数全量重播
+      - Compact 更像一次受控重启，而不是聊天总结
+    - 原则 5：上下文是工作内存，治理目标是支持系统继续工作
+  - 第 6 章：错误与恢复——"错误即主路径"的设计哲学
+    - 判断 agent 成熟度：看它出故障时像不像系统
+    - 三层修复链概览
+      - prompt too long：collapse drain → reactive compact → truncateHead
+      - max_output_tokens：提升 cap → 追加续写指令（最多 3 次） → 暴露错误
+      - autocompact 连续失败：circuit breaker 熔断
+      - 用户中断：补齐 synthetic tool_result
+    - 错误处理真正保护的是执行叙事的一致性
+      - State 中的字段构成一条执行日志，可还原完整故事
+      - 错误恢复修补的不只是错误本身，还有系统"说清楚自己干了什么"的能力
+    - 原则 6：出错后仍能保持"说得清、兜得住、接着干"的状态
+  - 第 7 章：Multi-Agent 与验证
+    - 7.1 单 agent 问题：研究、实现、验证挤在同一条上下文链上
+    - 7.2 Forked agent 第一原则是 cache-safe
+      - 子代理继承父的 system prompt/用户上下文/工具定义，保证 API 缓存命中
+      - CacheSafeParams：systemPrompt/userContext/systemContext/toolUseContext/forkContextMessages
+      - 父调用后保存缓存参数，子代理取出复用，实现 cache hit
+      - 不要随便改 maxOutputTokens——thinking config 也是 cache key
+    - 7.3 状态隔离：子 agent 首先要减少污染
+      - 默认隔离：readFileState 克隆、abortController 独立、setAppState 默认 no-op
+      - 显式 opt-in 才共享：shareSetAppState/shareSetResponseLength/shareAbortController
+      - 例外：setAppStateForTasks 始终用父的回调，防止僵尸进程
+    - 7.4 协调者模式：synthesis 才是稀缺能力
+      - 协调者必须 Always synthesize——读懂 worker 结果，写出具体 prompt
+      - 不能说"based on your findings"——理解不能外包
+      - Worker 结果以 user-role message 回到 coordinator，包含 task-id/status/summary/result/usage
+    - 7.5 验证必须独立成阶段
+      - 四阶段：Research → Synthesis → Implementation → Verification
+      - Verification 要求：run tests/investigate errors/be skeptical/test independently
+      - "我改了代码"和"代码因此正确"之间隔着一条很宽的河
+    - 7.6 Hooks 和任务生命周期
+      - SubagentStart/SubagentStop hook
+      - exit code 2：把 stderr 作为反馈注入回 subagent 继续执行
+      - 每个 async agent 注册 cleanup handler，父 abort 自动级联
+    - 7.7 验证也针对记忆——memory 可能过期，使用前要 verify
+    - 原则 7：Multi-agent 依赖清晰分工，由协调者把结果重新缝合成可交付结果
+  - 第 8 章：团队落地
+    - 8.1 个人能用不等于团队能承受
+      - 关键是把靠高手脑子维持的秩序写成系统级制度
+    - 8.2 团队 CLAUDE.md：分层稳定优先
+      - 适合放：代码库级硬约束、统一验证口径、输出纪律、常见协作约束
+      - 不适合放：频繁波动的内容、只对少数任务生效的细节
+    - 8.3 Skill 是可复用的制度切片
+      - 强制调用语义：匹配后必须走 skill 路径，模型无权跳过
+      - Skill 在子 agent 中执行：隔离上下文 + 工具白名单
+      - Listing 预算约为上下文窗口的 1%，每个 skill 描述最多 250 字符
+    - 8.4 Approval 用来替团队划责任边界
+      - 权限规则八级来源：userSettings/projectSettings/localSettings/flagSettings/policySettings/cliArg/command/session
+      - 按"后果不可逆性"和"环境敏感度"分级，不按工具名字一刀切
+    - 8.5 Hook 的真正用途是把制度挂到生命周期上
+      - 事件覆盖：SubagentStart/Stop、PreCompact/PostCompact、StopFailure、SessionStart/End、FileChanged、PermissionRequest/Denied 等
+      - 静态规则写 CLAUDE.md，时点动作挂 hook
+    - 8.6 先统一验证定义，再扩 skill 数量
+      - 验证定义：团队对"什么算验证通过"的共识标准
+      - skill 复制流程，验证定义复制质量底线
+      - 三条验证定义：哪些任务必须独立验证 / 验证至少包含哪些动作 / 验证失败时的处理方式
+    - 8.7 观测与审计
+      - 不要只部署能力，还要部署可追溯性
+    - 原则 8：把个人经验固化成分层规则、可执行的 skill、审批边界和可复盘的生命周期
+  - 第 9 章：Harness Engineering 十条原则
+    - 1. 把模型当不稳定部件，不要当同事
+    - 2. Prompt 是控制面的一部分
+    - 3. Query loop 才是 agent 系统的心跳
+    - 4. 工具是受约束的执行接口
+    - 5. 上下文是工作内存
+    - 6. 错误路径就是主路径
+    - 7. 恢复的目标是继续工作
+    - 8. Multi-agent 是把不确定性分区
+    - 9. 验证必须独立
+    - 10. 团队制度比个人技巧重要
+    - Harness 比激情重要，制度比聪明重要，验证比自信重要

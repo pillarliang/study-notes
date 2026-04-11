@@ -6,7 +6,6 @@
       {
         "id": "c7e5ef0ef72ef2c7",
         "type": "tabs",
-        "dimension": 51.43051771117166,
         "children": [
           {
             "id": "4d93b7faec7b2515",
@@ -20,23 +19,6 @@
               },
               "icon": "lucide-file",
               "title": "book1-claude-code-学习笔记-final"
-            }
-          }
-        ]
-      },
-      {
-        "id": "4eebc71fc8fd611f",
-        "type": "tabs",
-        "dimension": 48.56948228882834,
-        "children": [
-          {
-            "id": "b347d831153f68eb",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
             }
           }
         ]
@@ -96,7 +78,8 @@
       }
     ],
     "direction": "horizontal",
-    "width": 200
+    "width": 200,
+    "collapsed": true
   },
   "right": {
     "id": "18704fb929da8db0",
@@ -204,6 +187,8 @@
   },
   "active": "4d93b7faec7b2515",
   "lastOpenFiles": [
+    "AI/harness-engineering/book1-claude-code-学习笔记-final-mubu.md",
+    "weekly-report_2026-04-09.md",
     "AI/harness-engineering/drafts/book1-claude-code-c7-c9-学习笔记.md",
     "AI/harness-engineering/drafts/book1-claude-code-c5-c6-学习笔记.md",
     "AI/harness-engineering/drafts/book1-claude-code-c3-c4-学习笔记.md",
@@ -248,8 +233,6 @@
     "Untitled.base",
     "Untitled.canvas",
     "AI/Plaud Model Hub 架构学习笔记.md",
-    "AI/create_agent 开发指南.md",
-    "DEV/temporal_notes.md",
-    "work/model-hub-config-guide.md"
+    "AI/create_agent 开发指南.md"
   ]
 }
