@@ -1,10 +1,5 @@
 # Harness Engineering 学习笔记：以 Claude Code 为样本
 
-> 来源：《Harness Engineering — 以 Claude Code 为样本》(@wquguru, 2026.04.01)  
-> 在线阅读：harness-books.agentway.dev/book1-claude-code  
-> 深度阅读（第二本）：[[book2-deep-dive-c1-c2-学习笔记]] ~ [[book2-deep-dive-c9-c10-学习笔记]]  
-> 相关笔记：[[Claude_Code_使用文档]] · [[MCP_学习笔记]] · [[AI Agent 运作原理 — 以 OpenClaw 为例]] · [[三个-Scaling-维度的统一框架-学习笔记]] · [[6.2-Agents]]
-
 ---
 
 ## 全景图
