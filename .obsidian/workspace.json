@@ -11,14 +11,10 @@
             "id": "4d93b7faec7b2515",
             "type": "leaf",
             "state": {
-              "type": "markdown",
-              "state": {
-                "file": "AI/harness-engineering/book1-claude-code-学习笔记-final.md",
-                "mode": "preview",
-                "source": false
-              },
+              "type": "empty",
+              "state": {},
               "icon": "lucide-file",
-              "title": "book1-claude-code-学习笔记-final"
+              "title": "New tab"
             }
           }
         ]
@@ -187,6 +183,8 @@
   },
   "active": "4d93b7faec7b2515",
   "lastOpenFiles": [
+    "AI/harness-engineering/book1-claude-code-学习笔记-final.md",
+    "AI/harness-engineering/Claude Code - Harness Engineering.md",
     "AI/harness-engineering/book1-claude-code-学习笔记-final-mubu.md",
     "weekly-report_2026-04-09.md",
     "AI/harness-engineering/drafts/book1-claude-code-c7-c9-学习笔记.md",
@@ -196,7 +194,6 @@
     "AI/harness-engineering/drafts",
     "AI/harness-engineering/sources/claude-code-harness.png",
     "AI/harness-engineering/book1-claude-code-c3-c4-学习笔记.md",
-    "AI/harness-engineering/book1-claude-code-学习笔记-final.md",
     "AI/harness-engineering/book1-claude-code-c1-c2-学习笔记.md",
     "work/image-handling-in-export.md",
     "AI/harness-engineering/book2-deep-dive-c1-c2-学习笔记.md",
@@ -232,7 +229,6 @@
     "Untitled 1.base",
     "Untitled.base",
     "Untitled.canvas",
-    "AI/Plaud Model Hub 架构学习笔记.md",
-    "AI/create_agent 开发指南.md"
+    "AI/Plaud Model Hub 架构学习笔记.md"
   ]
 }
