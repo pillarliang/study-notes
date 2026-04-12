@@ -4,7 +4,7 @@
 
 ## 全景图
 
-Claude Code Harness Engineering 全景图
+![Claude Code Harness Engineering 全景图](sources/claude-code-harness.png)
 
 ---
 
