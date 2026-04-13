@@ -23,7 +23,7 @@ study-notes/
 | 笔记 | 关键词 | 摘要 |
 | ------ | -------- | ------ |
 | [MCP 学习笔记](AI/agents/MCP_学习笔记.md) | Model Context Protocol、工具调用、MCP Server | MCP 协议的架构设计与生态定位，定义了 LLM 应用与外部系统（工具、数据源、服务）之间的统一接口标准。笔记梳理了 Server/Client 交互流程、工具声明规范以及在 Agent 框架中的集成方式。 |
-| [ADK Skill 设计模式](AI/agents/adk-skill-design-patterns-学习笔记.md) | Agent SDK、Skill 设计、工具封装 | Google ADK 中 Skill 的五大设计模式总结，厘清 Tool（原子操作）与 Skill（可组合能力单元）的本质区别。讨论了技能编排规范、参数传递约定及在多 Agent 场景下的复用策略。 |
+| [Agent Skill 设计模式](AI/agents/agent-skill-design-patterns.md) | Agent Skills 规范、五大设计模式、Skill 安装与分发 | Agent Skills（agentskills.io 开放规范）的五大设计模式总结，厘清 Tool（原子操作）与 Skill（可组合能力单元）的本质区别。涵盖 SKILL.md 规范、渐进式加载机制、`npx skills` CLI 与 Claude Code Plugin 安装方式，以及 Skill 的跨平台分发策略。 |
 | [create_agent 开发指南](AI/agents/create_agent%20开发指南.md) | Agent 创建、框架配置 | Agent 开发的端到端指南，从框架选型、工具定义、状态管理到部署上线的完整流程。包含配置模板、常见陷阱与调试技巧。 |
 | [DeepAgents 学习笔记](AI/agents/deepagents%20学习笔记.md) | Multi-agent、任务分解 | DeepAgents 框架的多层次 Agent 协作模式，探讨如何将复杂任务分解为子任务并分配给专精 Agent。涵盖深度推理策略、Agent 间通信机制与任务编排设计。 |
 | [AI Agent 运作原理 — 以 OpenClaw 为例](AI/agents/AI%20Agent%20运作原理%20—%20以%20OpenClaw%20为例.md) | Agent 工作流、工具调用链路 | 以 OpenClaw 为实例拆解 Agent 的完整运行机制，包括查询循环（Query Loop）、工具调用链路、记忆管理与多轮推理的协调方式。帮助理解 Agent 从接收指令到产出结果的全路径。 |

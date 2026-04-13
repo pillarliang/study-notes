@@ -32,7 +32,8 @@
       "Bash(grep -v \"^.$\")",
       "Bash(find /Users/liangzhu/Documents/dev/claude-code-source -name \"*.ts\" -exec grep -l \"StreamingToolExecutor\\\\|getRemainingResults\" {} \\\\;)",
       "mcp__feishu-mcp__fetch-doc",
-      "Bash(find /Users/liangzhu/Documents/dev/claude-code-source/src/query -name \"*.ts\" -exec basename {} \\\\;)"
+      "Bash(find /Users/liangzhu/Documents/dev/claude-code-source/src/query -name \"*.ts\" -exec basename {} \\\\;)",
+      "WebFetch(domain:github.com)"
     ]
   }
 }

@@ -192,6 +192,190 @@ Description 字段相当于 Skill 的**搜索索引**。Agent 根据用户输入
 
 Skills 遵循 [agentskills.io](https://agentskills.io) 开放规范（由 Anthropic 发起），已被 **30+ Agent 产品**采用，包括：Claude Code、Gemini CLI、Cursor、GitHub Copilot、VS Code、OpenAI Codex、Roo Code、Kiro、JetBrains Junie、Databricks 等。
 
+### 2.8 Skill 的安装与管理
+
+笔记前面讲了 Skill 的格式和存储位置，但**怎么把别人写好的 Skill 装到自己的环境里？** 这里介绍三种主流方式。
+
+#### 方式一：`npx skills` CLI（通用，推荐）
+
+[skills.sh](https://skills.sh) 提供了一个跨 Agent 平台的 CLI 工具，通过 `npx` 直接运行，无需全局安装：
+
+**基本用法：**
+
+```bash
+# 安装某个 GitHub 仓库中的 Skill（交互式选择具体 Skill 和目标 Agent）
+npx skills add <owner/repo>
+
+# 示例：安装 Vercel 的 Agent Skills
+npx skills add vercel-labs/agent-skills
+
+# 安装 Google ADK 官方 Skills
+npx skills add google/adk-docs -y -g
+```
+
+**关键参数：**
+
+| 参数 | 说明 | 示例 |
+|------|------|------|
+| `-g, --global` | 安装到**用户级**（`~/.agents/skills/`），而非项目级 | `npx skills add foo/bar -g` |
+| `-y, --yes` | 跳过确认提示，自动安装 | `npx skills add foo/bar -y` |
+| `-a, --agent <agents>` | 指定安装到哪些 Agent（如 `claude-code`、`cursor`），用 `*` 表示所有 | `npx skills add foo/bar -a claude-code cursor` |
+| `-s, --skill <skills>` | 仓库中有多个 Skill 时，指定安装哪些 | `npx skills add foo/bar -s pr-review commit` |
+| `--all` | `--skill '*' --agent '*' -y` 的简写，全部安装、跳过确认 | `npx skills add foo/bar --all` |
+| `--copy` | 复制文件而非创建符号链接 | `npx skills add foo/bar --copy` |
+
+**其他管理命令：**
+
+```bash
+# 列出已安装的 Skills
+npx skills list              # 项目级
+npx skills ls -g             # 用户级
+npx skills ls -a claude-code # 按 Agent 过滤
+npx skills ls --json         # JSON 格式输出
+
+# 搜索 Skills
+npx skills find              # 交互式搜索
+npx skills find typescript   # 按关键词搜索
+
+# 更新 Skills
+npx skills update            # 更新所有
+npx skills update my-skill   # 更新指定 Skill
+npx skills update -g         # 仅更新用户级
+
+# 删除 Skills
+npx skills remove            # 交互式选择删除
+npx skills remove web-design # 按名称删除
+npx skills rm --global foo   # 删除用户级的指定 Skill
+
+# 初始化新 Skill（脚手架）
+npx skills init my-skill     # 创建 my-skill/SKILL.md
+```
+
+> **安装原理**：`npx skills add` 会从 GitHub 仓库拉取 Skill 文件，按照目标 Agent 的约定路径（如 Claude Code 的 `.claude/skills/`、VS Code 的 `.agents/skills/`）放置文件，默认使用**符号链接**（symlink）方式。
+
+#### 方式二：Claude Code Plugin 系统
+
+Claude Code 自身有一套 Plugin 机制（Plugin 是比 Skill 更大的概念，可以包含 Skill、MCP Server 等），提供了三种安装方式：
+
+**方式 2a：通过 Marketplace（推荐）**
+
+```bash
+# 步骤 1：添加 marketplace（GitHub 仓库作为 Skill 源）
+/plugin marketplace add <owner/repo>
+
+# 步骤 2：安装具体的插件
+/plugin install <plugin-name>
+```
+
+以 [python-code-style](https://github.com/pillarliang/python-code-style) 为例：
+
+```bash
+/plugin marketplace add pillarliang/python-code-style
+/plugin install python-code-style
+```
+
+**方式 2b：通过 `settings.json` 配置**
+
+在 `~/.claude/settings.json` 中声明 marketplace 和启用的插件：
+
+```json
+{
+  "extraKnownMarketplaces": {
+    "python-code-style": {
+      "source": {
+        "source": "github",
+        "repo": "pillarliang/python-code-style"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "python-code-style@python-code-style": true
+  }
+}
+```
+
+**方式 2c：手动安装**
+
+```bash
+git clone https://github.com/pillarliang/python-code-style.git
+cp -r python-code-style ~/.claude/plugins/python-code-style
+```
+
+**插件管理：**
+
+```bash
+# 查看已安装的插件
+/plugin list
+
+# 更新 marketplace 中的插件
+/plugin marketplace update <owner/repo>
+
+# 自动更新：运行 /plugin → Marketplaces 标签页 → 选择 marketplace → Enable auto-update
+```
+
+#### 方式三：手动放置文件
+
+最朴素的方式——直接把 Skill 目录复制到对应路径：
+
+```bash
+# 项目级（团队共享，提交到 Git）
+cp -r my-skill/ <project>/.claude/skills/my-skill/   # Claude Code
+cp -r my-skill/ <project>/.agents/skills/my-skill/   # VS Code / Copilot 等
+
+# 用户级（个人跨项目）
+cp -r my-skill/ ~/.claude/skills/my-skill/            # Claude Code
+cp -r my-skill/ ~/.agents/skills/my-skill/            # 其他 Agent
+```
+
+#### 项目级 vs 用户级：如何选择？
+
+| 维度 | 项目级（Project） | 用户级（Global） |
+|------|-------------------|------------------|
+| **路径** | `<project>/.claude/skills/` | `~/.claude/skills/` |
+| **谁能用** | 所有克隆此仓库的团队成员 | 仅当前用户 |
+| **是否提交到 Git** | 是，团队共享 | 否，仅本地 |
+| **典型场景** | 团队编码规范、项目特定的工作流 | 个人效率工具、通用写作风格 |
+| **CLI 参数** | 默认（无 `-g`） | `-g` / `--global` |
+
+#### 实例分析：双格式兼容的 Skill 仓库
+
+一个 Skill 仓库可以同时支持 `npx skills`（通用）和 Claude Code Plugin（专用）两种安装方式。以 [pillarliang/python-code-style](https://github.com/pillarliang/python-code-style) 为例，它的仓库结构如下：
+
+```
+pillarliang/python-code-style/
+├── .claude-plugin/                  # ← Claude Code Plugin 格式
+│   ├── marketplace.json
+│   └── plugin.json
+├── skills/
+│   └── python-code-style/           # ← agentskills.io 标准格式
+│       ├── SKILL.md
+│       └── references/
+│           ├── docstrings.md
+│           ├── naming-conventions.md
+│           ├── language-rules.md
+│           └── style-rules.md
+└── docs/
+    └── README.zh-cn.md
+```
+
+**两套目录各司其职：**
+
+| 目录 | 服务于 | 安装命令 |
+|------|--------|---------|
+| `.claude-plugin/` | Claude Code Plugin 系统 | `/plugin marketplace add pillarliang/python-code-style` |
+| `skills/python-code-style/` | `npx skills` CLI（跨平台） | `npx skills add pillarliang/python-code-style` |
+
+**识别原理不同：**
+- `npx skills add` 会递归扫描仓库中所有包含 `SKILL.md` 的子目录，找到 `skills/python-code-style/SKILL.md` 后识别为一个可安装的 Skill
+- Claude Code `/plugin` 则读取 `.claude-plugin/plugin.json` 中的配置来注册插件
+
+**双格式兼容的好处：**
+- 使用 Claude Code 的用户可以通过 `/plugin` 获得完整的插件体验（自动更新、marketplace 管理等）
+- 使用 Cursor、VS Code Copilot、Gemini CLI 等其他 Agent 的用户也能通过 `npx skills add` 安装同一个 Skill
+- Skill 的核心内容（`SKILL.md` + `references/`）只维护一份，两种安装方式共享
+
+> **给 Skill 作者的建议**：如果你的 Skill 希望跨平台使用，建议采用双格式结构。`skills/<name>/SKILL.md` 是通用入口，`.claude-plugin/` 是 Claude Code 的增强入口。两者可以指向同一份 Skill 内容。
+
 ---
 
 ## 三、五大设计模式详解
