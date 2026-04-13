@@ -11,10 +11,34 @@
             "id": "4d93b7faec7b2515",
             "type": "leaf",
             "state": {
-              "type": "empty",
-              "state": {},
+              "type": "markdown",
+              "state": {
+                "file": "Clippings-1/你不知道的大模型训练：原理、路径与新实践.md",
+                "mode": "source",
+                "source": false
+              },
               "icon": "lucide-file",
-              "title": "New tab"
+              "title": "你不知道的大模型训练：原理、路径与新实践"
+            }
+          }
+        ]
+      },
+      {
+        "id": "de525bbc5960c94c",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "d12a53ebb685529a",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "AI/ai-engineering/supplementary/大模型训练全链路-学习笔记.md",
+                "mode": "preview",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "大模型训练全链路-学习笔记"
             }
           }
         ]
@@ -74,7 +98,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 200,
+    "width": 302.5,
     "collapsed": true
   },
   "right": {
@@ -181,8 +205,12 @@
       "bases:Create new base": false
     }
   },
-  "active": "4d93b7faec7b2515",
+  "active": "d12a53ebb685529a",
   "lastOpenFiles": [
+    "AI/ai-engineering/supplementary/Transformer-架构全景解析.md",
+    "AI/ai-engineering/supplementary/大模型训练全链路-学习笔记.md",
+    "AI/ai-engineering/supplementary/Sampling-采样与推理详解.md",
+    "Clippings-1/你不知道的大模型训练：原理、路径与新实践.md",
     "AI/harness-engineering/book1-claude-code-学习笔记-final.md",
     "AI/harness-engineering/Claude Code - Harness Engineering.md",
     "AI/harness-engineering/book1-claude-code-学习笔记-final-mubu.md",
@@ -215,20 +243,16 @@
     "Clippings-1/Attachments/Image 2.png",
     "Clippings-1/Attachments/Image 1.jpg",
     "Clippings-1/Attachments/Image 1.png",
-    "Clippings-1/Karpathy 最新分享：用 LLM 搭建个人知识库，告别 RAG 的低效循环.md",
     "Clippings-1/Attachments/Image 9.png",
     "Clippings-1/Attachments/Image 8.png",
     "Clippings-1/Attachments/Image 5.jpg",
     "Clippings-1/Attachments/Image 7.png",
     "Clippings-1/Attachments/Image 6.png",
     "Clippings-1/Attachments",
-    "Clippings/Karpathy 最新分享：用 LLM 搭建个人知识库，告别 RAG 的低效循环.md",
-    "AI/harness-engineering/book1-claude-code-c5-c6-学习笔记.md",
     "Clippings",
     "Untitled 2.base",
     "Untitled 1.base",
     "Untitled.base",
-    "Untitled.canvas",
-    "AI/Plaud Model Hub 架构学习笔记.md"
+    "Untitled.canvas"
   ]
 }
