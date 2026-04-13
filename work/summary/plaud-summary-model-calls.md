@@ -188,15 +188,15 @@ LangChain 统一接口 (.invoke / .ainvoke / .batch)
 ### 4.3 Knowledge Notes (`plaud_summary/plaud/knowledge_notes/`)
 
 #### knowledge_base_note.py
-| 行号 | 调用方式 | 场景 |
-|------|----------|------|
-| 354 | `self._language_chain.invoke()` | 语言检测 |
-| 378 | `self._header_llm_chain.invoke()` | 标题生成 |
-| 703 | `processor.map().invoke()` | 批量处理 |
-| 970-976 | 阶段模型列表 | framework/expand/polish 各阶段 |
-| 1000 | `dispatcher.dispatch()` | 按模型名获取 endpoint |
-| 1080 | `.invoke(prompt)` | 正文生成 |
-| 1117 | `dispatcher.dispatch()` | global fallback |
+| 行号      | 调用方式                              | 场景                          |
+| ------- | --------------------------------- | --------------------------- |
+| 354     | `self._language_chain.invoke()`   | 语言检测                        |
+| 378     | `self._header_llm_chain.invoke()` | 标题生成                        |
+| 703     | `processor.map().invoke()`        | 批量处理                        |
+| 970-976 | 阶段模型列表                            | framework/expand/polish 各阶段 |
+| 1000    | `dispatcher.dispatch()`           | 按模型名获取 endpoint             |
+| 1080    | `.invoke(prompt)`                 | 正文生成                        |
+| 1117    | `dispatcher.dispatch()`           | global fallback             |
 
 **支持的模型映射**（knowledge_base_note.py:82-101）：
 - Gemini: 2.5-pro, 2.5-flash, 2.5-flash-lite, 3-pro

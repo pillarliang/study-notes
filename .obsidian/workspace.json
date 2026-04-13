@@ -35,8 +35,7 @@
               "title": "Plaud Model Hub 完全指南"
             }
           }
-        ],
-        "currentTab": 1
+        ]
       }
     ],
     "direction": "vertical"
@@ -93,7 +92,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 200
+    "width": 333.5
   },
   "right": {
     "id": "18704fb929da8db0",
@@ -200,8 +199,9 @@
       "terminal:Open terminal": false
     }
   },
-  "active": "9f909707da5672aa",
+  "active": "314925ee7f7e12f6",
   "lastOpenFiles": [
+    "work/model-hub/Plaud Model Hub 完全指南.md",
     "work/summary/plaud-summary-model-calls.md",
     "work/plaud-summary-model-calls.md",
     "plaud-summary-model-calls.md",
@@ -229,7 +229,6 @@
     "AI/harness-engineering/book2-deep-dive-c9-c10-学习笔记.md",
     "AI/harness-engineering/book2-deep-dive-c7-c8-学习笔记.md",
     "AI/harness-engineering/book2-deep-dive-c5-c6-学习笔记.md",
-    "AI/harness-engineering/book1-claude-code-c9-c10-学习笔记.md",
     "AI/claude-code-source-notes/chapters",
     "AI/claude-code-source-notes",
     "AI/harness-engineering/sources/ai-agent-deep-dive-v2.1.pdf",
