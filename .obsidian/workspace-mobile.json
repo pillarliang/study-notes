@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Clippings-1/Harness Engineering 在讨论什么：三个 Scaling 维度的统一框架.md",
-                "mode": "source",
+                "file": "AI/ai-engineering/supplementary/Sampling-采样与推理详解.md",
+                "mode": "preview",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Harness Engineering 在讨论什么：三个 Scaling 维度的统一框架"
+              "title": "Sampling-采样与推理详解"
             }
           }
         ]
@@ -112,7 +112,7 @@
         "state": {
           "type": "backlink",
           "state": {
-            "file": "AI/harness-engineering/book1-claude-code-学习笔记-final.md",
+            "file": "AI/ai-engineering/supplementary/Sampling-采样与推理详解.md",
             "collapseAll": false,
             "extraContext": false,
             "sortOrder": "alphabetical",
@@ -159,6 +159,7 @@
   },
   "left-ribbon": {
     "hiddenItems": {
+      "terminal:Open terminal": false,
       "switcher:打开快速切换": false,
       "graph:查看关系图谱": false,
       "canvas:新建白板": false,
@@ -170,6 +171,11 @@
   },
   "active": "c54cf109978555d4",
   "lastOpenFiles": [
+    "AI/ai-engineering/supplementary/大模型训练全链路-学习笔记.md",
+    "AI/ai-engineering/supplementary/Sampling-采样与推理详解.md",
+    "AI/ai-engineering/supplementary/Transformer-架构全景解析.md",
+    "Clippings-1/你不知道的大模型训练：原理、路径与新实践.md",
+    "Clippings-1/Harness Engineering 在讨论什么：三个 Scaling 维度的统一框架.md",
     "AI/harness-engineering/book1-claude-code-学习笔记-final-mubu.md"
   ]
 }

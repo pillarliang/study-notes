@@ -33,7 +33,10 @@
       "Bash(find /Users/liangzhu/Documents/dev/claude-code-source -name \"*.ts\" -exec grep -l \"StreamingToolExecutor\\\\|getRemainingResults\" {} \\\\;)",
       "mcp__feishu-mcp__fetch-doc",
       "Bash(find /Users/liangzhu/Documents/dev/claude-code-source/src/query -name \"*.ts\" -exec basename {} \\\\;)",
-      "WebFetch(domain:github.com)"
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:sspai.com)",
+      "mcp__langfuse-docs__searchLangfuseDocs",
+      "Bash(ls -la \"/Users/liangzhu/Library/Mobile Documents/iCloud~md~obsidian/Documents/study-notes/AI/ai-engineering/ch09\"*)"
     ]
   }
 }

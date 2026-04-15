@@ -46,22 +46,22 @@ LangChain 统一接口 (.invoke / .ainvoke / .batch)
 
 ### 2.1 OpenAI 系列
 
-| 行号 | 客户端类 | 模型 | 备注 |
-|------|----------|------|------|
-| 909 | `AzureChatOpenAI` | GPT-4O (Azure) | temperature 可配 |
-| 956 | `ChatOpenAI` | GPT-4O (OpenAI 直连) | |
-| 996 | `ChatOpenAI` | O3-MINI | reasoning_effort=MEDIUM, max_tokens=8192 |
-| 1037 | `AzureChatOpenAI` | O3-MINI (Azure) | reasoning, max_tokens=8192 |
-| 1708 | `ChatOpenAI` | GPT-5 | |
-| 1749 | `ChatOpenAI` | GPT-5 变体 | |
-| 1989 | `ChatOpenAI` | O3 | |
-| 2032 | `ChatOpenAI` | O4-MINI | |
-| 2593 | `AzureChatOpenAI` | Azure PTU | |
-| 2620 | `AzureChatOpenAI` | Azure GPT-4.1 | |
-| 2653 | `AzureChatOpenAI` | Azure GPT-5 | |
-| 2707 | `AzureChatOpenAI` | Azure GPT-5.1 | |
-| 2761 | `AzureChatOpenAI` | Azure GPT-5.2 | |
-| 2808 | `ChatOpenAI` | O3 endpoint 变体 | |
+| 行号   | 客户端类              | 模型                 | 备注                                       |
+| ---- | ----------------- | ------------------ | ---------------------------------------- |
+| 909  | `AzureChatOpenAI` | GPT-4O (Azure)     | temperature 可配                           |
+| 956  | `ChatOpenAI`      | GPT-4O (OpenAI 直连) |                                          |
+| 996  | `ChatOpenAI`      | O3-MINI            | reasoning_effort=MEDIUM, max_tokens=8192 |
+| 1037 | `AzureChatOpenAI` | O3-MINI (Azure)    | reasoning, max_tokens=8192               |
+| 1708 | `ChatOpenAI`      | GPT-5              |                                          |
+| 1749 | `ChatOpenAI`      | GPT-5 变体           |                                          |
+| 1989 | `ChatOpenAI`      | O3                 |                                          |
+| 2032 | `ChatOpenAI`      | O4-MINI            |                                          |
+| 2593 | `AzureChatOpenAI` | Azure PTU          |                                          |
+| 2620 | `AzureChatOpenAI` | Azure GPT-4.1      |                                          |
+| 2653 | `AzureChatOpenAI` | Azure GPT-5        |                                          |
+| 2707 | `AzureChatOpenAI` | Azure GPT-5.1      |                                          |
+| 2761 | `AzureChatOpenAI` | Azure GPT-5.2      |                                          |
+| 2808 | `ChatOpenAI`      | O3 endpoint 变体     |                                          |
 
 ### 2.2 Claude 系列
 
@@ -130,6 +130,95 @@ LangChain 统一接口 (.invoke / .ainvoke / .batch)
 | 3208 | Generic Bedrock | `ChatBedrock` |
 | 3223 | Generic Vertex Claude | `ChatAnthropicVertex` |
 | 3236 | Generic Vertex Gemini | `ChatVertexGemini` |
+
+### 2.8 generic_endpoints 机制详解
+
+#### 是什么
+
+`generic_endpoints` 是一种**纯配置驱动、无需改代码**的 endpoint 加载机制。它的目的是：新增一个模型时，只需要在 AWS Secrets Manager 的 JSON 中往 `generic_endpoints` 数组里追加一条配置，
+
+，就能上线——**不需要写新的 `_parse_xxx_endpoints()` 方法，不需要新增 `ModelName` 枚举，不需要发版**。
+
+#### 为什么需要它
+
+历史上每新增一个模型，都需要在 `endpoint.py` 中：
+1. 新增一个专用的 `_parse_xxx_endpoints()` 方法（如 `_parse_azure_gpt_5_endpoints()`）
+2. 新增一个专用池（如 `_azure_gpt_5_pool`）
+3. 可能还要新增 `ModelName` 枚举值
+
+这导致 `endpoint.py` 膨胀到 3300+ 行，每加一个模型都要改代码、发版。`generic_endpoints` 把"解析 JSON → 创建 LLM client → 放入池"这个流程泛化了，一个方法 `_parse_generic_endpoints()` 处理所有新模型。
+
+#### 与已有模型的对比
+
+|                      | 已有模型（如 GPT-5、Claude）                                    | 新模型（走 generic_endpoints）                                |
+| -------------------- | ------------------------------------------------------- | ------------------------------------------------------- |
+| **Endpoint 加载**      | 专用 `_parse_*` 方法读专用 JSON key（如 `azure_gpt_5_endpoints`） | `_parse_generic_endpoints()` 统一读 `generic_endpoints` 数组 |
+| **Endpoint 放哪**      | 专用池（如 `_azure_gpt_5_pool`、`_claude_sonnet_4_pool`）      | **通用 `_pool`**                                          |
+| **路由方式**             | 按 dispatch 策略从专用池选（weighted/dedicated/gemini）           | 按 `endpoint_prefixes` 前缀从 `_pool` 中匹配                   |
+| **endpoint name 命名** | 任意（如 `azure-sweden-central-gpt-5`）                      | **必须以 `endpoint_prefixes` 开头**（如 `azure-gpt-6-eastus2`） |
+| **是否需要改代码**          | 需要（专用解析方法 + 枚举）                                         | 不需要                                                     |
+
+#### 路由流程
+
+```
+用户请求 model="gpt-6"
+    │
+    ▼
+llm.yaml model_registry 查找 → 找到 name="gpt-6", endpoint_prefixes=["azure-gpt-6"]
+    │
+    ▼
+dispatch_by_endpoint_prefixes(["azure-gpt-6"])
+    │
+    ▼
+遍历 _pool，找 name 以 "azure-gpt-6" 开头的 endpoint
+    │
+    ▼
+命中 "azure-gpt-6-eastus2" → 返回该 endpoint
+```
+
+#### 支持的 type（`_create_generic_llm` 方法）
+
+| type | LangChain Client | 适用场景 | 关键配置字段 |
+|------|-----------------|---------|------------|
+| `azure` | `AzureChatOpenAI` | Azure OpenAI 部署 | `endpoint`, `key`, `azure_deployment`, `openai_api_version` |
+| `openai` | `ChatOpenAI` | 直连 OpenAI API | `model_name`, `key` |
+| `openai_compatible` | `ChatPlaudAI` | 兼容 OpenAI 协议的第三方（Qwen/Doubao/Kimi 等） | `model_name`, `base_url`, `key` |
+| `bedrock` | `ChatBedrock` | AWS Bedrock（Claude 等） | `model_id`, `access_key_id`, `secret_access_key` |
+| `vertex_claude` | `ChatAnthropicVertex` | GCP Vertex AI 上的 Claude | `model`, `project`, `location`, `credentials_secret_name` |
+| `gemini` | `ChatVertexGemini` | Google Vertex AI Gemini | `model`, `google_cloud_project`, `google_cloud_location` |
+
+#### JSON 配置示例
+
+```json
+{
+  "azure_gpt_5_endpoints": [...],     // ← 已有模型，专用 key
+  "claude_3_7_endpoints": [...],      // ← 已有模型，专用 key
+
+  "generic_endpoints": [              // ← 新模型统一入口
+    {
+      "type": "azure",
+      "name": "azure-gpt-6-eastus2",   // ← 必须以 endpoint_prefixes 开头
+      "using": true,
+      "region": "EastUs2",
+      "endpoint": "https://plaud-us-e2.openai.azure.com/",
+      "key": "sk-xxx",
+      "azure_deployment": "gpt-6",
+      "temperature": 1,
+      "tpm": 1000000,
+      "rpm": 1000,
+      "hits": 0.5
+    }
+  ]
+}
+```
+
+#### 关键细节
+
+- **`using: false`**：跳过该 endpoint，不加载到 `_pool`（可用于临时下线）
+- **`model_name` 为 `ModelName.UNKNOWN`**：generic endpoint 不关联枚举值，统一标记为 UNKNOWN
+- **`hits` 字段**：权重值（0~1），用于加权随机选择
+- **`compatible_with`**：在 `llm.yaml` 中配置，当 generic endpoint 全部不可用时，回退到已有模型的专用池（如 `compatible_with: "gpt-5"` 会回退到 GPT-5 的池）
+- **Gemini global 判定**：`google_cloud_location == "global"` 时标记 `is_global_fallback=True`
 
 ---
 
@@ -395,32 +484,129 @@ else:
 
 > 以核心摘要流程 `basic_runnable_summary.py` 为主线，覆盖所有分支和异常路径
 
-### 8.1 全链路架构图
+### 8.1 全链路架构图（从 process 入口到 LLM 调用）
+
+> 从 Kafka 消费到的 `summary_info` dict 开始，追踪 `model` 参数在每一步的流转
 
 ```
-┌──────────────────────────── Phase 1: 模型选择 ────────────────────────────┐
+┌─────────────────────────── Phase 0: 入口 ─────────────────────────────────┐
 │                                                                           │
-│  summary.py:get_endpoint_for_llm()                                        │
+│  summary.py:1182  process(semaphore, message_id, summary_id, summary_info)│
 │      │                                                                    │
-│      ├─ GPT-4O/4O-old/4.1 → 强制映射到 GPT_5                             │
-│      ├─ AUTO → dispatch_auto_model() → 概率选模型                         │
-│      ├─ llm_model_map 命中 → dispatch(model_name)                         │
-│      ├─ 动态路由 → endpoint_prefixes / compatible_with                    │
-│      └─ 全部未命中 → 默认 dispatch(GPT_5)                                │
-│                                                                           │
+│      ├─ 1. 解包参数：                                                     │
+│      │      llm = summary_info.get("llm")        # ← model 入口参数      │
+│      │      scenario, language, content, file_id, user_id ...             │
+│      │                                                                    │
+│      ├─ 2. 前置处理（与 model 无关）：                                     │
+│      │      ├─ 获取 marks 数据（S3）                                      │
+│      │      ├─ Content Moderation 审核                                    │
+│      │      └─ 审核不通过 → 直接返回错误码                                 │
+│      │                                                                    │
+│      ├─ 3. 路由分支（决定后续执行模式）：                                  │
+│      │      ├─ is_additional_dimension / is_retry / is_change_temp        │
+│      │      │     → _process_single_dimension()  # 单维度模式             │
+│      │      │       └─ 内部调用 _execute_single_summary()                 │
+│      │      │                                                             │
+│      │      └─ 正常首次生成：                                              │
+│      │            ├─ SummaryFactory().create(scenario, content, llm)      │
+│      │            │   返回 (bs, force_llm)                                │
+│      │            ├─ auto_select → 确定多维度 dimension_scenarios         │
+│      │            └─ 对每个 dimension 调用 _execute_single_summary()      │
+│      │                                                                    │
 └───────────────────────────────────┬───────────────────────────────────────┘
-                                    │ Endpoint 或 None
+                                    │ (content, llm, scenario, ...)
 ┌───────────────────────────────────┴───────────────────────────────────────┐
 │                                                                           │
-│  Phase 2: Endpoint 调度 — EndpointDispatcher.dispatch()                   │
+│  Phase 1: 模型选择 — _execute_single_summary()  (summary.py:110)         │
 │      │                                                                    │
-│      ├─ 1. tiktoken 预估 token 数 (×1.7 安全系数)                         │
-│      ├─ 2. _pool 为空 → 返回 None                                        │
-│      ├─ 3. model_index 查找 ModelDef                                      │
-│      │      ├─ 找到 → _dispatch_endpoint() → 4 种策略                    │
-│      │      └─ 未找到 → 跳过，走 fallback                                │
-│      ├─ 4. 专用池返回 endpoint → 结束                                     │
-│      └─ 5. Fallback: 遍历通用 _pool (round-robin) → endpoint 或 None     │
+│      ├─ 1. SummaryFactory().create(scenario, content, llm, summary_id)   │
+│      │      │                                                             │
+│      │      │  SummaryFactory 内部决策逻辑（summary_factory.py:262）：     │
+│      │      │  ┌─────────────────────────────────────────────────┐        │
+│      │      │  │ scenario mapping（如 medical → soap）            │        │
+│      │      │  │        ↓                                        │        │
+│      │      │  │ should_use_knowledge_based_note?                │        │
+│      │      │  │   YES → return (KnowledgeBaseNote, llm)  ← 保留llm│     │
+│      │      │  │        ↓ NO                                     │        │
+│      │      │  │ should_use_reasoning_one_shot?                  │        │
+│      │      │  │   YES → return (ReasoningOneShotNote, llm) ← 保留llm│   │
+│      │      │  │        ↓ NO                                     │        │
+│      │      │  │ return (generate(scenario), None)  ← llm 清空!  │        │
+│      │      │  └─────────────────────────────────────────────────┘        │
+│      │      │                                                             │
+│      │      └─ 返回 (bs实例, force_llm)                                  │
+│      │         force_llm: 特殊场景返回原始 llm，普通场景返回 None         │
+│      │                                                                    │
+│      ├─ 2. 计算 final_llm（summary.py:215）                              │
+│      │      final_llm = force_llm or llm  if use_force_llm  else  llm    │
+│      │      （use_force_llm 由调用方控制，大部分首次生成 = False）         │
+│      │                                                                    │
+│      ├─ 3. endpoint = get_endpoint_for_llm(content, final_llm, scenario) │
+│      │      （详见 Phase 2）                                              │
+│      │                                                                    │
+│      ├─ 4. endpoint is None → 返回错误                                    │
+│      │                                                                    │
+│      └─ 5. bs.run(text, language, endpoint, summary_id, ...)             │
+│            （endpoint 传给 bs，详见 Phase 3-5）                            │
+│                                                                           │
+└───────────────────────────────────┬───────────────────────────────────────┘
+                                    │ final_llm
+┌───────────────────────────────────┴───────────────────────────────────────┐
+│                                                                           │
+│  Phase 2: 模型路由 — get_endpoint_for_llm()  (summary.py:2126)           │
+│      │                                                                    │
+│      │  入参：content, llm(=final_llm), scenario, language               │
+│      │                                                                    │
+│      ├─ P1: llm ∈ {gpt-4o-old, gpt-4o, gpt-4.1}                        │
+│      │       → 强制映射 dispatch(GPT_5)                                   │
+│      │                                                                    │
+│      ├─ P2: llm == "auto"                                                │
+│      │       → dispatch_auto_model() 概率选模型                           │
+│      │         (66% Gemini 2.5 Pro / 34% GPT-5，可配置)                  │
+│      │                                                                    │
+│      ├─ P3: llm ∈ llm_model_map（静态映射表）                            │
+│      │       → dispatch(对应的 ModelName)                                 │
+│      │       如 "gemini-2.5-pro" → GEMINI_2_5_PRO                        │
+│      │       如 "claude-sonnet-4" → CLAUDE_SONNET_4                      │
+│      │                                                                    │
+│      ├─ P4: 动态路由 _get_dynamic_llm_route(llm)                        │
+│      │       ├─ endpoint_prefixes 前缀匹配                               │
+│      │       └─ compatible_with 兼容映射                                  │
+│      │                                                                    │
+│      └─ P5: 全部未命中 → 默认 dispatch(GPT_5)                            │
+│                                                                           │
+│  ═══════════════════════════════════════════════════════════════════════  │
+│                                                                           │
+│  EndpointDispatcher.dispatch()  (endpoint.py:365)                        │
+│      │                                                                    │
+│      ├─ tiktoken 预估 token 数 (×1.7 安全系数)                            │
+│      ├─ _pool 为空 → 返回 None                                           │
+│      │                                                                    │
+│      ├─ model_index 查找 ModelDef → _dispatch_endpoint()                 │
+│      │   ┌─────────────────────────────────────────────────────┐         │
+│      │   │ 4 种 dispatch 策略（由 ModelDef.dispatch 字段决定）   │         │
+│      │   │                                                     │         │
+│      │   │ "weighted"  → _dispatch_weighted_pool()             │         │
+│      │   │   加权随机，权重=endpoint.hits（GPT-5 系列使用）     │         │
+│      │   │   pool来源: get_pool_by_model() → ★专用池            │         │
+│      │   │                                                     │         │
+│      │   │ "gemini"    → _dispatch_gemini_endpoint_hits()      │         │
+│      │   │   分 regional/global 两层，加权随机                  │         │
+│      │   │   429重试时 prefer_global=True 切全局池              │         │
+│      │   │   pool来源: get_pool_by_model() → ★专用池            │         │
+│      │   │                                                     │         │
+│      │   │ "dedicated" → dedicated_pool=True 分支              │         │
+│      │   │   round-robin + 跳过上次用过的 endpoint             │         │
+│      │   │   pool来源: get_pool_by_model() → ★专用池            │         │
+│      │   │                                                     │         │
+│      │   │ "general"   → dedicated_pool=False 分支             │         │
+│      │   │   在通用 self._pool 中按 endpoint name 前缀匹配     │         │
+│      │   │   round-robin 遍历                                  │         │
+│      │   │   pool来源: ★通用池 self._pool                       │         │
+│      │   └─────────────────────────────────────────────────────┘         │
+│      │                                                                    │
+│      └─ 专用池未命中 → Fallback 遍历通用 _pool (round-robin)             │
+│         跳过 Bedrock 和 reasoning 类型 endpoint                           │
 │                                                                           │
 └───────────────────────────────────┬───────────────────────────────────────┘
                                     │ Endpoint 或 None
@@ -454,6 +640,72 @@ else:
 │                                                                           │
 └───────────────────────────────────────────────────────────────────────────┘
 ```
+
+#### 8.1.1 SummaryFactory 对 force_llm 的影响
+
+`SummaryFactory.create()` 返回 `(bs, force_llm)`，其中 `force_llm` 决定了是否覆盖用户原始 `llm`：
+
+| 场景 | 返回值 | force_llm | 含义 |
+|------|--------|-----------|------|
+| KnowledgeBaseNote / KnowledgeBaseNoteShort | `(bs, llm)` | = 用户原始 llm | 保留用户选择的模型 |
+| ReasoningOneShotNote | `(bs, llm)` | = 用户原始 llm | 保留用户选择的模型 |
+| 其他所有普通模板 | `(bs, None)` | = None | 不强制，`final_llm = llm`（但 `use_force_llm` 通常为 False，所以走原始 llm） |
+
+`final_llm` 的计算逻辑：`final_llm = force_llm or llm if use_force_llm else llm`
+- `use_force_llm=False`（大部分场景）→ `final_llm = llm`（用户原始值）
+- `use_force_llm=True`（调用方显式设置）→ `final_llm = force_llm or llm`
+
+#### 8.1.2 专用池 vs 通用池完整对照
+
+**专用池（`_model_pools` 字典，`get_pool_by_model()` 返回）**
+
+每个 ModelName 枚举对应一个独立的 `list[Endpoint]`，在 `_build_model_pools()` 中构建：
+
+| ModelName | 专用池来源 | dispatch 策略 |
+|-----------|-----------|---------------|
+| `GPT_5` | `_azure_gpt_5_pool` | weighted（加权随机） |
+| `GPT_5_1` | `_azure_gpt_5_1_pool` | weighted |
+| `GPT_5_2` | `_gpt_5_2_pool` | weighted |
+| `GPT_4_1` | `_gpt_4_1_pool` + `_azure_gpt_4_1_pool` + `_ptu_4_1_pool` | dedicated（round-robin） |
+| `O3` | `_o3_pool` | dedicated |
+| `O4_MINI` | `_o4_mini_pool` | dedicated |
+| `CLAUDE_3_5` | `_claude_3_5_pool` | dedicated |
+| `CLAUDE_3_7` | `_claude_3_7_pool` | dedicated |
+| `CLAUDE_3_7_THINKING` | `_claude_3_7_thinking_pool` | dedicated |
+| `CLAUDE_SONNET_4` | `_claude_sonnet_4_pool` + `_gcp_claude_sonnet_4_pool` + `_gcp_claude_sonnet_4_2_pool` | dedicated |
+| `CLAUDE_SONNET_4_5` | `_gcp_claude_sonnet_4_5_pool` + `_gcp_claude_sonnet_4_5_2_pool` | dedicated |
+| `CLAUDE_SONNET_4_THINKING` | `_claude_sonnet_4_thinking_pool` | dedicated |
+| `CLAUDE_OPUS_4` | `_claude_opus_4_pool` | dedicated |
+| `GEMINI_2_5_PRO` | `_gemini_2_5_pro_pool` | gemini（regional/global 分层加权） |
+| `GEMINI_2_5_FLASH` | `_gemini_2_5_flash_pool` | gemini |
+| `GEMINI_2_5_FLASH_LITE` | `_gemini_2_5_flash_lite_pool` | gemini |
+| `GEMINI_3_PRO` | `_gemini_3_pro_pool` | gemini |
+| `GEMINI_3_FLASH` | `_gemini_3_flash_pool` | gemini |
+
+**通用池（`self._pool`，即 `_pool`）**
+
+以下模型的 `dedicated_pool=False`，在 `_dispatch_endpoint()` 中通过 `is_endpoint_match_model(endpoint.name, model_name)` 从通用池筛选匹配项：
+
+| ModelName | 匹配前缀 | 备注 |
+|-----------|---------|------|
+| `GPT_4O` | `openai-gpt4`, `azure-gpt-4o` | 旧模型，实际被映射到 GPT_5 |
+| `O3_MINI` | `openai-o3-mini`, `azure-o3-mini` | |
+| `DEEPSEEK_R1` | `deepseek-r1` | CN 区域 |
+| `DEEPSEEK_V3_2` | `deepseek-v3.2` | CN 区域 |
+| `QWEN_*` (多个) | `qwen-plus-*`, `qwen3-max` | CN 区域 |
+| `DOUBAO_*` (多个) | `doubao-seed-*` | CN 区域 |
+| `KIMI_*` (多个) | `kimi-k2`, `kimi-k2.5` | CN 区域 |
+
+**Fallback 机制**：当专用池找不到可用 endpoint 时，`dispatch()` 会 fallback 到通用 `_pool` 做 round-robin 遍历（跳过 Bedrock 和 reasoning 类型）。
+
+#### 8.1.3 三种 dispatch 策略对比
+
+| 策略 | 选择算法 | 池来源 | 使用模型 |
+|------|---------|--------|---------|
+| **weighted** | `random.choices(pool, weights=hits)` 加权随机 | 专用池 | GPT-5/5.1/5.2 |
+| **gemini** | 先分 regional/global，再加权随机；429 重试时 `prefer_global=True` 切全局 | 专用池 | 所有 Gemini 系列 |
+| **dedicated** | round-robin + 跳过上次使用的 endpoint（避免连续命中同一个） | 专用池 | Claude 全系列、GPT-4.1、O3、O4-mini |
+| **general** | 在通用 `_pool` 中按 endpoint name 前缀匹配，round-robin | 通用池 `self._pool` | GPT-4O、O3-mini、国产模型（DeepSeek/Qwen/Doubao/Kimi） |
 
 ---
 
@@ -836,3 +1088,194 @@ BadRequestError → 切 GEMINI_2_5_FLASH
 9. **TPM/RPM 限流已禁用**：`_check_endpoint()` 直接 return True，限流代码存在但不生效
 10. **`pt_hits_scale_config` 未实现**：配置存在但代码中无对应使用逻辑
 11. **新旧重试逻辑并存**：通过 `USE_NEW_RETRY` Feature Flag 切换，旧逻辑标记为 deprecated 但仍在运行
+
+---
+
+## 十、`llm.yaml` 与 `dev-endpoints.json` 统一重构分析
+
+> 分析日期：2026-04-14
+> 目的：为后续将所有专用 parse 方法迁移至 `_parse_generic_endpoints` 提供依据
+
+### 10.1 `llm.yaml` 两个配置块的职责
+
+`llm.yaml` 作为独立 AppConfig Profile（与主配置 `prod.yaml` 分离），包含两个职责完全不同的配置块：
+
+| 配置块 | 消费者 | 职责 |
+|--------|--------|------|
+| `model_registry` | 后端 `summary.py` → `EndpointDispatcher` | **路由调度**：将用户请求的模型名（`llm` 参数）翻译为实际的 endpoint name 前缀，用于匹配 Secrets Manager 中的 endpoint 连接信息。纯后端逻辑，用户不可见 |
+| `frontend_models` | 前端 APP/WEB，通过 `server/models_config.py` API 下发 | **前端展示**：控制模型选择界面的展示内容，包括多语言名称/描述、`using`（是否展示）、`isBeta`、`is_inner`/`is_white_inner`（内部可见性）。纯 UI 层面 |
+
+**分离原因**：
+- 变更频率不同：路由配置（加 endpoint、切供应商）与展示配置（改文案、上下架）独立变更
+- 风险等级不同：路由改错影响实际推理结果（高风险），展示改错最多 UI 不对（低风险）
+- 责任方不同：产品改文案不需要碰路由，后端加 endpoint 不需要关心多语言翻译
+
+**加载链路**：
+```
+llm.yaml (AWS AppConfig)
+    ↓
+llm_profile_config.py: init_llm_config() → _watchdog 轮询热更新
+    ↓
+├── model_registry → config.py: get_parsed_model_registry() (60s TTL)
+│                   → llm_config.py: refresh_model_index()
+└── frontend_models → models_config.py: _load_frontend_models()
+```
+
+### 10.2 Endpoint 解析现状：专用 vs Generic
+
+#### 当前 `dev-endpoints.json`（与生产一致）中实际存在的 key
+
+| JSON key | 专用 parse 方法 | 放入 `_pool`？ | 放入专用 pool？ | dispatch 策略 |
+|---|---|---|---|---|
+| `azure_gpt_5_endpoints` | `_parse_azure_gpt_5_endpoints` | 是 (L2679) | `_azure_gpt_5_pool` | weighted |
+| `azure_gpt_5.2_endpoints` | `_parse_gpt_5_2_endpoints` | 是 (L2787) | `_gpt_5_2_pool` | weighted |
+| `gemini_2.5_pro_endpoints` | `_parse_gemini_2_5_pro_endpoints` | **否** | `_gemini_2_5_pro_pool` | gemini |
+| `gemini_2.5_flash_endpoints` | `_parse_gemini_2_5_flash_endpoints` | **否** | `_gemini_2_5_flash_pool` | gemini |
+| `gemini_3_flash_endpoints` | `_parse_gemini_3_flash_endpoints` | **否** | `_gemini_3_flash_pool` | gemini |
+| `claude_4_5_sonnet_gcp_endpoints` | `_parse_gcp_claude_sonnet_4_5_endpoints` | **否** | `_gcp_claude_sonnet_4_5_pool` | dedicated |
+| `claude_4_5_sonnet_2_gcp_endpoints` | `_parse_gcp_claude_sonnet_4_5_2_endpoints` | **否** | `_gcp_claude_sonnet_4_5_2_pool` | dedicated |
+| `azure_embedding_endpoints` | `_parse_embedding_endpoint` | 独立 embedding pool | — | 独立通道 |
+| `generic_endpoints` | `_parse_generic_endpoints` | 是 (L3155) | **否**（`model_name=UNKNOWN`） | 由 name 前缀匹配 |
+
+#### 代码中调用但配置已无对应 key 的专用方法（死代码）
+
+以下方法在 `_parse_endpoint` 中被调用，但 `dev-endpoints.json`（与生产一致）中**没有对应的 JSON key**：
+
+- `_parse_claude_3_7_endpoints` → `claude_3_7_endpoints`
+- `_parse_claude_3_7_thinking_endpoints` → `claude_3_7_thinking_endpoints`
+- `_parse_claude_sonnet_4_endpoints` → `claude_4_sonnet_endpoints`
+- `_parse_claude_sonnet_4_thinking_endpoints` → `claude_4_thinking_endpoints`
+- `_parse_claude_opus_4_endpoints` → `claude_4_opus_endpoints`
+- `_parse_gpt_4_1_endpoints` → （无配置）
+- `_parse_openai_o3_endpoints` → （无配置）
+- `_parse_openai_o4_mini_endpoints` → （无配置）
+- `_parse_gemini_2_5_flash_lite_endpoints` → `gemini_2.5_flash_lite_endpoints`
+- `_parse_gemini_3_pro_endpoints` → `gemini_3_pro_endpoints`
+- `_parse_azure_gpt_4_1_endpoint` → `azure_gpt_4_1_endpoints`
+- `_parse_azure_gpt_5_1_endpoints` → `azure_gpt_5.1_endpoints`
+- `_parse_gcp_claude_sonnet_4_endpoints` → `claude_4_sonnet_gcp_endpoints`
+- `_parse_gcp_claude_sonnet_4_2_endpoints` → `claude_4_sonnet_2_gcp_endpoints`
+
+### 10.3 `_parse_generic_endpoints` 与专用方法的差异
+
+当前 generic 方法（`endpoint.py:3103`）已支持所有厂商类型（azure / openai / openai_compatible / bedrock / vertex_claude / gemini），**LLM 客户端实例化能力与专用方法等价**。
+
+但 generic 在 **endpoint 归类和调度** 层面有三个缺失：
+
+| 缺失能力 | 当前 generic 行为 | 专用方法行为 | 影响 |
+|---|---|---|---|
+| **model_name 映射** | 写死 `ModelName.UNKNOWN`，只进 `_pool` | 设为具体的 `ModelName`，同时进入专用 pool | `get_pool_by_model()` 拿到空专用 pool，weighted/gemini/dedicated dispatch 全部失效，fallback 到 `_pool` 轮询 |
+| **`hits_schedule`（按时段调权重）** | 只读 `hits` 字段 | `_get_scheduled_hits()` 按当前小时匹配 `hits_schedule` 数组 | Gemini 2.5 Pro 的分时段流量调度失效 |
+| **`_normalize_endpoint_hits`（权重归一化）** | 无 | 解析完一批 endpoint 后归一化 hits 总和为 1.0 | weighted/gemini dispatch 依赖归一化后的权重做随机选择 |
+
+### 10.4 dispatch 策略与 pool 的关系（重构必须理解）
+
+```
+dispatch()
+  ↓
+_dispatch_endpoint(model_name)
+  ↓
+  ├── dispatch == "weighted" → _dispatch_weighted_pool(get_pool_by_model(model_name))
+  │   需要：专用 pool 中有 endpoint + hits 归一化
+  │
+  ├── dispatch == "gemini" → _dispatch_gemini_endpoint_hits(model_name)
+  │   需要：专用 pool + hits_schedule + global/regional 分离
+  │
+  ├── dedicated_pool == True → 从 get_pool_by_model(model_name) 轮询
+  │   需要：专用 pool 中有 endpoint
+  │
+  └── dedicated_pool == False → 从 _pool 中按 name 前缀匹配
+      generic endpoint 目前走这条路（因为 model_name=UNKNOWN 查不到专用 pool）
+```
+
+**核心约束**：`get_pool_by_model()` 返回 `_model_pools.get(model_name, self._pool)`。
+- 如果专用 pool 为空 → 返回整个 `_pool` → 会选到**任意模型**的 endpoint，不是预期行为。
+- `_build_model_pools()` 只从命名 pool 变量（如 `_azure_gpt_5_pool`）构建映射，不扫描 `_pool`。
+
+### 10.5 重构方案
+
+#### 目标
+所有 endpoint 统一走 `generic_endpoints` + `_parse_generic_endpoints`，删除全部专用 parse 方法和命名 pool 变量。
+
+#### `_parse_generic_endpoints` 需要补齐的能力
+
+1. **`model_name` 映射**：从配置中读取 `model_name` 字段（如 `"gpt-5"`），通过 `model_index` 查找对应的 `ModelName` 枚举值，替代写死的 `UNKNOWN`
+2. **自动归入 model pool**：解析完成后，按 `model_name` 分组构建 `_model_pools`（替代 `_build_model_pools` 从命名变量构建的方式）
+3. **`hits_schedule` 支持**：复用已有的 `_get_scheduled_hits()` 方法
+4. **`_normalize_endpoint_hits`**：按 model_name 分组后，对每组 endpoint 的 hits 做归一化
+
+#### Secrets Manager / `dev-endpoints.json` 配置格式调整
+
+将所有专用 key 合并到 `generic_endpoints` 数组中，每个 item 增加 `type` 和 `model_name` 字段：
+
+```json
+{
+  "generic_endpoints": [
+    {
+      "type": "azure",
+      "name": "azure-sweden-central-gpt-5",
+      "model_name": "gpt-5",
+      "azure_deployment": "gpt-5-ptu",
+      "openai_api_version": "2025-04-01-preview",
+      "model_version": "2025-08-07",
+      "temperature": 1,
+      "reasoning_effort": "minimal",
+      "region": "SwedenCentral",
+      "key": "...",
+      "endpoint": "https://...",
+      "hits": 1,
+      "using": true
+    },
+    {
+      "type": "gemini",
+      "name": "gemini-2.5-pro-europe-north1",
+      "model_name": "gemini-2.5-pro",
+      "model": "gemini-2.5-pro",
+      "google_cloud_project": "plaud-35e0f",
+      "google_cloud_location": "europe-north1",
+      "thinking_budget": 128,
+      "hits": 1,
+      "hits_schedule": [
+        {"start_hour": 0, "end_hour": 16, "hits": 1.0},
+        {"start_hour": 16, "end_hour": 24, "hits": 0.9}
+      ],
+      "using": true
+    },
+    {
+      "type": "vertex_claude",
+      "name": "gcp-claude-4-5-sonnet",
+      "model_name": "claude-sonnet-4.5",
+      "model": "claude-sonnet-4-5@20250929",
+      "project": "plaud-summary-claude",
+      "location": "europe-west1",
+      "credentials_file": "conf/plaud-summary-claude-c7b3fdf7d27e.json",
+      "max_output_tokens": 64000,
+      "using": true
+    }
+  ],
+  "azure_embedding_endpoints": [...],
+  "dispatch_config": {...},
+  "pt_hits_scale_config": {...}
+}
+```
+
+> 注：`azure_embedding_endpoints`、`dispatch_config`、`pt_hits_scale_config` 不受影响，保持原有结构。
+
+#### 重构步骤建议
+
+1. **Phase 1 — 补齐 generic 能力**（纯代码变更，不改配置）
+   - `_parse_generic_endpoints` 支持 `model_name` 字段映射到 `ModelName` 枚举
+   - `_parse_generic_endpoints` 支持 `hits_schedule`（复用 `_get_scheduled_hits`）
+   - 改造 `_build_model_pools`：除了从命名 pool 变量构建，额外扫描 `_pool` 中 `model_name != UNKNOWN` 的 endpoint 按 model 分组
+   - 在 `_build_model_pools` 中对每组 pool 调用 `_normalize_endpoint_hits`
+
+2. **Phase 2 — 迁移配置格式**（代码 + 配置同步变更）
+   - 将 `dev-endpoints.json` / Secrets Manager 中的专用 key 逐个迁移到 `generic_endpoints`
+   - 每迁移一个 key，删除对应的专用 parse 方法和命名 pool 变量
+   - 验证 dispatch 行为不变（同模型请求走到同类 endpoint）
+
+3. **Phase 3 — 清理**
+   - 删除所有专用 parse 方法（包括已是死代码的 14 个方法）
+   - 删除所有命名 pool 变量（`_azure_gpt_5_pool` 等）
+   - 简化 `_build_model_pools` 为纯扫描 `_pool` 的方式
+   - `dispatch_by_endpoint_prefixes` 的注释中关于「仅搜索 `_pool`」的限制自然消除（所有 endpoint 都在 `_pool` 中）

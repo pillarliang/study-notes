@@ -11,6 +11,15 @@
 > - **Metrics（指标）**：Counter（计数）、Histogram（分布）、Gauge（瞬时值）等聚合数值，用于监控告警与容量规划
 > - **Logs（日志）**：离散事件记录，可通过 TraceId/SpanId 与链路追踪关联
 >
+> **后端存储（按支柱分类）：**
+> | 支柱 | 典型存储方案 | 说明 |
+> |------|------------|------|
+> | Traces | Jaeger (Cassandra/ES/ClickHouse)、Tempo (对象存储)、Elasticsearch | 文档/对象存储，按 traceId 检索 |
+> | Metrics | Prometheus (TSDB)、Thanos/Mimir (长期存储)、VictoriaMetrics | 时序数据库，按时间戳+label 聚合 |
+> | Logs | ELK/EFK (Elasticsearch)、Loki (只索引 label)、ClickHouse | 全文检索/列存 |
+>
+> **Langfuse 存储架构（LLM 可观测性平台）：** PostgreSQL (OLTP 事务数据) + **ClickHouse (OLAP 存储 Traces/Observations/Scores)** + Redis (缓存/队列) + S3 (原始事件/多模态附件)。写入流程：SDK 批量发送 → Web Server 先写 S3 + Redis 队列 → Worker 异步消费写入 ClickHouse。
+>
 > **架构流程：** Application SDK → BatchProcessor → Exporter → OTel Collector（接收/处理/路由） → 后端存储（Jaeger/Prometheus/Loki） → Grafana 可视化
 >
 > **Python SDK 核心组件：**
@@ -82,12 +91,12 @@ OpenTracing + OpenCensus = OpenTelemetry (2019年合并)
 │                    Observability（可观测性）                  │
 ├───────────────────┬───────────────────┬─────────────────────┤
 │      Traces       │     Metrics       │       Logs          │
-│    （链路追踪）     │     （指标）       │      （日志）         │
+│    （链路追踪）     │     （指标）       │      （日志）        │
 ├───────────────────┼───────────────────┼─────────────────────┤
-│ 请求在系统中的       │ 聚合的数值数据      │ 离散的事件记录        │
+│ 请求在系统中的       │ 聚合的数值数据      │ 离散的事件记录       │
 │ 完整路径            │                  │                     │
 ├───────────────────┼───────────────────┼─────────────────────┤
-│ 用途：定位延迟、     │ 用途：监控健康状态   │ 用途：调试、审计      │
+│ 用途：定位延迟、     │ 用途：监控健康状态   │ 用途：调试、审计     │
 │ 分析调用链          │ 告警、容量规划      │ 错误排查             │
 └───────────────────┴───────────────────┴─────────────────────┘
 ```
@@ -116,12 +125,12 @@ Trace (trace_id: abc123)
 
 #### Metrics（指标）
 
-| 类型 | 定义 | 使用场景 |
-|------|------|----------|
-| **Counter** | 只增不减的累计值 | 请求总数、错误数 |
-| **UpDownCounter** | 可增可减的值 | 当前连接数、队列深度 |
-| **Histogram** | 值的分布统计 | 请求延迟、响应大小 |
-| **Gauge** | 瞬时值（异步） | CPU 使用率、内存占用 |
+| 类型                | 定义       | 使用场景         |
+| ----------------- | -------- | ------------ |
+| **Counter**       | 只增不减的累计值 | 请求总数、错误数     |
+| **UpDownCounter** | 可增可减的值   | 当前连接数、队列深度   |
+| **Histogram**     | 值的分布统计   | 请求延迟、响应大小    |
+| **Gauge**         | 瞬时值（异步）  | CPU 使用率、内存占用 |
 
 #### Logs（日志）
 
@@ -275,6 +284,71 @@ tracestate: vendor=value
 
 ### 4.1 Traces 深入
 
+#### Trace 与 Span 的关系
+
+**Span 是 Trace 的基本组成单元。** 一个 Span 代表一个有明确开始和结束时间的**操作**，可以是一次函数调用、一次 HTTP 请求、一次数据库查询等。Span 不等于函数——它是你选择观测的任意一段操作。
+
+**Trace 是一组共享同一个 `trace_id` 的 Span 集合，** 通过 `parent_span_id` 组成树形结构，完整描述一个请求从入口到结束的调用路径。
+
+```
+一个请求的完整 Trace（所有 Span 共享同一个 trace_id）：
+
+trace_id: abc123
+
+Span A: API Gateway (parent: 无 → 这是 Root Span)
+├── Span B: Auth Service (parent: A)
+├── Span C: Business Logic (parent: A)
+│   ├── Span D: DB Query (parent: C)
+│   └── Span E: Cache Lookup (parent: C)
+└── Span F: Response Serialize (parent: A)
+
+时间轴视图：
+Span A ██████████████████████████████████████████████
+Span B   ████
+Span C        ██████████████████████████
+Span D          ████████
+Span E                    ██████
+Span F                                      ████
+```
+
+##### 关键字段
+
+每个 Span 携带以下核心标识：
+
+| 字段 | 作用 | 示例 |
+|------|------|------|
+| `trace_id` | 全局唯一，标识整条链路，同一 Trace 下所有 Span 共享 | `abc123...` (128-bit) |
+| `span_id` | 当前 Span 的唯一标识 | `def456...` (64-bit) |
+| `parent_span_id` | 指向父 Span，Root Span 该字段为空 | `aaa789...` |
+| `name` | 操作名称 | `HTTP GET /api/users` |
+| `start_time` / `end_time` | 起止时间戳 | 用于计算耗时 |
+| `attributes` | 键值对元数据 | `http.method=GET` |
+| `status` | 操作结果 | `OK` / `ERROR` |
+
+##### 跨服务如何串联（Context Propagation）
+
+Span 之间通过 **Context Propagation** 跨进程传递 `trace_id` 和 `parent_span_id`，最常见的方式是 W3C `traceparent` HTTP header：
+
+```
+traceparent: 00-<trace_id>-<parent_span_id>-<flags>
+             │   │            │               │
+             │   │            │               └─ 采样标志（01=采样）
+             │   │            └─ 当前 Span ID，下游服务以此为 parent
+             │   └─ 整条链路的 Trace ID
+             └─ 版本号
+
+示例：
+Service A 发起请求，header 中携带：
+  traceparent: 00-abc123...-spanA...-01
+
+Service B 收到后：
+  1. 解析出 trace_id=abc123, parent_span_id=spanA
+  2. 创建新 Span（trace_id=abc123, parent=spanA, span_id=spanB）
+  3. 继续往下游传播
+```
+
+> **总结：** Trace 本身并不是一个独立的数据结构——后端存储的是一个个 Span，它们通过共同的 `trace_id` 被"串"成一条 Trace，通过 `parent_span_id` 被"组"成一棵树。
+
 #### Span 生命周期
 
 ```
@@ -311,6 +385,198 @@ tracestate: vendor=value
 | `CONSUMER` | 消息消费者 | Kafka 消费消息 |
 
 ### 4.2 Metrics 深入
+
+#### 核心概念
+
+Metrics 是**预聚合的数值数据**，与 Traces（离散事件）和 Logs（文本记录）最大的区别在于：它在采集端就做了数学运算（求和、计数、分桶），存储的是统计结果而非原始事件。这使得它在存储成本和查询速度上有天然优势。
+
+```
+原始事件流（高基数）         聚合后的 Metric（低基数）
+─────────────────────       ─────────────────────────
+req 1: 200ms, POST /api     http_request_duration_seconds{method="POST", endpoint="/api"}
+req 2: 150ms, POST /api       count = 3
+req 3: 300ms, POST /api       sum   = 0.65
+                               bucket_le_0.5 = 2
+                               bucket_le_1.0 = 3
+```
+
+#### Instrument 类型全景
+
+OTel 定义了 6 种 Instrument，分为同步（调用时立即记录）和异步（回调时采集）两大类：
+
+| 类型 | 同步/异步 | 单调性 | 典型场景 | 举例 |
+|------|----------|--------|---------|------|
+| **Counter** | 同步 | 只增 | 累计计数 | 请求总数、已处理消息数 |
+| **UpDownCounter** | 同步 | 可增可减 | 当前计数 | 活跃连接数、队列长度变化 |
+| **Histogram** | 同步 | — | 值的分布 | 请求延迟、响应体大小 |
+| **ObservableCounter** | 异步 | 只增 | 系统级累计量 | CPU time、页面错误数 |
+| **ObservableUpDownCounter** | 异步 | 可增可减 | 系统级瞬时量 | 内存使用量、线程数 |
+| **ObservableGauge** | 异步 | 可增可减 | 瞬时采样值 | CPU 温度、当前房间人数 |
+
+> **同步 vs 异步：**
+> - **同步 Instrument**：在业务代码中主动调用 `.add()` / `.record()`，适合跟业务事件绑定
+> - **异步 Instrument**：注册回调函数，SDK 按采集周期自动调用，适合采集系统状态（CPU、内存等）
+
+#### 聚合方式（Aggregation）
+
+SDK 在导出前会对原始测量值做聚合，不同 Instrument 默认聚合方式不同：
+
+| Instrument | 默认聚合 | 导出的数据 |
+|-----------|---------|-----------|
+| Counter / ObservableCounter | **Sum** (累计) | 单个递增数值 |
+| UpDownCounter / ObservableUpDownCounter | **Sum** (非单调) | 可增减的数值 |
+| Histogram | **ExplicitBucketHistogram** | count、sum、min、max + 各桶计数 |
+| ObservableGauge | **LastValue** | 最近一次采样值 |
+
+#### Temporality（时间性）
+
+Metrics 导出有两种时间语义，**选错会导致数据错误**：
+
+```
+Cumulative（累计型）：每次导出从 0 开始的总量
+  T1: 100    T2: 250    T3: 400    ← 始终是总计数
+  
+Delta（增量型）：每次导出只报告上一周期的增量
+  T1: 100    T2: 150    T3: 150    ← 每个周期新增的量
+```
+
+| 后端                            | 推荐 Temporality | 原因                             |
+| ----------------------------- | -------------- | ------------------------------ |
+| **Prometheus**                | Cumulative     | Prometheus 自己做 rate() 计算，需要累计值 |
+| **OTLP → ClickHouse/Datadog** | Delta          | 避免重启归零问题，服务端做累加                |
+
+> ⚠️ **常见坑：** Prometheus 只支持 Cumulative，如果配错成 Delta，图表会出现断崖式下跌。
+
+#### Attributes（标签）与基数控制
+
+##### 什么是时间序列
+
+**时间序列（Time Series）** 是 TSDB 中的最小存储单元——一个指标名 + 一组固定的 label 值，随时间不断追加 `(时间戳, 数值)` 数据点：
+
+```
+一条时间序列 = 指标名{label="固定值"} + 按时间追加的数据点
+
+http_requests_total{method="GET", status="200"}
+  → T1: 10,  T2: 15,  T3: 23,  T4: 30 ...    ← 不断追加，独立存储
+
+http_requests_total{method="GET", status="500"}
+  → T1: 0,   T2: 1,   T3: 1,   T4: 3  ...    ← 这是另一条独立的时间序列
+
+http_requests_total{method="POST", status="200"}
+  → T1: 5,   T2: 8,   T3: 12,  T4: 18 ...    ← 又一条独立的时间序列
+```
+
+> 可以把每条时间序列想象成**数据库里的一张独立的表**，各自不断 append 新行。
+
+##### Attributes 如何产生时间序列
+
+Attributes 是 Metric 的**维度标签**（类似 SQL 中的 GROUP BY 字段），每组唯一的 attribute 组合会生成一条独立的时间序列：
+
+```
+# 2 个 method × 3 个 endpoint × 2 个 status = 12 条时间序列
+http_requests_total{method="GET",  endpoint="/api",    status="200"}
+http_requests_total{method="GET",  endpoint="/api",    status="500"}
+http_requests_total{method="POST", endpoint="/api",    status="200"}
+...
+```
+
+label 决定了你能按什么维度切片查询（就像 SQL 中 WHERE + GROUP BY）：
+
+```
+按 method 维度聚合（合并所有 status）：
+  rate(http_requests_total{method="GET"})
+
+按 status 维度聚合（合并所有 method）：
+  rate(http_requests_total{status="500"})
+
+全部聚合：
+  rate(http_requests_total)                  ← 合并所有时间序列
+```
+
+**基数（Cardinality）** 指某个 Attribute/Label **可能取值的数量**。每一组唯一的 label 组合都会产生一条独立的时间序列，因此基数直接决定存储和查询压力。
+
+##### 低基数 vs 高基数
+
+| 维度 | 低基数 | 高基数 |
+|------|--------|--------|
+| **定义** | 取值范围小且有限 | 取值范围大或无限 |
+| **典型值数量** | 几个 ~ 几百个 | 几万 ~ 无限 |
+| **例子** | `method`(GET/POST/PUT/DELETE)、`status_code`(200/400/500)、`region`(us-east/eu-west) | `user_id`(100万+)、`request_id`(每请求唯一)、`email`、`session_id` |
+| **是否适合做 label** | 适合 | 不适合 |
+
+##### 为什么高基数会导致灾难
+
+核心公式：
+
+```
+时间序列总数 = label_1 取值数 × label_2 取值数 × ... × label_N 取值数
+```
+
+具体例子：
+
+```
+http_requests_total{method, endpoint, status_code}
+
+低基数方案：
+  method:      4 种 (GET/POST/PUT/DELETE)
+  endpoint:   10 个
+  status_code:  5 种 (200/400/401/404/500)
+  → 4 × 10 × 5 = 200 条时间序列 ✅
+
+混入一个高基数 label：
+  + user_id: 100,000 个用户
+  → 4 × 10 × 5 × 100,000 = 2 亿条时间序列 💥
+```
+
+**2 亿条时间序列意味着：**
+- Prometheus 每条时间序列约占 1-2 KB 内存 → 单这一个指标就要 **200-400 GB 内存**
+- 每次查询需要扫描/聚合 2 亿条序列 → **查询超时**
+- 持久化到磁盘的 block 膨胀 → **磁盘 I/O 打满**
+
+##### 判断基数的经验法则
+
+```
+问自己：这个 label 的取值是否会随业务增长而无限增长？
+
+  "method"      → 永远就那几个         → ✅ 低基数，放心用
+  "status_code" → HTTP 状态码有限      → ✅ 低基数
+  "region"      → 部署区域有限         → ✅ 低基数
+  "endpoint"    → API 数量可控         → ⚠️ 中等基数，注意不要包含路径参数
+  "customer_id" → 随业务增长           → ❌ 高基数
+  "trace_id"    → 每请求唯一           → ❌ 无限基数，绝对不能用
+```
+
+**特别注意 URL 路径参数的陷阱：**
+
+```
+❌ 错误：endpoint="/api/users/12345"    ← user ID 嵌入路径，无限基数
+✅ 正确：endpoint="/api/users/{id}"     ← 参数化后变成低基数
+```
+
+##### 高基数需求的正确解法
+
+| 需求 | 错误做法 | 正确做法 |
+|------|---------|---------|
+| 统计每个用户的请求数 | Metric label 加 `user_id` | 用 Traces 按 user_id 查询聚合 |
+| 定位某个慢请求 | Histogram label 加 `request_id` | 用 Exemplar 关联到 Trace |
+| 按 IP 分析流量 | Counter label 加 `client_ip` | 日志/流量分析系统（ELK、ClickHouse） |
+| 统计 Top N 热门商品 | Metric label 加 `product_id` | 日志聚合 或 OLAP 数据库 |
+
+> **一句话总结：Metrics 负责"面"（聚合趋势），Traces 负责"点"（单次请求），Logs 负责"细节"（文本上下文）。高基数分析是 Traces 和 Logs 的职责，不要让 Metrics 来扛。**
+>
+> **经验法则：** 单个 Metric 的时间序列数应控制在 **< 1000**。
+
+#### Exemplars：Metrics 与 Traces 的桥梁
+
+Exemplar 允许在 Metric 数据点上附加一个 Trace 的采样引用，实现从聚合指标钻取到具体请求：
+
+```
+Histogram bucket [0.5s, 1.0s] 命中了 12 次
+  └─ Exemplar: trace_id=abc123, span_id=def456, value=0.78s
+     → 点击可跳转到该慢请求的完整 Trace
+```
+
+这是 Grafana 中"从 Metrics 面板点击跳转到 Jaeger/Tempo 查看 Trace"的底层机制。
 
 #### Counter 示例
 
