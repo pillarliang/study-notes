@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "AI/basic/01-深度学习基础-学习笔记.md",
+                "file": "work/model-hub/自适应权重插件设计方案.md",
                 "mode": "preview",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "01-深度学习基础-学习笔记"
+              "title": "自适应权重插件设计方案"
             }
           }
         ]
@@ -185,17 +185,19 @@
       "terminal:Open terminal": false
     }
   },
-  "active": "45cb6b2532af1f26",
+  "active": "82af3ed03fca550f",
   "lastOpenFiles": [
-    "AI/ai-engineering/ch02-foundation-models/2.0-Understanding_Foundation_Models_and_Training_Data.md",
     "work/summary/plaud-summary-model-calls.md",
     "work/summary/summary-card-generation.md",
-    "infra/observability/opentelemetry-guide.md",
+    "work/model-hub/自适应权重插件设计方案.md",
     "work/model-hub/Plaud Model Hub 完全指南.md",
+    "AI/00-从一个问题的旅程看AI全貌.md",
+    "AI/basic/01-深度学习基础-学习笔记.md",
+    "AI/ai-engineering/ch02-foundation-models/2.0-Understanding_Foundation_Models_and_Training_Data.md",
+    "infra/observability/opentelemetry-guide.md",
     "AI/basic/04-预训练与生成式AI-学习笔记.md",
     "AI/basic/05-生成模型与强化学习-学习笔记.md",
     "AI/basic/02-CNN与RNN-学习笔记.md",
-    "AI/basic/01-深度学习基础-学习笔记.md",
     "AI/basic/03-注意力机制与Transformer-学习笔记.md",
     "AI/basic/注意力机制与Transformer-学习笔记.md",
     "AI/basic/深度学习基础-学习笔记.md",
@@ -226,9 +228,7 @@
     "AI/basic/ExportBlock-cd0d2ae3-7d1b-4f13-b721-97d0df66f4c3-Part-1/Deep Learning/图像生成模型",
     "AI/basic/ExportBlock-cd0d2ae3-7d1b-4f13-b721-97d0df66f4c3-Part-1/Deep Learning/参数更新 - Optimisation solution b77961314ce34e1d8341ff51adc22059.md",
     "AI/basic/ExportBlock-cd0d2ae3-7d1b-4f13-b721-97d0df66f4c3-Part-1/Deep Learning/参数更新 - Optimisation solution",
-    "AI/basic/ExportBlock-cd0d2ae3-7d1b-4f13-b721-97d0df66f4c3-Part-1/Deep Learning/单层神经网络 60cc8ddc232d4c20af9fd24d25d2eac2.md",
     "AI/basic/ExportBlock-cd0d2ae3-7d1b-4f13-b721-97d0df66f4c3-Part-1/Deep Learning/单层神经网络",
-    "AI/basic/ExportBlock-cd0d2ae3-7d1b-4f13-b721-97d0df66f4c3-Part-1/Deep Learning/全连接神经网络 991f0132c34f454783bc180ba41a0c85.md",
     "AI/basic/ExportBlock-cd0d2ae3-7d1b-4f13-b721-97d0df66f4c3-Part-1/Deep Learning/self-attention｜自注意力机制",
     "AI/basic/ExportBlock-cd0d2ae3-7d1b-4f13-b721-97d0df66f4c3-Part-1/Deep Learning/Transformer",
     "AI/basic/ExportBlock-cd0d2ae3-7d1b-4f13-b721-97d0df66f4c3-Part-1/Deep Learning/Transfer Learning 迁移学习",
