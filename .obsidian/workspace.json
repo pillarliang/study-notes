@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "work/model-hub/自适应权重插件设计方案.md",
-                "mode": "preview",
+                "file": "infra/deploy/k8s-泳道机制-lane.md",
+                "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "自适应权重插件设计方案"
+              "title": "k8s-泳道机制-lane"
             }
           }
         ]
@@ -78,7 +78,8 @@
       }
     ],
     "direction": "horizontal",
-    "width": 470.5
+    "width": 200,
+    "collapsed": true
   },
   "right": {
     "id": "18704fb929da8db0",
@@ -185,20 +186,21 @@
       "terminal:Open terminal": false
     }
   },
-  "active": "82af3ed03fca550f",
+  "active": "45cb6b2532af1f26",
   "lastOpenFiles": [
-    "work/summary/plaud-summary-model-calls.md",
     "work/summary/summary-card-generation.md",
-    "work/model-hub/自适应权重插件设计方案.md",
     "work/model-hub/Plaud Model Hub 完全指南.md",
+    "work/model-hub/自适应权重插件设计方案.md",
     "AI/00-从一个问题的旅程看AI全貌.md",
+    "AI/basic/03-注意力机制与Transformer-学习笔记.md",
+    "AI/basic/02-CNN与RNN-学习笔记.md",
     "AI/basic/01-深度学习基础-学习笔记.md",
+    "AI/basic/ExportBlock-cd0d2ae3-7d1b-4f13-b721-97d0df66f4c3-Part-1/Deep Learning/Transformer/Untitled.png",
+    "work/summary/plaud-summary-model-calls.md",
     "AI/ai-engineering/ch02-foundation-models/2.0-Understanding_Foundation_Models_and_Training_Data.md",
     "infra/observability/opentelemetry-guide.md",
     "AI/basic/04-预训练与生成式AI-学习笔记.md",
     "AI/basic/05-生成模型与强化学习-学习笔记.md",
-    "AI/basic/02-CNN与RNN-学习笔记.md",
-    "AI/basic/03-注意力机制与Transformer-学习笔记.md",
     "AI/basic/注意力机制与Transformer-学习笔记.md",
     "AI/basic/深度学习基础-学习笔记.md",
     "AI/basic/生成模型与强化学习-学习笔记.md",
@@ -214,7 +216,6 @@
     "AI/basic/ExportBlock-cd0d2ae3-7d1b-4f13-b721-97d0df66f4c3-Part-1/Deep Learning/单层神经网络/激活函数/Untitled 6.png",
     "AI/basic/ExportBlock-cd0d2ae3-7d1b-4f13-b721-97d0df66f4c3-Part-1/Deep Learning/单层神经网络/激活函数/Untitled 5.png",
     "AI/basic/ExportBlock-cd0d2ae3-7d1b-4f13-b721-97d0df66f4c3-Part-1/Deep Learning/单层神经网络/激活函数/Untitled 4.png",
-    "AI/basic/ExportBlock-cd0d2ae3-7d1b-4f13-b721-97d0df66f4c3-Part-1/Deep Learning/单层神经网络/激活函数/Untitled 3.png",
     "AI/basic/ExportBlock-cd0d2ae3-7d1b-4f13-b721-97d0df66f4c3-Part-1/Deep Learning/单层神经网络/激活函数 a44ce87cd5294230ba8b078c846a2cff.md",
     "AI/basic/ExportBlock-cd0d2ae3-7d1b-4f13-b721-97d0df66f4c3-Part-1/Deep Learning/单层神经网络/激活函数",
     "AI/basic/ExportBlock-cd0d2ae3-7d1b-4f13-b721-97d0df66f4c3-Part-1/Deep Learning/self-attention｜自注意力机制/Positional Encoding f55cabf66be844198b5acf83a4a7a088.md",
@@ -226,7 +227,6 @@
     "AI/basic/ExportBlock-cd0d2ae3-7d1b-4f13-b721-97d0df66f4c3-Part-1/Deep Learning/ChatGPT-生成式学习/了解大型語言模型",
     "AI/basic/ExportBlock-cd0d2ae3-7d1b-4f13-b721-97d0df66f4c3-Part-1/Deep Learning/图像生成模型 c18dbe5d3885494aa70f3d5c155111a8.md",
     "AI/basic/ExportBlock-cd0d2ae3-7d1b-4f13-b721-97d0df66f4c3-Part-1/Deep Learning/图像生成模型",
-    "AI/basic/ExportBlock-cd0d2ae3-7d1b-4f13-b721-97d0df66f4c3-Part-1/Deep Learning/参数更新 - Optimisation solution b77961314ce34e1d8341ff51adc22059.md",
     "AI/basic/ExportBlock-cd0d2ae3-7d1b-4f13-b721-97d0df66f4c3-Part-1/Deep Learning/参数更新 - Optimisation solution",
     "AI/basic/ExportBlock-cd0d2ae3-7d1b-4f13-b721-97d0df66f4c3-Part-1/Deep Learning/单层神经网络",
     "AI/basic/ExportBlock-cd0d2ae3-7d1b-4f13-b721-97d0df66f4c3-Part-1/Deep Learning/self-attention｜自注意力机制",

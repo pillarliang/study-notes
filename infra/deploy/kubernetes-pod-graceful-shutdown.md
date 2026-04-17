@@ -1,5 +1,7 @@
 # Kubernetes Pod 优雅终止 (Graceful Shutdown) 完全指南
 
+> 前置知识：了解 [[helm-eks-学习笔记#4.1 Pod 的概念|Pod]] 和 [[helm-eks-学习笔记#4.2 Deployment 是什么|Deployment]] 的基本概念。本文深入讲解 Pod 被终止时的完整流程。
+
 ## 背景
 
 在 Kubernetes 中运行长耗时任务（如 AI 摘要生成、音视频转码）时，服务重启/滚动更新会导致正在执行的任务被强制终止。本文以一次真实的排障过程为例，从第一性原理出发，系统梳理优雅终止的每一层机制。
@@ -20,7 +22,7 @@
 
 ## 第一层：滚动更新策略 — 新 Pod Ready 前不杀旧 Pod
 
-在讨论终止流程之前，首先要理解 K8s 什么时候决定终止一个旧 Pod。这由 Deployment 的滚动更新策略决定：
+在讨论终止流程之前，首先要理解 K8s 什么时候决定终止一个旧 Pod。这由 [[helm-eks-学习笔记#4.2 Deployment 是什么|Deployment]] 的滚动更新策略决定：
 
 ```yaml
 strategy:
@@ -75,16 +77,20 @@ K8s 标记 Pod 为 Terminating
     │  │ 同一瞬间，两条路径并行启动：                                    │
     │  │                                                             │
     │  │ 【路径 A：流量摘除】                                          │
-    │  │   API Server 立即从 Endpoints 中删除该 Pod                    │
+    │  │   API Server 立即从 Endpoints（"该 Service 后面有哪些 Pod"    │
+    │  │   的列表）中删除该 Pod                                        │
     │  │       │                                                     │
-    │  │       ├→ kube-proxy watch 到变更 → 更新 iptables（~1-2s）     │
+    │  │       ├→ kube-proxy（每个节点上的网络代理，维护 iptables       │
+    │  │       │  转发规则）watch 到变更 → 更新 iptables（~1-2s）       │
     │  │       └→ Ingress Controller watch 到 → reload upstream（~1-3s）│
     │  │       │                                                     │
     │  │       └→ 约 3 秒后，旧 Pod 从所有流量路径中移除 ✅               │
     │  │                                                             │
     │  │ 【路径 B：Pod 终止】                                          │
-    │  │   执行 preStop hook → 结束后发送 SIGTERM → 等待进程退出         │
-    │  │   若超过 terminationGracePeriodSeconds → 发送 SIGKILL 强杀    │
+    │  │   执行 preStop hook → 结束后发送 SIGTERM（终止信号，进程可捕获  │
+    │  │   并自定义处理）→ 等待进程退出                                  │
+    │  │   若超过 terminationGracePeriodSeconds → 发送 SIGKILL（强杀   │
+    │  │   信号，进程无法捕获，立即被内核终止）                           │
     │  │                                                             │
     │  └─────────────────────────────────────────────────────────────┘
 ```
@@ -370,4 +376,6 @@ app = FastAPI(lifespan=lifespan)
 - Kubernetes 官方文档：Pod Lifecycle - Termination
 - supervisord 配置参考：stopwaitsecs
 - SIGTERM vs SIGKILL：SIGTERM 可被进程捕获和处理，SIGKILL 无法被捕获，进程会被强制杀死
+- [[helm-eks-学习笔记|Helm 与 EKS 部署体系]] — Pod、Deployment、Ingress 等基础概念和项目部署架构
+- [[k8s-泳道机制-lane|K8s 泳道机制]] — 同一集群内多版本服务的流量隔离
 

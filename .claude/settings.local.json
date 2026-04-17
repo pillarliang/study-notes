@@ -36,7 +36,10 @@
       "WebFetch(domain:github.com)",
       "WebFetch(domain:sspai.com)",
       "mcp__langfuse-docs__searchLangfuseDocs",
-      "Bash(ls -la \"/Users/liangzhu/Library/Mobile Documents/iCloud~md~obsidian/Documents/study-notes/AI/ai-engineering/ch09\"*)"
+      "Bash(ls -la \"/Users/liangzhu/Library/Mobile Documents/iCloud~md~obsidian/Documents/study-notes/AI/ai-engineering/ch09\"*)",
+      "WebFetch(domain:nicebuild.feishu.cn)",
+      "Bash(grep -r \"namespace:\" /Users/liangzhu/Documents/work/deploy/plaud-*/application.yaml)",
+      "Bash(grep -r \"ingressClassName\\\\|hosts:\" /Users/liangzhu/Documents/work/deploy/plaud-*/values/*/prod/values*.yaml)"
     ]
   }
 }

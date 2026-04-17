@@ -8,13 +8,15 @@ Helm 是 Kubernetes 的**包管理工具**，类似于 Linux 中的 `apt/yum`、
 
 核心术语：
 
-| 术语 | 说明 |
-|------|------|
-| **Chart** | 一个 Helm 包，包含一组模板化的 K8s 资源定义 |
-| **Release** | Chart 的一次安装实例（同一个 Chart 可在不同集群/命名空间安装多次） |
-| **Values** | 传入 Chart 模板的配置参数，用于定制化部署 |
-| **Template** | Go 模板语法编写的 K8s YAML，通过 Values 渲染为最终清单 |
-| **Repository** | 存储和分发 Chart 的仓库 |
+
+| 术语             | 说明                                       |
+| -------------- | ---------------------------------------- |
+| **Chart**      | 一个 Helm 包，包含一组模板化的 K8s 资源定义              |
+| **Release**    | Chart 的一次安装实例（同一个 Chart 可在不同集群/命名空间安装多次） |
+| **Values**     | 传入 Chart 模板的配置参数，用于定制化部署                 |
+| **Template**   | Go 模板语法编写的 K8s YAML，通过 Values 渲染为最终清单    |
+| **Repository** | 存储和分发 Chart 的仓库                          |
+
 
 ### 1.2 Helm 解决了什么问题
 
@@ -333,7 +335,7 @@ spec:
     - list:
         elements:
           - cluster: jp-prod, lane: main       # → plaud-project-summary-jp-prod-main-deployer
-          - cluster: jp-prod, lane: preview    # → Preview 环境
+          - cluster: jp-prod, lane: preview    # → Preview 环境（[[k8s-泳道机制-lane|泳道机制]]）
           - cluster: eu-prod, lane: main       # → EU 区域
           - cluster: sg-prod, lane: main       # → 新加坡区域
           - cluster: us-prod, lane: main       # → US 区域
@@ -350,11 +352,13 @@ spec:
 
 **Staging vs Production 关键差异**：
 
-| 配置项 | Staging | Production |
-|--------|---------|------------|
-| targetRevision | `dev` | `main` |
-| 自动同步 | `selfHeal: true` | 手动（注释掉了 automated） |
-| 集群数量 | 3（JP/US/CN） | 8（JP/EU/SG/US/CN × main+preview） |
+
+| 配置项            | Staging          | Production                       |
+| -------------- | ---------------- | -------------------------------- |
+| targetRevision | `dev`            | `main`                           |
+| 自动同步           | `selfHeal: true` | 手动（注释掉了 automated）               |
+| 集群数量           | 3（JP/US/CN）      | 8（JP/EU/SG/US/CN × main+preview） |
+
 
 ### 3.5 ⑤⑥⑦ Values 文件详解 — 参数逐项说明
 
@@ -384,17 +388,28 @@ deployer:                    # 所有配置都在 deployer: 下（对应子 Char
       memory: 16Gi
 ```
 
-> `requests = limits` 表示 **Guaranteed QoS**，Pod 不会被驱逐。
+> `requests = limits` 表示 **Guaranteed QoS**（服务质量等级最高：K8s 保证这个 Pod 独占所申请的资源，节点资源不足时也不会被驱逐）。
 
 **不同环境的资源对比**：
 
-| 环境 | CPU | Memory | 说明 |
-|------|-----|--------|------|
-| JP Staging | 1 | 4Gi | 测试环境，资源节省 |
-| JP Prod | 8 | 16Gi | 生产环境，高配 |
-| CN Prod | 8 | 16Gi | 中国区生产 |
 
-#### 自动扩缩容（autoscaling / HPA）
+| 环境         | CPU | Memory | 说明        |
+| ---------- | --- | ------ | --------- |
+| JP Staging | 1   | 4Gi    | 测试环境，资源节省 |
+| JP Prod    | 8   | 16Gi   | 生产环境，高配   |
+| CN Prod    | 8   | 16Gi   | 中国区生产     |
+
+
+#### 副本数与自动扩缩容（replicaCount & HPA）
+
+`replicaCount` 是告诉 Deployment "我要几个 Pod"的配置：
+
+```yaml
+deployer:
+  replicaCount: 1              # Deployment 的初始 Pod 数量
+```
+
+HPA（水平自动扩缩容）可以动态调整 Pod 数量：
 
 ```yaml
   autoscaling:
@@ -404,7 +419,16 @@ deployer:                    # 所有配置都在 deployer: 下（对应子 Char
     targetCPUUtilizationPercentage: 75   # CPU 使用率达到 75% 时扩容
 ```
 
-> Staging 环境通常不开启 HPA（`enabled: false`），Prod 环境按需开启。
+`**replicaCount` 与 HPA 的关系：**
+
+
+| 场景                        | 谁决定 Pod 数量                        | 说明                                                       |
+| ------------------------- | --------------------------------- | -------------------------------------------------------- |
+| HPA 未开启（`enabled: false`） | `replicaCount`                    | 固定副本数，不会自动增减                                             |
+| HPA 已开启（`enabled: true`）  | HPA 的 `minReplicas`/`maxReplicas` | `replicaCount` 仅作为初始值，HPA 接管后按负载动态调整，`replicaCount` 基本无效 |
+
+
+> 所以在生产环境中，真正决定 Pod 数量的是 HPA 的 `minReplicas` 和 `maxReplicas`，而不是 `replicaCount`。Staging 环境通常不开启 HPA（`enabled: false`），直接用 `replicaCount` 固定副本数。
 
 #### 健康检查（Probes）
 
@@ -432,7 +456,7 @@ deployer:                    # 所有配置都在 deployer: 下（对应子 Char
         command: ["/bin/sh", "-c", "echo preStop && sleep 10"]
 ```
 
-> `preStop` 在 SIGTERM 发送前执行，为 Endpoints 摘除传播争取 10 秒窗口，避免流量在传播窗口内发送到即将终止的 Pod。
+> `preStop` 在 SIGTERM 发送前执行，为 Endpoints（K8s 内部的"该 Service 后面有哪些 Pod"的列表）摘除传播争取 10 秒窗口，避免流量在传播窗口内发送到即将终止的 Pod。完整机制见 [[kubernetes-pod-graceful-shutdown|Pod 优雅终止完全指南]]。
 
 #### 卷挂载（Volumes & VolumeMounts）
 
@@ -495,7 +519,7 @@ deployer:                    # 所有配置都在 deployer: 下（对应子 Char
 
 ```yaml
   service:
-    type: ClusterIP             # 仅集群内可访问（最常用）
+    type: ClusterIP             # 仅集群内部可访问，不对外暴露（最常用的 Service 类型）
     ports:
       - port: 8001              # API 后端
         name: api
@@ -511,6 +535,24 @@ deployer:                    # 所有配置都在 deployer: 下（对应子 Char
 > 集群内其他 Pod 访问 API：`plaud-project-summary-jp-prod-main-deployer.plaud-project-summary:8001`
 
 #### Ingress 配置（多 Ingress + 高级特性）
+
+**Ingress 是什么？** Service 只解决集群**内部**的服务发现，但外部用户（浏览器、手机 App）无法直接访问 ClusterIP。**Ingress 就是 K8s 中将集群外部 HTTP/HTTPS 流量按域名和路径规则路由到集群内部 Service 的入口网关**——你可以把它理解为集群的"反向代理配置"，类似 Nginx 的 `server` + `location` 块，只不过用 K8s 原生资源声明式管理。
+
+```text
+外部请求 → Ingress Controller（实际的反向代理，如 nginx-ingress）
+              ↓ 匹配 Ingress 规则（域名 + 路径）
+           Service → Pod
+```
+
+核心概念：
+
+| 概念 | 说明 |
+| --- | --- |
+| **Ingress 资源** | K8s YAML 声明"哪个域名的哪个路径 → 转发给哪个 Service 的哪个端口" |
+| **Ingress Controller** | 真正干活的反向代理进程（如 nginx-ingress-controller），读取 Ingress 规则并执行路由 |
+| **IngressClass** | 指定使用哪个 Ingress Controller（一个集群可部署多个 Controller，按用途区分） |
+
+> 一句话总结：**Service 是集群内的 DNS，Ingress 是集群外的路由入口。** 没有 Ingress，外部流量进不来；没有 Service，Ingress 不知道把流量发给谁。
 
 plaud-project-summary 使用多 Ingress 配置，按流量类型分离：
 
@@ -564,69 +606,147 @@ plaud-project-summary 使用多 Ingress 配置，按流量类型分离：
               servicePort: 8001
 ```
 
-> 4 种 Ingress Controller 对应不同网络层级：`nginx-internal`（内网）、`nginx-pvt`（私有）、`nginx-public`（公网）、API 网关转发。
+> 4 种 Ingress Controller 对应不同网络层级：`nginx-internal`（内网）、`nginx-pvt`（私有）、`nginx-public`（公网）、API 网关转发。同一个 host 还可以通过 canary Ingress 实现[[k8s-泳道机制-lane|泳道（Lane）]]流量分流。
 
 ### 3.6 Staging vs Prod Values 对比
 
-| 参数 | Staging (JP) | Prod (JP) | 说明 |
-|------|-------------|-----------|------|
-| `image.tag` | `60bad01` | `93347b0` | 不同版本 |
-| `resources.cpu` | 1 | 8 | Prod 资源更多 |
-| `resources.memory` | 4Gi | 16Gi | Prod 内存更大 |
-| `autoscaling.enabled` | false | true (2-10) | Prod 开启 HPA |
-| `env.AWS_ENV` | test | prod | 环境标识 |
-| `env.APPCONFIG_RUN_ENV` | dev | prod | 配置文件环境 |
-| `APPCONFIG_CONFIG_FILE_NAME` | dev-config.yaml | prod-config.yaml | 不同配置文件 |
-| SA IAM Account | 734110488307 | 408278014848 | 不同 AWS 账号 |
-| Ingress 域名 | `*-staging-apne1.*` | `*-apne1.*` | 域名前缀区分 |
+
+| 参数                           | Staging (JP)        | Prod (JP)        | 说明          |
+| ---------------------------- | ------------------- | ---------------- | ----------- |
+| `image.tag`                  | `60bad01`           | `93347b0`        | 不同版本        |
+| `resources.cpu`              | 1                   | 8                | Prod 资源更多   |
+| `resources.memory`           | 4Gi                 | 16Gi             | Prod 内存更大   |
+| `autoscaling.enabled`        | false               | true (2-10)      | Prod 开启 HPA |
+| `env.AWS_ENV`                | test                | prod             | 环境标识        |
+| `env.APPCONFIG_RUN_ENV`      | dev                 | prod             | 配置文件环境      |
+| `APPCONFIG_CONFIG_FILE_NAME` | dev-config.yaml     | prod-config.yaml | 不同配置文件      |
+| SA IAM Account               | 734110488307        | 408278014848     | 不同 AWS 账号   |
+| Ingress 域名                   | `*-staging-apne1.*` | `*-apne1.*`      | 域名前缀区分      |
+
 
 ### 3.7 中国区 vs 海外区差异
 
-| 参数 | 海外区 (JP/EU/SG/US) | 中国区 (CN) |
-|------|---------------------|-------------|
-| ECR 地址 | `236604669925.dkr.ecr.us-west-2.amazonaws.com` | `470515048733.dkr.ecr.cn-northwest-1.amazonaws.com.cn` |
-| IAM ARN | `arn:aws:iam::408278014848:role/...` | `arn:aws-cn:iam::470515048733:role/...` |
-| 域名 | `*.plaud.ai` / `*.nicebuild.click` | `*.plaud.cn` / `*.nicebuild.cn` |
-| EKS 域名后缀 | `.eks.amazonaws.com` | `.eks.amazonaws.com.cn` |
-| HPA CPU 阈值 | 75% | 80% |
+
+| 参数         | 海外区 (JP/EU/SG/US)                              | 中国区 (CN)                                               |
+| ---------- | ---------------------------------------------- | ------------------------------------------------------ |
+| ECR 地址     | `236604669925.dkr.ecr.us-west-2.amazonaws.com` | `470515048733.dkr.ecr.cn-northwest-1.amazonaws.com.cn` |
+| IAM ARN    | `arn:aws:iam::408278014848:role/...`           | `arn:aws-cn:iam::470515048733:role/...`                |
+| 域名         | `*.plaud.ai` / `*.nicebuild.click`             | `*.plaud.cn` / `*.nicebuild.cn`                        |
+| EKS 域名后缀   | `.eks.amazonaws.com`                           | `.eks.amazonaws.com.cn`                                |
+| HPA CPU 阈值 | 75%                                            | 80%                                                    |
+
 
 ### 3.8 完整部署链路图
 
+```mermaid
+flowchart TD
+    A["① Chart.yaml<br/>声明依赖 generic-deployer"] --> B["② application.yaml<br/>ArgoCD 读取 → 发现 applicationsets/ 目录"]
+    B --> C["③ applicationsets-prod.yaml<br/>Generator 列表定义 8 个 element<br/>(jp/eu/sg/us/cn × main+preview)"]
+    C -->|为每个 element 生成| D["④ ArgoCD Application × 8<br/>Release Name = summary-{cluster}-{lane}<br/>Values = values/{region}/{env}/{lane}.yaml"]
+    D -->|Helm 渲染| E["⑤ K8s 资源"]
+    E --> F["⑥ EKS 集群 (ap-northeast-1)<br/>namespace: plaud-project-summary"]
+
+    E --- E1["Deployment: summary-jp-prod-main-deployer"]
+    E --- E2["Service: ClusterIP 8001/8889/8000"]
+    E --- E3["HPA: min=2, max=10, CPU=75%"]
+    E --- E4["Ingress: internal / pvt / public / api-gw"]
 ```
-① Chart.yaml
-   声明依赖 generic-deployer
-        ↓
-② application.yaml
-   ArgoCD 读取 → 发现 applicationsets/ 目录
-        ↓
-③ applicationsets-prod.yaml
-   Generator 列表定义 8 个 element:
-   [jp-prod main/preview, eu-prod main, sg-prod main,
-    us-prod main/preview, cn-prod main/preview]
-        ↓ 为每个 element 生成
-④ ArgoCD Application × 8
-   每个 Application:
-   - Release Name = plaud-project-summary-{{ cluster }}-{{ lane }}
-   - 使用 values/{{ region }}/{{ env }}/{{ lane }}.yaml
-   - 部署到 server: {{ server }}
-        ↓ Helm 渲染
-⑤ K8s 资源
-   - Deployment: plaud-project-summary-jp-prod-main-deployer
-   - Service:    plaud-project-summary-jp-prod-main-deployer
-                 (ClusterIP: 8001/api, 8889/frontend, 8000/health)
-   - HPA:        min=2, max=10, CPU=75%
-   - SA:         plaud-project-summary (with IRSA)
-   - Ingress:    internal / private / public / api-gateway
-        ↓ 部署到
-⑥ EKS 集群 (ap-northeast-1)
-   namespace: plaud-project-summary
-```
+
+
 
 ---
 
-## 四、EKS 集群地址
+## 四、Pod 与 Deployment — K8s 的核心运行单元
 
-### 4.1 什么是 EKS 集群地址
+> 前面三章讲的是"怎么把配置变成 K8s 资源"。这一章回答更基本的问题：K8s 里的应用到底是怎么跑起来的？两个最核心的概念是 **Pod**（运行实例）和 **Deployment**（管理者）。
+
+### 4.1 Pod 的概念
+
+**为什么需要 Pod？** [[docker-learning|Docker]] 容器已经可以运行应用了，但容器本身没有"调度"和"编排"能力——它不知道自己该跑在哪台机器上，挂了也没人管。K8s 用 Pod 封装容器，让它成为集群可以统一调度、监控、管理的最小单元。
+
+**Pod 是 K8s 中最小的可部署单元**，可以简单理解为：一个运行中的容器实例（你的应用进程）。
+
+```
+Deployment（声明式管理）
+  └── 创建并维护 N 个 Pod（副本）
+       ├── Pod 1: 运行 plaud-api 容器（监听 8000 端口）
+       ├── Pod 2: 运行 plaud-api 容器（监听 8000 端口）
+       └── Pod 3: ...
+```
+
+Pod 和容器的关系：
+
+- 一个 Pod **通常包含一个主容器**（你的应用），也可以包含 sidecar 容器（sidecar 即"边车"——附在主容器旁边的辅助容器，负责日志收集、流量代理等横切关注点）
+- 同一个 Pod 内的容器共享网络（localhost 互通）和存储卷
+- Pod 是临时的——K8s 随时可能销毁并重建它，所以不要在 Pod 内存放持久状态
+
+### 4.2 Deployment 是什么
+
+**为什么需要 Deployment？** Pod 本身是"一次性"的——挂了就没了。如果你手动创建 Pod，挂了得手动重建，扩容得手动加，更新得手动替换。Deployment 就是用来自动化这些事的管理者。
+
+简单类比：**Deployment 是"工头"，Pod 是"工人"**——你告诉工头"我要 4 个会做 X 的工人"，工头负责招人、换人、加人、减人，你不用管每个工人的生死。
+
+Deployment 的核心职责是**确保现实和声明一致**：
+
+
+| 发生了什么              | Deployment 自动做什么                    |
+| ------------------ | ----------------------------------- |
+| 某个 Pod 挂了          | 立刻创建一个新 Pod 补上，维持声明的副本数             |
+| 你改了 image tag（新版本） | 按[[kubernetes-pod-graceful-shutdown |
+| HPA 说要扩到 10 个      | 创建更多 Pod 直到达到目标数                    |
+| HPA 说缩回 4 个        | 终止多余的 Pod                           |
+
+
+在本项目中，Deployment 由 `generic-deployer/templates/deployment.yaml` 这个 Helm 模板自动生成，你不需要手动编写。最终生成的 Deployment 名称格式为：`{service}-{cluster}-{lane}-deployer`，例如 `plaud-api-jp-prod-main-deployer`。
+
+### 4.4 Pod 不需要单独配置
+
+在本项目中，**Pod 本身不需要手动编写**。它是 Deployment 的产物，配置链路如下：
+
+```mermaid
+flowchart LR
+    A["values 文件<br/>image / resources / probes / env"] -->|Helm 渲染| B["Deployment YAML<br/>(含完整 Pod spec)"]
+    B -->|K8s 执行| C["Pod 实例 × N"]
+    style A fill:#e8f4fd
+    style C fill:#d4edda
+```
+
+
+
+你在 values 文件里配的每一项，最终都会成为 Pod spec 的一部分：
+
+
+| values 中的配置                        | 对应的 Pod spec 字段                                   | 作用                              |
+| ---------------------------------- | ------------------------------------------------- | ------------------------------- |
+| `image.repository` + `image.tag`   | `spec.containers[].image`                         | Pod 运行哪个容器镜像                    |
+| `resources.limits/requests`        | `spec.containers[].resources`                     | Pod 的 CPU/内存配额                  |
+| `livenessProbe` / `readinessProbe` | `spec.containers[].livenessProbe`                 | Pod 的健康检查                       |
+| `env`                              | `spec.containers[].env`                           | Pod 内的环境变量                      |
+| `volumeMounts` / `volumes`         | `spec.volumes` + `spec.containers[].volumeMounts` | Pod 挂载的存储卷                      |
+| `serviceAccount.name`              | `spec.serviceAccountName`                         | Pod 使用的 ServiceAccount（IRSA 权限） |
+| `terminationGracePeriodSeconds`    | `spec.terminationGracePeriodSeconds`              | Pod 优雅终止的等待时间                   |
+
+
+### 4.5 Pod 的生命周期由谁管理
+
+
+| 管理者               | 职责                                    |
+| ----------------- | ------------------------------------- |
+| **Deployment**    | 声明期望的 Pod 副本数和更新策略，确保实际运行的 Pod 数量符合预期 |
+| **HPA**（水平自动扩缩容）  | 根据 CPU/内存使用率动态调整 Deployment 的副本数      |
+| **K8s Scheduler** | 决定 Pod 运行在集群中的哪个节点上                   |
+| **kubelet**       | 在节点上实际启动/停止 Pod，执行健康检查                |
+
+
+开发者只需关心 values 文件中的配置，Pod 的创建、调度、扩缩、重启、销毁全部由 K8s 自动完成。
+
+---
+
+## 五、EKS 集群地址
+
+> 前面讲了 Pod 跑在集群里，Deployment 管理 Pod。但集群本身在哪？怎么连上去？这一章回答的就是这个问题——EKS 集群地址就是你连接 K8s API Server 的入口。
+
+### 5.1 什么是 EKS 集群地址
 
 EKS（Elastic Kubernetes Service）集群地址是 AWS 托管的 Kubernetes API Server 的 endpoint，格式为：
 
@@ -639,7 +759,7 @@ https://<UNIQUE-HASH>.<SUFFIX>.<REGION>.eks.amazonaws.com
 - `REGION`：AWS 区域
 - 中国区域后缀为 `.eks.amazonaws.com.cn`
 
-### 4.2 如何查看 EKS 集群地址
+### 5.2 如何查看 EKS 集群地址
 
 #### 方法一：AWS CLI
 
@@ -706,18 +826,20 @@ cat plaud-project-summary/applicationsets/applicationsets-prod.yaml
 terraform output cluster_endpoint
 ```
 
-### 4.3 集群地址 vs 集群内服务地址
+### 5.3 集群地址 vs 集群内服务地址
 
-| 对比 | EKS 集群地址 | K8s Service DNS |
-|------|-------------|----------------|
-| 用途 | 外部访问 K8s API Server | 集群内 Pod 间通信 |
-| 格式 | `https://<hash>.<region>.eks.amazonaws.com` | `<svc>.<ns>.svc.cluster.local:<port>` |
-| 谁使用 | kubectl / ArgoCD / CI/CD | 集群内的其他 Pod |
-| 认证 | 需要 kubeconfig / IAM | 无需额外认证（同集群内） |
+
+| 对比  | EKS 集群地址                                    | K8s Service DNS                       |
+| --- | ------------------------------------------- | ------------------------------------- |
+| 用途  | 外部访问 K8s API Server                         | 集群内 Pod 间通信                           |
+| 格式  | `https://<hash>.<region>.eks.amazonaws.com` | `<svc>.<ns>.svc.cluster.local:<port>` |
+| 谁使用 | kubectl / ArgoCD / CI/CD                    | 集群内的其他 Pod                            |
+| 认证  | 需要 kubeconfig / IAM                         | 无需额外认证（同集群内）                          |
+
 
 ---
 
-## 五、常用 Helm 命令速查
+## 六、常用 Helm 命令速查
 
 ```bash
 # 查看 Chart 信息
@@ -750,7 +872,7 @@ helm dependency list <chart-path>     # 查看依赖列表
 
 ---
 
-## 六、总结
+## 七、总结
 
 ```
 Helm 核心作用：模板化 K8s 资源 + 参数化多环境配置 + 版本管理
@@ -763,3 +885,11 @@ ArgoCD ApplicationSet：编排层，将 Helm Chart × Values 分发到多个 EKS
                   ↓
 EKS 集群：        最终运行 K8s 资源的目标环境
 ```
+
+---
+
+## 延伸阅读
+
+- [[k8s-泳道机制-lane|K8s 泳道机制（Lane）]] — 在同一集群、同一域名下运行多版本服务，通过 HTTP Header 路由流量
+- [[kubernetes-pod-graceful-shutdown|Pod 优雅终止完全指南]] — 滚动更新时如何保证存量任务不被中断
+
