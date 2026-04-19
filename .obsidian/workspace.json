@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "infra/k8s-learning/02-k8s-core-concepts.md",
+                "file": "infra/k8s-learning/03-k8s-workload-types.md",
                 "mode": "preview",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "02-k8s-core-concepts"
+              "title": "03-k8s-workload-types"
             }
           }
         ]
@@ -78,7 +78,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 313.5
+    "width": 333.5
   },
   "right": {
     "id": "18704fb929da8db0",
@@ -187,32 +187,32 @@
   },
   "active": "45cb6b2532af1f26",
   "lastOpenFiles": [
-    "infra/k8s-learning/04-k8s-networking.md",
-    "infra/k8s-learning/03-k8s-workload-types.md",
     "infra/k8s-learning/02-k8s-core-concepts.md",
-    "infra/k8s-learning/05-k8s-architecture.md",
-    "infra/k8s-learning/06-k8s-storage.md",
-    "infra/k8s-learning/08-k8s-security-rbac.md",
+    "infra/k8s-learning/03-k8s-workload-types.md",
     "infra/k8s-learning/09-k8s-observability.md",
+    "infra/k8s-learning/10-helm-argocd-deployment.md",
     "infra/k8s-learning/11-k8s-extension-mechanisms.md",
     "infra/k8s-learning/12-k8s-pod-graceful-shutdown.md",
     "infra/k8s-learning/13-k8s-lane-mechanism.md",
+    "infra/k8s-learning/07-k8s-scheduling-resources.md",
+    "infra/k8s-learning/06-k8s-storage.md",
+    "infra/k8s-learning/05-k8s-architecture.md",
+    "infra/k8s-learning/01-docker-basics.md",
+    "infra/k8s-learning/02-k8s-core-concepts.md.tmp.19442.1776582305955",
+    "infra/k8s-learning/04-k8s-networking.md",
+    "infra/k8s-learning/08-k8s-security-rbac.md",
     "infra/k8s-learning/02-k8s-architecture.md",
     "infra/k8s-learning/09-k8s-extension-mechanisms.md",
-    "infra/k8s-learning/10-helm-argocd-deployment.md",
     "infra/k8s-learning/12-k8s-lane-mechanism.md",
     "infra/k8s-learning/11-k8s-pod-graceful-shutdown.md",
     "infra/k8s-learning/08-k8s-observability.md",
-    "infra/k8s-learning/01-docker-basics.md",
     "infra/k8s-learning/05-k8s-storage.md",
     "infra/k8s-learning/06-k8s-security-rbac.md",
-    "infra/k8s-learning/07-k8s-scheduling-resources.md",
     "infra/deploy/k8s-extension-mechanisms.md",
     "infra/deploy/k8s-scheduling-resources.md",
     "infra/deploy/k8s-security-rbac.md",
     "infra/deploy/k8s-storage.md",
     "infra/deploy/k8s-networking.md",
-    "infra/deploy/k8s-workload-types.md",
     "AI/basic/ExportBlock-cd0d2ae3-7d1b-4f13-b721-97d0df66f4c3-Part-1/Deep Learning/Transformer/Untitled.png",
     "AI/basic/ExportBlock-cd0d2ae3-7d1b-4f13-b721-97d0df66f4c3-Part-1/Deep Learning/单层神经网络/激活函数/image.png",
     "AI/basic/ExportBlock-cd0d2ae3-7d1b-4f13-b721-97d0df66f4c3-Part-1/Deep Learning/单层神经网络/激活函数/image 1.png",
@@ -232,7 +232,6 @@
     "AI/basic/ExportBlock-cd0d2ae3-7d1b-4f13-b721-97d0df66f4c3-Part-1/Deep Learning/self-attention｜自注意力机制",
     "AI/basic/ExportBlock-cd0d2ae3-7d1b-4f13-b721-97d0df66f4c3-Part-1/Deep Learning/Transformer",
     "AI/basic/ExportBlock-cd0d2ae3-7d1b-4f13-b721-97d0df66f4c3-Part-1/Deep Learning/Transfer Learning 迁移学习",
-    "AI/basic/ExportBlock-cd0d2ae3-7d1b-4f13-b721-97d0df66f4c3-Part-1/Deep Learning/Self-Supervised Learning 自监督学习",
     "Untitled.canvas"
   ]
 }
