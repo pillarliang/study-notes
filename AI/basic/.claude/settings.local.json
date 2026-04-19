@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//Users/liangzhu/Library/Mobile Documents/iCloud~md~obsidian/Documents/study-notes/infra/**)"
+    ]
+  }
+}

@@ -163,6 +163,10 @@
   },
   "defaultProfile": null,
   "terminalOptions": {
+    "cursorStyle": "bar",
+    "fontSize": 12,
+    "fontWeight": "normal",
+    "fontWeightBold": "normal",
     "documentOverride": null
   }
 }

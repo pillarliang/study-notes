@@ -41,6 +41,30 @@ my-chart/
 └── charts/             # 子 Chart（依赖）
 ```
 
+### 🔗 实战链接：generic-deployer 的真实 Chart 结构
+
+我们的 `generic-deployer` Chart 是所有 80+ 微服务的公共基座，它的 templates 目录包含了一个微服务部署所需的全部资源模板：
+
+```text
+generic-deployer/
+├── Chart.yaml              # name: deployer, version: 0.1.0
+├── values.yaml             # 默认参数值
+└── templates/
+    ├── _helpers.tpl         # fullname 生成、标签生成、ingress 冲突校验
+    ├── deployment.yaml      # Deployment（含滚动更新、拓扑分散、优雅关停）
+    ├── service.yaml         # Service（ClusterIP）
+    ├── service-headless.yaml # Headless Service（用于 StatefulSet 场景）
+    ├── ingress.yaml         # 单 Ingress 模式
+    ├── ingresses.yaml       # 多 Ingress 模式（internal/pvt/public 分离）
+    ├── hpa.yaml             # HPA 水平自动扩缩容
+    ├── serviceaccount.yaml  # ServiceAccount（支持 IRSA 注解）
+    ├── servicemonitor.yaml  # ServiceMonitor CRD（Prometheus 指标采集）
+    ├── externalsecret.yaml  # ExternalSecret CRD（AWS Secrets Manager 同步）
+    └── config.yaml          # ConfigMap（应用配置注入）
+```
+
+> 注意模板中包含了两个 CRD 资源（ServiceMonitor 和 ExternalSecret），体现了 Helm 与 [[11-k8s-extension-mechanisms|K8s 扩展机制]] 的结合——Chart 不仅管理内置资源，也管理自定义资源。
+
 ### 1.4 关键模板机制
 
 **模板渲染流程**：`Chart 模板` + `Values 参数` → 渲染 → 最终 K8s YAML → 部署到集群
@@ -115,6 +139,36 @@ deployer:                   # 对应子 Chart 名称
 - ServiceMonitor（Prometheus 监控）
 - ConfigMap
 
+#### 🔗 实战链接：generic-deployer 的 Deployment 模板关键设计
+
+`generic-deployer/templates/deployment.yaml` 中内置了多项生产级最佳实践：
+
+```yaml
+# generic-deployer/templates/deployment.yaml（关键片段）
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}   # HPA 开启时不设 replicas，交给 HPA 控制
+  {{- end }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: {{ .Values.updateStrategy.maxUnavailable | default 0 }}
+      maxSurge: {{ .Values.updateStrategy.maxSurge | default "25%" }}
+  template:
+    spec:
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds | default 45 }}
+      # --- 默认拓扑分散约束（跨 AZ + 跨节点） ---
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone    # Pod 均匀分布到不同可用区
+          whenUnsatisfiable: ScheduleAnyway
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname          # Pod 均匀分布到不同节点
+          whenUnsatisfiable: ScheduleAnyway
+```
+
+> 模板中 `replicas` 字段使用条件渲染：当 HPA 未开启时才设置，避免 HPA 和 Deployment 的副本数冲突。拓扑分散约束默认开启，确保 Pod 跨可用区高可用。这些逻辑只需在模板中写一次，80+ 微服务自动继承。
+
 ### 2.2 项目目录结构
 
 每个微服务项目采用统一的目录结构：
@@ -183,7 +237,7 @@ spec:
 
 **部署流程**：
 
-```
+```text
 ApplicationSet Generator（集群列表）
     ↓ 为每个 element 生成一个 ArgoCD Application
 Application（per cluster + lane）
@@ -192,6 +246,62 @@ Helm Chart (generic-deployer) + Values 文件
     ↓ 渲染出 K8s 资源
 部署到对应 EKS 集群的目标 namespace
 ```
+
+#### 🔗 实战链接：基础设施的 Multi-Source ApplicationSet 模式
+
+微服务的 ApplicationSet 使用单一 source（Git 仓库中的 Helm Chart + values），而基础设施组件使用了更高级的 **Multi-Source** 模式——Helm Chart 来自外部仓库，values 文件来自内部 Git 仓库：
+
+```yaml
+# infra/applicationsets/strimzi-kafka-operator.yaml（简化）
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: strimzi-kafka-operator
+spec:
+  generators:
+    - list:
+        elements:
+          - name: jp-prod
+            targetRevision: 0.50.0       # Operator 版本可按集群差异化
+          - name: cn-prod
+            targetRevision: 0.50.0
+          # ... 共 11 个集群
+  template:
+    spec:
+      sources:                           # 注意：sources（复数），不是 source
+        # Source 1: 外部 Helm Chart（来自 Strimzi 官方 OCI 仓库）
+        - repoURL: quay.io/strimzi-helm
+          targetRevision: "{{ targetRevision }}"
+          chart: strimzi-kafka-operator
+          helm:
+            releaseName: strimzi-kafka-operator
+            valueFiles:
+              - $values/infra/values/strimzi-kafka-operator/default.yaml
+
+        # Source 2: 内部 Git 仓库（提供自定义 values 文件）
+        - repoURL: git@github.com:Plaud-AI/deploy.git
+          targetRevision: main
+          ref: values                    # 用 ref 引用，$values 即指向此源
+```
+
+**同样的模式也用于 ClickHouse Operator 和 OpenSearch**：
+
+```yaml
+# infra/applicationsets/opensearch-master.yaml（简化）
+sources:
+  - repoURL: https://opensearch-project.github.io/helm-charts
+    targetRevision: "{{ targetRevision }}"
+    chart: opensearch
+    helm:
+      valueFiles:
+        - $values/infra/values/opensearch-master/default.yaml        # 全局默认值
+        - $values/infra/values/opensearch-master/{{ region }}/{{ env }}/values.yaml  # 环境差异值
+  - repoURL: git@github.com:Plaud-AI/deploy.git
+    targetRevision: main
+    ref: values
+```
+
+> **Multi-Source 的优势**：Helm Chart 版本由外部仓库管理（`targetRevision: 0.50.0`），配置值由内部 Git 仓库管理。升级 Operator 只需修改 `targetRevision`，无需 fork 整个 Chart。values 文件支持多层叠加（`default.yaml` + `region/env/values.yaml`），实现渐进式配置覆盖。
 
 ### 2.4 集群内服务地址（K8s Service DNS）
 
@@ -289,6 +399,17 @@ spec:
 
 > 这个 Application 的作用是让 ArgoCD 发现 `applicationsets/` 目录下的 ApplicationSet 资源。
 
+**`syncPolicy.automated` 两个关键开关**：
+
+| 配置 | 管控的场景 | `true` | `false` |
+| --- | --- | --- | --- |
+| **`prune`** | Git 中的改动导致某个 K8s 资源**不再被渲染**，但集群中还存在 | 自动删除集群中的对应资源 | 只标记 "out of sync"，不删除，等人工处理 |
+| **`selfHeal`** | 集群中的资源被**手动修改**（如 `kubectl edit`），与 Git 不一致 | 自动恢复成 Git 中定义的状态 | 只标记 "out of sync"，不修改，等人工处理 |
+
+> **`prune` 的具体场景**：以上面的 `application.yaml` 为例，它的 source 指向 `applicationsets/` 目录。如果你从 Git 中删除了 `applicationsets/applicationsets.yaml` 这个文件并推送，ArgoCD 发现集群中存在一个 ApplicationSet 但 Git 中已经没有了——`prune: true` 会自动删除集群中的 ApplicationSet（连带删除它生成的所有 Application），`prune: false` 则只标记 "out of sync"，等人工确认。这就是"安全优先"：误删文件（手滑、merge 冲突丢失等）不会导致线上资源被连带删除。
+>
+> **`selfHeal` 的具体场景**：有人用 `kubectl scale --replicas=5` 临时改了副本数，ArgoCD 会自动改回 Git 中 values 文件定义的值（如 `replicaCount: 2`），确保 Git 始终是唯一的事实来源（Single Source of Truth）。
+
 ### 3.4 ③④ ApplicationSet — 多集群编排
 
 **Staging（applicationsets.yaml）**：
@@ -335,7 +456,7 @@ spec:
     - list:
         elements:
           - cluster: jp-prod, lane: main       # → plaud-project-summary-jp-prod-main-deployer
-          - cluster: jp-prod, lane: preview    # → Preview 环境（[[k8s-泳道机制-lane|泳道机制]]）
+          - cluster: jp-prod, lane: preview    # → Preview 环境（[[13-k8s-lane-mechanism|泳道机制]]）
           - cluster: eu-prod, lane: main       # → EU 区域
           - cluster: sg-prod, lane: main       # → 新加坡区域
           - cluster: us-prod, lane: main       # → US 区域
@@ -353,12 +474,38 @@ spec:
 **Staging vs Production 关键差异**：
 
 
-| 配置项            | Staging          | Production                       |
-| -------------- | ---------------- | -------------------------------- |
-| targetRevision | `dev`            | `main`                           |
-| 自动同步           | `selfHeal: true` | 手动（注释掉了 automated）               |
-| 集群数量           | 3（JP/US/CN）      | 8（JP/EU/SG/US/CN × main+preview） |
+| 配置项            | Staging                              | Production                       |
+| -------------- | ------------------------------------ | -------------------------------- |
+| targetRevision | `dev`                                | `main`                           |
+| 自动同步           | `selfHeal: true` + `prune: false`    | 手动（注释掉了 automated）               |
+| 集群数量           | 3（JP/US/CN）                          | 8（JP/EU/SG/US/CN × main+preview） |
 
+> Staging 的策略是：手动改集群会被自动纠正（防止配置漂移），但不会自动删资源（防止误删）。Prod 两个都关闭（或整个 `automated` 被注释掉），最保守——所有变更都需要人工在 ArgoCD UI 中手动触发同步。关于 `prune` 和 `selfHeal` 的详细解释见上文 3.3 节。
+
+#### 🔗 实战链接：ApplicationSet 的规模化效果
+
+同样的 ApplicationSet 模式被 90+ 微服务和基础设施组件统一使用。以下是 deploy 仓库中部分 applicationsets 目录：
+
+```text
+deploy/
+├── plaud-sync/applicationsets/          # 同步服务
+│   ├── applicationsets.yaml             # Staging: 3 集群
+│   └── applicationsets-prod.yaml        # Prod: JP/EU/SG 3 集群
+├── plaud-admin/applicationsets/         # 管理后台
+├── plaud-transcribe/applicationsets/    # 转写服务
+├── plaud-project-summary/applicationsets/  # 摘要服务
+├── ... （共 90+ 服务）
+└── infra/applicationsets/               # 基础设施（18 个 ApplicationSet）
+    ├── strimzi-kafka-operator.yaml      # Kafka Operator → 11 集群
+    ├── strimzi-kafka.yaml               # Kafka 集群 → 11 集群
+    ├── opensearch-master.yaml           # OpenSearch → 11 集群
+    ├── clickhouse-operator.yaml         # ClickHouse → 10 集群
+    ├── external-secrets.yaml            # External Secrets → 10 集群
+    ├── kube-prometheus.yaml             # Prometheus → 全集群
+    └── ...
+```
+
+> 一个关键差异：微服务的 ApplicationSet 使用 `server`（EKS endpoint URL）指定目标集群，而基础设施使用 `name`（ArgoCD 注册的集群别名）。这是因为基础设施组件通过 ArgoCD 的集群管理功能注册，支持用友好名称（如 `jp-prod`）替代冗长的 URL。
 
 ### 3.5 ⑤⑥⑦ Values 文件详解 — 参数逐项说明
 
@@ -456,7 +603,7 @@ HPA（水平自动扩缩容）可以动态调整 Pod 数量：
         command: ["/bin/sh", "-c", "echo preStop && sleep 10"]
 ```
 
-> `preStop` 在 SIGTERM 发送前执行，为 Endpoints（K8s 内部的"该 Service 后面有哪些 Pod"的列表）摘除传播争取 10 秒窗口，避免流量在传播窗口内发送到即将终止的 Pod。完整机制见 [[kubernetes-pod-graceful-shutdown|Pod 优雅终止完全指南]]。
+> `preStop` 在 SIGTERM 发送前执行，为 Endpoints（K8s 内部的"该 Service 后面有哪些 Pod"的列表）摘除传播争取 10 秒窗口，避免流量在传播窗口内发送到即将终止的 Pod。完整机制见 [[12-k8s-pod-graceful-shutdown|Pod 优雅终止完全指南]]。
 
 #### 卷挂载（Volumes & VolumeMounts）
 
@@ -606,7 +753,46 @@ plaud-project-summary 使用多 Ingress 配置，按流量类型分离：
               servicePort: 8001
 ```
 
-> 4 种 Ingress Controller 对应不同网络层级：`nginx-internal`（内网）、`nginx-pvt`（私有）、`nginx-public`（公网）、API 网关转发。同一个 host 还可以通过 canary Ingress 实现[[k8s-泳道机制-lane|泳道（Lane）]]流量分流。
+> 4 种 Ingress Controller 对应不同网络层级：`nginx-internal`（内网）、`nginx-pvt`（私有）、`nginx-public`（公网）、API 网关转发。同一个 host 还可以通过 canary Ingress 实现[[13-k8s-lane-mechanism|泳道（Lane）]]流量分流。
+
+#### 🔗 实战链接：多 Ingress 模板的实现原理
+
+`generic-deployer/templates/ingresses.yaml` 通过遍历 values 中的 `ingresses` map，为每个 key 生成独立的 Ingress 资源：
+
+```yaml
+# generic-deployer/templates/ingresses.yaml（核心逻辑）
+{{- range $name, $ingress := .Values.ingresses }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  # 名称格式：{release}-deployer-{ingress-key}
+  # 例如：plaud-admin-global-staging-main-deployer-public
+  name: {{ include "generic-deployer.fullname" $ }}-{{ $name | lower }}
+  {{- with $ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  ingressClassName: {{ $ingress.ingressClassName }}
+  rules:
+    {{- range $ingress.hosts }}
+    - host: {{ .host | quote }}
+      http:
+        paths:
+          {{- range .paths }}
+          - path: {{ .path }}
+            backend:
+              service:
+                name: {{ .serviceName | default (include "generic-deployer.fullname" $) }}
+                port:
+                  number: {{ .servicePort }}
+          {{- end }}
+    {{- end }}
+---
+{{- end }}
+```
+
+> 模板用 `range $name, $ingress` 遍历 map，所以 values 中定义几个 key（`internal`、`pvt`、`public`、`api-gateway`），就自动生成几个 Ingress 资源。`serviceName` 默认使用 Chart 的 fullname，也支持自定义路由到其他 Service。
 
 ### 3.6 Staging vs Prod Values 对比
 
@@ -636,6 +822,61 @@ plaud-project-summary 使用多 Ingress 配置，按流量类型分离：
 | HPA CPU 阈值 | 75%                                            | 80%                                                    |
 
 
+#### 🔗 实战链接：ExternalSecret 的完整链路（从 AWS 到 Pod）
+
+结合 [[11-k8s-extension-mechanisms|扩展机制笔记]] 中介绍的 CRD 概念，这里展示密钥管理的完整链路：
+
+**Step 1：每个区域部署一个 ClusterSecretStore**（通过 Kustomize overlay 管理）
+
+```yaml
+# infra/values/external-secrets/overlays/ap-northeast-1/prod/aws-secrets-manager-store.yaml
+apiVersion: external-secrets.io/v1
+kind: ClusterSecretStore
+metadata:
+  name: aws-secrets-manager-store
+spec:
+  provider:
+    aws:
+      service: SecretsManager
+      region: ap-northeast-1              # 每个区域的 SecretStore 指向本区域的 Secrets Manager
+      auth:
+        jwt:
+          serviceAccountRef:
+            name: external-secrets        # ESO 自身的 ServiceAccount（通过 IRSA 获取 AWS 权限）
+            namespace: external-secrets
+```
+
+**Step 2：微服务通过 values 声明需要的密钥**
+
+```yaml
+# plaud-admin/values/global/staging/main.yaml（ExternalSecret 部分）
+deployer:
+  externalSecrets:
+    - name: plaud-admin-es
+      secretStoreRef:
+        name: aws-secrets-manager-store   # 引用 Step 1 的 ClusterSecretStore
+        kind: ClusterSecretStore
+      target:
+        name: plaud-admin-es              # 生成的 K8s Secret 名称
+        template:
+          data:
+            DB_USER: "{{ .username }}"    # 从 JSON 中提取字段
+            DB_PASSWORD: "{{ .password }}"
+            DB_HOST: "{{ .host }}"
+      dataFrom:
+        - extract:
+            key: db/global-plaud-mysql    # AWS Secrets Manager 中的密钥路径
+
+  env:
+    - name: DB_HOST
+      valueFrom:
+        secretKeyRef:
+          name: plaud-admin-es            # 引用上面生成的 Secret
+          key: DB_HOST
+```
+
+> 完整链路：`AWS Secrets Manager` → `ClusterSecretStore`（每区域一个） → `ExternalSecret`（每服务一个） → `K8s Secret` → `Pod env/volumeMount`。开发者只需在 values 中声明密钥路径和字段映射，Helm 模板 + External Secrets Operator 自动完成其余工作。
+
 ### 3.8 完整部署链路图
 
 ```mermaid
@@ -656,52 +897,13 @@ flowchart TD
 
 ---
 
-## 四、Pod 与 Deployment — K8s 的核心运行单元
+## 四、Values 与 Pod 的映射关系
 
-> 前面三章讲的是"怎么把配置变成 K8s 资源"。这一章回答更基本的问题：K8s 里的应用到底是怎么跑起来的？两个最核心的概念是 **Pod**（运行实例）和 **Deployment**（管理者）。
+> Pod 和 Deployment 的基本概念见 [[02-k8s-core-concepts|K8s 核心概念入门]]，各工作负载类型的对比见 [[03-k8s-workload-types|K8s 工作负载类型]]。
 
-### 4.1 Pod 的概念
+在本项目中，Pod 由 Deployment 自动创建，开发者不需要手动编写 Pod YAML。Deployment 由 `generic-deployer/templates/deployment.yaml` Helm 模板生成，名称格式为 `{service}-{cluster}-{lane}-deployer`。
 
-**为什么需要 Pod？** [[docker-learning|Docker]] 容器已经可以运行应用了，但容器本身没有"调度"和"编排"能力——它不知道自己该跑在哪台机器上，挂了也没人管。K8s 用 Pod 封装容器，让它成为集群可以统一调度、监控、管理的最小单元。
-
-**Pod 是 K8s 中最小的可部署单元**，可以简单理解为：一个运行中的容器实例（你的应用进程）。
-
-```
-Deployment（声明式管理）
-  └── 创建并维护 N 个 Pod（副本）
-       ├── Pod 1: 运行 plaud-api 容器（监听 8000 端口）
-       ├── Pod 2: 运行 plaud-api 容器（监听 8000 端口）
-       └── Pod 3: ...
-```
-
-Pod 和容器的关系：
-
-- 一个 Pod **通常包含一个主容器**（你的应用），也可以包含 sidecar 容器（sidecar 即"边车"——附在主容器旁边的辅助容器，负责日志收集、流量代理等横切关注点）
-- 同一个 Pod 内的容器共享网络（localhost 互通）和存储卷
-- Pod 是临时的——K8s 随时可能销毁并重建它，所以不要在 Pod 内存放持久状态
-
-### 4.2 Deployment 是什么
-
-**为什么需要 Deployment？** Pod 本身是"一次性"的——挂了就没了。如果你手动创建 Pod，挂了得手动重建，扩容得手动加，更新得手动替换。Deployment 就是用来自动化这些事的管理者。
-
-简单类比：**Deployment 是"工头"，Pod 是"工人"**——你告诉工头"我要 4 个会做 X 的工人"，工头负责招人、换人、加人、减人，你不用管每个工人的生死。
-
-Deployment 的核心职责是**确保现实和声明一致**：
-
-
-| 发生了什么              | Deployment 自动做什么                    |
-| ------------------ | ----------------------------------- |
-| 某个 Pod 挂了          | 立刻创建一个新 Pod 补上，维持声明的副本数             |
-| 你改了 image tag（新版本） | 按[[kubernetes-pod-graceful-shutdown |
-| HPA 说要扩到 10 个      | 创建更多 Pod 直到达到目标数                    |
-| HPA 说缩回 4 个        | 终止多余的 Pod                           |
-
-
-在本项目中，Deployment 由 `generic-deployer/templates/deployment.yaml` 这个 Helm 模板自动生成，你不需要手动编写。最终生成的 Deployment 名称格式为：`{service}-{cluster}-{lane}-deployer`，例如 `plaud-api-jp-prod-main-deployer`。
-
-### 4.4 Pod 不需要单独配置
-
-在本项目中，**Pod 本身不需要手动编写**。它是 Deployment 的产物，配置链路如下：
+配置链路如下：
 
 ```mermaid
 flowchart LR
@@ -713,7 +915,7 @@ flowchart LR
 
 
 
-你在 values 文件里配的每一项，最终都会成为 Pod spec 的一部分：
+values 文件中的每一项，最终都会成为 Pod spec 的一部分：
 
 
 | values 中的配置                        | 对应的 Pod spec 字段                                   | 作用                              |
@@ -726,107 +928,32 @@ flowchart LR
 | `serviceAccount.name`              | `spec.serviceAccountName`                         | Pod 使用的 ServiceAccount（IRSA 权限） |
 | `terminationGracePeriodSeconds`    | `spec.terminationGracePeriodSeconds`              | Pod 优雅终止的等待时间                   |
 
-
-### 4.5 Pod 的生命周期由谁管理
-
-
-| 管理者               | 职责                                    |
-| ----------------- | ------------------------------------- |
-| **Deployment**    | 声明期望的 Pod 副本数和更新策略，确保实际运行的 Pod 数量符合预期 |
-| **HPA**（水平自动扩缩容）  | 根据 CPU/内存使用率动态调整 Deployment 的副本数      |
-| **K8s Scheduler** | 决定 Pod 运行在集群中的哪个节点上                   |
-| **kubelet**       | 在节点上实际启动/停止 Pod，执行健康检查                |
-
-
-开发者只需关心 values 文件中的配置，Pod 的创建、调度、扩缩、重启、销毁全部由 K8s 自动完成。
-
 ---
 
 ## 五、EKS 集群地址
 
-> 前面讲了 Pod 跑在集群里，Deployment 管理 Pod。但集群本身在哪？怎么连上去？这一章回答的就是这个问题——EKS 集群地址就是你连接 K8s API Server 的入口。
-
-### 5.1 什么是 EKS 集群地址
-
-EKS（Elastic Kubernetes Service）集群地址是 AWS 托管的 Kubernetes API Server 的 endpoint，格式为：
+EKS 集群地址是 AWS 托管的 Kubernetes API Server endpoint，格式为：
 
 ```
 https://<UNIQUE-HASH>.<SUFFIX>.<REGION>.eks.amazonaws.com
 ```
 
 - `UNIQUE-HASH`：集群唯一标识符
-- `SUFFIX`：AWS 内部路由标识（如 `gr7`、`yl4`、`sk1`）
 - `REGION`：AWS 区域
 - 中国区域后缀为 `.eks.amazonaws.com.cn`
 
-### 5.2 如何查看 EKS 集群地址
-
-#### 方法一：AWS CLI
+在本项目中，EKS 地址直接写在 ArgoCD ApplicationSet 的 `server` 字段中（见上文 3.4 节）。常用查看方式：
 
 ```bash
-# 列出当前 region 的所有 EKS 集群
-aws eks list-clusters --region <region>
-
-# 查看指定集群的详细信息（含 endpoint）
-aws eks describe-cluster --name <cluster-name> --region <region>
-
-# 仅提取 endpoint 地址
+# AWS CLI
 aws eks describe-cluster --name <cluster-name> --region <region> \
   --query "cluster.endpoint" --output text
-```
 
-示例输出：
-
-```
-https://3F1BDD3214F9F0383D5FD4CC62CDE658.sk1.us-west-2.eks.amazonaws.com
-```
-
-#### 方法二：AWS 管理控制台
-
-1. 登录 AWS Console → 进入 **EKS** 服务
-2. 选择对应的 Region
-3. 点击集群名称 → **概览 (Overview)** 页面
-4. 查看 **API server endpoint** 字段
-
-#### 方法三：kubectl 配置
-
-```bash
-# 查看当前 kubeconfig 中配置的集群地址
+# kubectl
 kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}'
-
-# 查看所有 context 及对应的集群
-kubectl config get-contexts
 ```
 
-#### 方法四：ArgoCD（本项目实际使用的方式）
-
-在本项目中，EKS 地址直接写在 ArgoCD ApplicationSet 的 `server` 字段中：
-
-```bash
-# 查看已注册的集群列表
-argocd cluster list
-
-# 查看指定集群详情
-argocd cluster get <server-url>
-```
-
-也可以直接查看代码仓库中的 applicationsets 文件：
-
-```bash
-# 查看某个项目的集群配置
-cat plaud-project-summary/applicationsets/applicationsets-prod.yaml
-# 在 generators.list.elements 中找到 server 字段
-```
-
-#### 方法五：Terraform / IaC
-
-如果集群通过 Terraform 创建，可以查看 state：
-
-```bash
-terraform output cluster_endpoint
-```
-
-### 5.3 集群地址 vs 集群内服务地址
+**集群地址 vs 集群内服务地址**：
 
 
 | 对比  | EKS 集群地址                                    | K8s Service DNS                       |
@@ -836,10 +963,9 @@ terraform output cluster_endpoint
 | 谁使用 | kubectl / ArgoCD / CI/CD                    | 集群内的其他 Pod                            |
 | 认证  | 需要 kubeconfig / IAM                         | 无需额外认证（同集群内）                          |
 
-
 ---
 
-## 六、常用 Helm 命令速查
+## 六、常用 Helm 命令速查（进阶）
 
 ```bash
 # 查看 Chart 信息
@@ -890,6 +1016,17 @@ EKS 集群：        最终运行 K8s 资源的目标环境
 
 ## 延伸阅读
 
-- [[k8s-泳道机制-lane|K8s 泳道机制（Lane）]] — 在同一集群、同一域名下运行多版本服务，通过 HTTP Header 路由流量
-- [[kubernetes-pod-graceful-shutdown|Pod 优雅终止完全指南]] — 滚动更新时如何保证存量任务不被中断
+**部署与运维：**
+- [[13-k8s-lane-mechanism|K8s 泳道机制（Lane）]] — 在同一集群、同一域名下运行多版本服务，通过 HTTP Header 路由流量
+- [[12-k8s-pod-graceful-shutdown|Pod 优雅终止完全指南]] — 滚动更新时如何保证存量任务不被中断
+
+**深入 K8s：**
+- [[01-docker-basics|Docker 学习笔记]] — 容器基础：Dockerfile、镜像优化、容器运行时
+- [[05-k8s-architecture|K8s 架构原理]] — 控制平面、数据平面、声明式 API 与控制器模式
+- [[03-k8s-workload-types|K8s 工作负载类型]] — Deployment 之外的 StatefulSet、DaemonSet、Job
+- [[04-k8s-networking|K8s 网络深入]] — CNI、CoreDNS、NetworkPolicy、Service Mesh
+- [[06-k8s-storage|K8s 存储]] — PV/PVC、StorageClass、CSI
+- [[08-k8s-security-rbac|K8s 安全与权限]] — RBAC、Pod Security、Secret 管理
+- [[07-k8s-scheduling-resources|调度与资源管理]] — QoS、Affinity、VPA、Karpenter
+- [[11-k8s-extension-mechanisms|K8s 扩展机制]] — CRD、Operator、Helm vs Kustomize
 

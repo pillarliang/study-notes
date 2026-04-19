@@ -39,7 +39,12 @@
       "Bash(ls -la \"/Users/liangzhu/Library/Mobile Documents/iCloud~md~obsidian/Documents/study-notes/AI/ai-engineering/ch09\"*)",
       "WebFetch(domain:nicebuild.feishu.cn)",
       "Bash(grep -r \"namespace:\" /Users/liangzhu/Documents/work/deploy/plaud-*/application.yaml)",
-      "Bash(grep -r \"ingressClassName\\\\|hosts:\" /Users/liangzhu/Documents/work/deploy/plaud-*/values/*/prod/values*.yaml)"
+      "Bash(grep -r \"ingressClassName\\\\|hosts:\" /Users/liangzhu/Documents/work/deploy/plaud-*/values/*/prod/values*.yaml)",
+      "Bash(sed -i '' 's/\\\\[\\\\[02-k8s-architecture/[[05-k8s-architecture/g' *.md)",
+      "Bash(sed -i '' 's/\\\\[\\\\[05-k8s-storage/[[06-k8s-storage/g' *.md)",
+      "Bash(sed -i '' 's/\\\\[\\\\[06-k8s-security-rbac/[[08-k8s-security-rbac/g' *.md)",
+      "Bash(sed -i '' 's/\\\\[\\\\[08-k8s-observability/[[09-k8s-observability/g' *.md)",
+      "Bash(sed -i '' 's/\\\\[\\\\[09-k8s-extension-mechanisms/[[11-k8s-extension-mechanisms/g' *.md)"
     ]
   }
 }
