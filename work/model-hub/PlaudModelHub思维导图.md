@@ -1,0 +1,340 @@
+# Plaud Model Hub 思维导图
+
+> 配套笔记：[PlaudModelHub完全指南.md](./PlaudModelHub完全指南.md)
+> 用法：直接复制下方代码块中的缩进列表，粘贴到幕布即可生成思维导图。
+
+```
+- Plaud Model Hub 完全指南
+- 一、项目定位
+  - 定位：Plaud AI Platform 的统一大模型调用基础设施层
+  - 核心理念：业务方只需关心 app_id + logical_model，其余由 Model Hub 内部管理
+  - 1.1 解决的场景
+    - 场景一：多 Provider 碎片化 → 统一 client 抽象
+      - 痛点：各业务用不同 SDK/Key，换模型要改代码发版
+      - 方案：ModelHubClient 统一 API，底层 Provider 由 YAML 切换
+    - 场景二：同模型多 Endpoint → 负载均衡与高可用
+      - 核心抽象：Logical Model（逻辑模型）与 Endpoint（物理入口）分离
+      - 三层关系：Logical Model → Endpoint → Provider
+      - 路由策略：加权随机（默认）/ 轮询 / 优先级
+      - 会话粘性（Session Affinity）：MD5 一致性哈希
+    - 场景三：调用失败的容错机制 —— 单次救援 + Endpoint 健康管理
+      - 共同问题：Provider 调用会以各种方式失败（429/5xx/发送过快/endpoint 不健康）
+      - 两层统一框架（按作用时机划分）
+        - 层 1 单次请求救援（事后，关心"这一次"）
+        - 层 2 Endpoint 健康管理（事前 + 状态维护，关心"长期趋势"）
+        - 两层互喂数据构成闭环
+      - 层 1：三级救援链
+        - ① Retry 退避重试（同 endpoint）
+          - 429：同 endpoint 退避重试后再 failover
+          - 5xx：直接 failover 不原地重试
+          - 算法：指数退避 + 随机抖动，优先读 Retry-After
+        - ② Failover 故障转移（换 endpoint）
+          - tried_endpoints 排除集合
+          - 同 logical model 内切换
+        - ③ Fallback 跨模型降级（换 logical model）
+          - 触发条件：所有 endpoint 耗尽（NoAvailableEndpointError）
+          - 循环检测 A→B→A
+          - 深度限制 max_fallback_depth=3
+          - 列表模式按顺序尝试
+      - 层 2：三种信号各司其职
+        - Rate Limiter 限流器（两层防护）
+          - 主动层（令牌桶）：源头控速，无令牌 Router 跳过
+          - 被动层（429 解析）：Retry-After 标记 is_limited
+          - 口诀：令牌桶预防 + 429 解析治疗
+        - Adaptive Weight 自适应权重（专治 429 频发）
+          - 问题：限流器二值处理 → 连锁失败 → NoAvailableEndpointError
+          - 方案：按滑动窗口 429 频率渐进降权
+          - 保证：权重降到下限仍保留探测流量不中断
+          - 典型场景：GSU + PayGo 平滑切流
+        - Circuit Breaker 熔断器（专治持续高错误率）
+          - 三态机 CLOSED → OPEN → HALF_OPEN → CLOSED
+          - 触发：滑动窗口失败率 > 阈值 且 调用次数 ≥ min_calls
+          - 半开探测连续成功恢复
+        - 协同口诀
+          - 429 → 自适应权重降权
+          - 5xx → 熔断器熔断
+          - 速率 → 限流器令牌桶
+          - 推荐：exclude_429_from_circuit_breaker=true + soft_limit_on_429=true 避免双重惩罚
+      - 两层配合路径
+        - ① 选 Endpoint：层 2 排除不可用 + 调权重
+        - ② 发请求前：层 2 令牌桶判断放行
+        - ③ 请求结果：成功回写统计；失败由层 1 接手（retry/failover）
+        - ④ 全 endpoint 耗尽：层 1 触发 Fallback，递归回 ①
+    - 场景四：不想改代码 → Wrapper 透传模式（Passthrough）
+      - wrap_openai() 一行包装，写法不变
+      - 零转换原生参数/响应
+      - Adapter 自动处理跨风格路由
+  - 1.2 整体关系图：业务代码 → Logical Model → Router → Endpoint → 容错机制
+  - 1.3 问题-方案速查表
+- 二、整体架构
+  - 分层：业务层 → CoreEngine → Provider 适配层 → 配置层
+  - Monorepo 结构
+    - model-hub-core（核心引擎，零硬依赖）
+    - model-hub-sdk（Python SDK，依赖 core）
+    - 包依赖规则：Core 不依赖 SDK/Transport
+  - 2.1 Passthrough 架构动机
+    - 核心矛盾：统一调用 vs 原生 SDK 体验
+    - 痛点：4 次数据转换，Wrapper ~7800 行，厂商独有参数丢失
+    - 思路：参数不转换，直接透传，只做路由/重试/熔断
+  - 2.2 三种调用模式（PassthroughMode 枚举）
+    - 模式 1 统一模式（DISABLED）：ModelHubClient.chat()，2 次转换
+    - 模式 2 同风格透传（SAME_STYLE）：wrap_openai + OpenAI endpoint，零转换
+    - 模式 3 跨风格透传（CROSS_STYLE）：OpenAI 风格路由到 Anthropic，Adapter 转换
+  - 2.3 三种模式对比（数据转换次数 / 参数透传 / 自动选择）
+  - 2.4 设计精妙：基础设施在三模式下零重复复用
+    - Router / CircuitBreaker / Plugins 均无需修改
+    - Provider 内通过 invoke 三分派：_invoke_unified / _invoke_passthrough / _invoke_adapted
+  - 2.5 ModelRequest/Response 的 Passthrough 字段
+    - Request 新增：passthrough_mode, source_style, raw_request, raw_method
+    - Response 新增：raw_response, raw_error
+    - 插件通过 is_passthrough 适配读取
+- 三、使用方式
+  - 3.1 SDK Wrapper（推荐，迁移成本最低）
+    - wrap_openai / wrap_anthropic / wrap_genai（含 async 版本）
+    - 原理：拦截原生方法 → ModelRequest → CoreEngine → 转回原生响应
+    - Async：线程池 + asyncio.Queue 做迭代器转换
+  - 3.2 ModelHubClient（统一 API）
+    - 9 种请求类型：CHAT, EMBEDDING, IMAGE_GENERATION, IMAGE_EDIT, IMAGE_VARIATION, TRANSCRIPTION, TRANSLATION, SPEECH, MODERATION
+  - 3.3 LangChain 集成
+    - ChatModelHub / EmbeddingsModelHub
+    - 支持 bind_tools
+  - 3.4 获取原生 Client（不经过 CoreEngine，无路由/重试/熔断）
+- 四、配置系统
+  - 4.1 v2 配置格式四块：providers / models / policies / plugins
+    - 环境变量语法：${VAR} 与 ${VAR:-default}
+  - 4.2 Key 格式：{app_id}:{logical_model}
+  - 4.3 支持的 Provider：OpenAI, Azure, Anthropic, GenAI, Vertex AI, 火山引擎, DashScope, Bedrock
+  - 4.4 三种模型配置格式
+    - 字符串格式：provider_preset/physical_model[@version]
+    - 简化对象格式：单 endpoint + 自定义参数
+    - 完整格式：多 endpoint
+  - 4.5 Endpoint 完整字段：id, provider, model, base_url, credential_ref, weight, enabled, priority, region, timeout_ms, max_retries, request_types, extra
+  - 4.6 多 Endpoint 四类应用场景：负载均衡 / 多区域容灾 / 成本优化 / 多版本灰度
+  - 4.7 配置属性优先级：endpoint.extra > credential.extra > provider.defaults > 代码默认
+  - 4.8 Provider 级别硬禁用：enabled: false 可关闭所有下属 endpoint
+  - 4.9 v2 Inline 凭证：api_key 直写在 provider 块（减少 ~80% 样板）
+  - 4.10 两层配置校验：Schema 校验 + 业务规则校验（循环 fallback 检测等）
+  - 4.11 ConfigStore 存储后端：FileConfigStore / AppConfigConfigStore（热加载）/ DBConfigStore
+- 五、CoreEngine 核心引擎
+  - 5.1 请求完整生命周期
+    - Fallback 循环检测 + 深度限制
+    - 请求验证 → before_request 插件链
+    - 重试循环：路由选择 → Provider 调用 → 成功/失败处理
+    - 耗尽后递归 fallback
+  - 5.2 重试与退避参数
+    - default_max_retries=2
+    - retry_on_status_codes=408/409/429/500-504/529
+    - backoff_factor=1.0, max_backoff_seconds=10, jitter_factor=0.25
+    - 退避公式：factor × 2^attempt + jitter
+  - 5.3 429 处理三策略：retry_after_first（默认）/ exponential_only / failover_immediately
+  - 5.4 三层调用结构
+    - invoke → _invoke_with_fallback → _invoke_internal → provider.invoke
+    - 第 2 层职责：循环检测、深度限制、尝试当前模型、fallback 列表遍历
+    - 第 3 层：重试状态机，rate_limit_retried 按 endpoint 计数
+    - 关键细节：4xx 不增加 attempt；429 首次退避不增加 attempt
+    - 超时优先级：Request > Endpoint > EngineConfig
+  - 5.5 流式支持（Streaming）
+    - Provider.invoke_stream 返回 Iterator[StreamChunk]
+    - 异步：sync_iterator_to_async（asyncio.Queue）
+    - 关键差异：重试循环只保护流的初始化，不保护迭代
+    - 中断行为：已 yield chunk 后失败不可 fallback
+    - StreamChunk 聚合规则：content 拼接，usage 取最后，latency_ms 为总时长
+- 六、路由策略
+  - 6.0 policies 与 models 通过 key 关联
+    - default 策略作为基线，其他策略继承差异字段
+  - 6.1 WEIGHTED_RANDOM（默认）
+    - 按 weight 权重随机选择
+    - 会话粘性：MD5 一致性哈希，同 session 路由同 endpoint
+  - 6.2 ROUND_ROBIN：线程安全计数器轮流分配，不考虑权重
+  - 6.3 PRIORITY：每次只从最高优先级档选；失败后 Engine 循环排除，降至下一档
+  - 6.4 weight vs priority
+    - priority 决定选哪一档；weight 决定同档内流量比例
+    - WEIGHTED_RANDOM 忽略 priority；PRIORITY 下 weight 仅同档内生效
+  - 6.5 Endpoint 过滤机制
+    - Region 软过滤：无匹配返回全部
+    - Request Type 硬过滤：无匹配返回 None（会导致 NoAvailableEndpoint）
+    - 完整路由决策流程：Region → Request Type → 排除不可用 → Session Affinity → 策略应用
+- 七、插件系统
+  - 7.1 执行顺序与生命周期
+    - order：AdaptiveWeight(4) → RateLimit(5) → CircuitBreaker/OTel(10) → Langfuse(200)
+    - 基础钩子（请求级）：before_request / after_response / on_error
+    - 高级 Protocol 接口（尝试级）
+      - EndpointFilterProvider：路由前排除 endpoint（熔断器、限流器）
+      - WeightAdjustmentProvider：路由前调权重（自适应权重）
+      - InvocationLifecycleHook：每次成功/失败后（熔断器、限流器、自适应权重）
+      - RetryInfoProvider：计算退避时间（限流器）
+      - RetryLifecycleHook：每次重试前 + 耗尽时（可观测性）
+    - 通过 isinstance 检查缓存到对应列表
+  - 7.2 插件默认开启行为：零配置不开启；声明块后默认 enabled=True
+    - Langfuse/OTel 需 extras 安装，未装打 warning 跳过
+  - 7.3 Langfuse（LLM 专用追踪）
+    - start_generation / update / end
+    - 记录 app_id, env, logical_model, endpoint_id, provider, latency_ms, token_usage, trace_id
+  - 7.3 OpenTelemetry（OTEL）
+    - 属性命名空间：modelhub.* 与 gen_ai.*
+    - Langfuse v3+ 基于 OTel，同时启用会重复，建议二选一
+  - 7.4 熔断器（Circuit Breaker）
+    - 三态机：CLOSED / OPEN / HALF_OPEN
+    - 配置：failure_threshold=0.5, min_calls=5, window_size=60s, open_duration=30s, half_open_max_calls=3
+    - 实现细节
+      - 滑动窗口使用 deque[(时间戳, 成功)]，popleft O(1)
+      - 线程安全 RLock（支持同线程嵌套调用）
+    - 错误分类：可重试（408/409/429/5xx）参与熔断；不可重试（4xx）不参与
+  - 7.5 限流器（Rate Limiter）
+    - 第 1 层被动限流：429 后标记 is_limited，本地拦截避免反复发请求
+    - 第 2 层主动限流：令牌桶 try_acquire，从源头控速
+    - 为什么两层：主动预防 + 意外兜底
+    - 配置：enable_token_bucket, bucket_capacity, refill_rate, respect_retry_after, max_retry_after_seconds, default_retry_after_seconds, exclude_429_from_circuit_breaker, soft_limit_on_429
+    - 令牌桶突发用完后按 refill 速率恢复
+    - 调优建议：低/中/高并发对应不同 capacity 与 refill_rate
+    - 响应头解析器 rate_limit_parser 支持 Retry-After, X-RateLimit-Remaining/Reset
+  - 7.6 自适应权重（Adaptive Weight）
+    - 填补限流器（二值）和熔断器（二值）之间的渐进层
+    - 429 本质："没坏，只是请求太多"——正确应对是降权不是熔断
+    - 为什么限流器不够——震荡问题
+      - 二值切换：Retry-After 期间 0 流量 → 期满瞬间恢复 60% → 又 429
+      - 死循环模式：0 → 满 → 0 → 满
+      - AW 把暴力开关换成平滑旋钮：0 → 13% → 20% → 40% → 60%
+    - 三层防护体系：自适应权重 → 限流器 → 熔断器 → Fallback
+    - 核心公式
+      - error_rate = 窗口内 429 / 总调用
+      - multiplier = max(min_weight_ratio, 1.0 - error_rate × penalty_factor)
+      - effective_weight = max(1, int(base_weight × multiplier))
+    - Engine 保证 effective_weight ≥ 1 保留探测流量
+    - 滑动窗口：deque[(timestamp, is_target_error)]，RLock 保护
+    - 配置参数：window_size_seconds=120, penalty_factor=1.5, min_weight_ratio=0.1, error_codes=[429], soft_limit_on_429=true, alert_threshold=0.5
+    - soft_limit_on_429 联动
+      - 两处 flag 同一语义：意图端（AW 默认 true）+ 生效端（RL 默认 false）
+      - 工厂层单向桥接：AW true → 自动同步到 RL
+      - 用户只需在 AW 一处表态，另一处无需手写
+    - 降权告警日志：防重复（_alerted 集合），恢复后 INFO
+    - 权重再分配：自然相对变化，不做显式重分配
+    - 典型场景 GSU + PayGo：流量渐进转移，避免成本飙升与连锁 429
+    - 参数调优：penalty_factor 1.0 温和/1.5 推荐/2.0 激进；window 60/120/300s
+    - 统计按 endpoint ID 隔离，不同 logical model 互不干扰
+  - 7.7 三机制协同
+    - 职责划分：重试/等多久/换 endpoint/暂时别用/少给流量/坏了
+    - 场景协同矩阵
+    - 推荐配置：exclude_429_from_circuit_breaker=true + soft_limit_on_429=true
+    - 反例：三者都对 429 动手导致双重惩罚
+    - 常见认知辨析
+      - Q1 启用 AW 后限流器仍有用：保留令牌桶 + Retry-After 解析；仅让位二值排除
+      - Q2 AW 不是多余：把限流器的暴力开关换成平滑旋钮，消除震荡
+      - Q3 AW 不等于永不熔断：只管 429，5xx 仍由熔断器完全排除
+      - Q4 单独 AW 不推荐：缺少令牌桶主动控速 + Retry-After 精确退避
+      - Q5 两处 soft_limit_on_429 是同一开关的意图端/生效端
+- 八、Fallback 降级机制
+  - 触发条件：所有 endpoint 都不可用（NoAvailableEndpointError）才触发
+  - 自适应权重启用后 fallback 触发概率显著降低
+  - 配置：policies 中 fallback_model，支持跨厂商
+  - 格式：完整 "other-app:gpt-3.5" / 简化 "gpt-3.5"（沿用当前 app_id）
+  - 两种模式
+    - Chain（fallback_is_chain=true）：递归链式 A→B→C
+    - List（fallback_is_chain=false）：线性遍历候选列表
+  - 安全机制
+    - max_fallback_depth=3 深度限制
+    - 循环检测：A→B→A 终止
+    - RetryStats 记录原始/最终/中间模型
+  - 多 Endpoint + Fallback：只有 Model 所有 endpoint 都失败才触发
+- 九、Provider 适配层
+  - 统一接口：name / supported_request_types / invoke / invoke_stream
+  - 三种调用模式（v2 Passthrough）：Unified 2 次 / Same-Style 0 次 / Cross-Style 1 次
+  - OpenAI-Compatible 基类
+    - Azure OpenAI、火山引擎、DashScope 继承 OpenAICompatibleProvider
+    - 参数差异化：base_url、认证方式、api_version、endpoint_id、region
+  - 支持的请求类型矩阵（Chat 全支持，Embedding/Image/Audio 因厂商而异）
+  - Adapter 适配层（跨风格路由）
+    - 接口：adapt_request / adapt_response / adapt_stream / get_target_method
+    - 注册表 ADAPTERS：OpenAI↔Anthropic/GenAI/Bedrock
+    - OPENAI_COMPATIBLE 集合：openai, azure_openai, volcengine, dashscope, litellm（零转换优化）
+    - OpenAI → Anthropic 转换要点：system 独立参数、max_tokens 必填、方法路径映射、响应格式回转
+  - 错误码映射：统一 ProviderError
+    - 429/500/503/529 可重试
+    - 400/401/403/404 不可重试
+  - Client 连接池 ClientPool：线程安全 LRU，默认 100
+    - Key = {provider}:{base_url}:{sha256(api_key)[:16]}
+- 十、Wrapper 实现原理
+  - 执行链路：__getattr__ 拦截 → convert messages → extract provider params → build ModelRequest → CoreEngine.invoke → 转回原生
+  - v2 Passthrough 简化：从 ~7800 行降至 ~600 行
+  - 响应格式转换矩阵：ModelResponse → OpenAI ChatCompletion / Anthropic Message / GenAI GenerateContentResponse
+- 十一、数据模型速查
+  - ModelRequest 关键字段：logical_model, app_id, request_type, messages, session_id, timeout_ms, max_retries, provider_params, passthrough_mode, raw_request
+  - ModelResponse 关键字段：choices, usage, model, provider, endpoint_id, latency_ms, retry_stats, raw_response
+  - RetryStats：retry_count, failover_count, backoff_retry_count, retries_by_status, total_backoff_ms, endpoints_tried, fallback_models_tried, original_model/final_model
+    - 仅 retry_count > 0 时附加，避免冗余
+  - 错误体系
+    - ModelHubError 基类
+    - ConfigError / RoutingError（含 NoAvailableEndpointError）
+    - CircuitBreakerOpenError
+    - ProviderError（status_code / is_retryable / should_circuit_break）
+    - TimeoutError / DeprecatedAPIError
+  - 多级追踪 ID：request_id（UUID v4）/ trace_id（外部）/ session_id（粘性路由）
+  - EngineConfig 完整字段：default_max_retries, retry_on_status_codes, backoff_factor, max_backoff_seconds, jitter, jitter_factor, rate_limit_backoff_strategy, default_timeout_ms, max_fallback_depth
+- 十二、CLI 工具集
+  - config-validator：Schema + 业务规则校验
+  - config-migrate：v1 → v2 自动迁移
+  - llm-importer：从 LiteLLM Proxy / OpenRouter 批量导入
+  - sync-appconfig：本地配置同步到 AWS AppConfig（支持 AllAtOnce/Linear/Canary）
+- 十三、配置最佳实践
+  - 环境隔离：开发启用 Langfuse，生产启用 OTEL；熔断/限流/自适应权重生产全开
+  - 低并发配置示例：bucket 5 / refill 0.5 / min_calls 3
+  - 高并发配置示例：bucket 100 / refill 20 / failure_threshold 0.3
+  - 多 Endpoint 权重策略：成本优先 / 质量优先 / 均衡
+  - 推荐做法
+    - 始终启用熔断器和限流器
+    - 多 endpoint 启用自适应权重 + soft_limit_on_429=true
+    - exclude_429_from_circuit_breaker=true 防双重惩罚
+    - 配置 fallback 链防级联故障
+    - 多 endpoint 用 weighted_random + session affinity
+    - 开发 Langfuse / 生产 OTEL，不要同时开
+  - 避免：同开 Langfuse+OTEL / 429 计入熔断 / 循环 fallback / 无 fallback 单 endpoint
+  - 完整配置模板（providers + models + policies + plugins 全示例）
+- 十四、常见问题
+  - Q1: 429 会 Fallback 吗？仅当所有 endpoint 不可用才会
+  - Q2: 限流器和熔断器应同时启用
+  - Q3: Langfuse + OTEL 会重复追踪
+  - Q4: 减小 open_duration_seconds 可快恢复但易重复故障
+  - Q5: weight 控制流量比例；priority 控制故障转移顺序
+  - Q6: 自适应权重处理 429，熔断器处理 5xx，应同时启用
+  - Q7: 启用自适应权重仍需限流器（令牌桶主动控速）
+  - Q8: min_weight_ratio 不能为 0（保留探测流量，完全摘除用熔断器）
+- 十五、快速查询表
+  - 429 处理流程：解析 Retry-After → 标记不可用 → 有其他 endpoint failover / 无则 fallback
+  - 多 Endpoint 自动转移流程
+  - 错误恢复时间参考：快速恢复 15s/30s；保守恢复 60s/120s
+- 十六、设计模式与架构决策
+  - 使用的设计模式
+    - Facade：CoreEngine 单入口 invoke()
+    - Strategy：Router 多种路由算法可切换
+    - Chain of Responsibility：Plugin 链按 order 执行
+    - Template Method：ModelProvider 基类定义 invoke 分派
+    - Adapter：APIStyleAdapter 跨厂商转换
+    - Flyweight：ClientPool LRU 连接复用
+    - Decorator：wrap_openai 透明增强原生 SDK
+    - Protocol：@runtime_checkable 无基类耦合扩展
+  - 关键架构决策
+    - 单入口 invoke vs 双入口 → 单入口减少心智负担
+    - PassthroughMode 枚举 vs bool → 枚举语义清晰可扩展
+    - Adapter 放 Provider 层 vs Wrapper 层 → 集中管理可复用
+    - Protocol 接口组合 vs 继承基类 → 无侵入松耦合
+    - ClientPool LRU vs 每请求新建 → 连接复用
+    - v1→v2 自动转换 vs 弃用 v1 → 零迁移成本
+  - 基础设施复用矩阵：三种模式下路由/会话粘性/重试/429/熔断/限流/Fallback/插件全复用，仅数据转换次数不同（2/0/2）
+- 十七、关键文件速查
+  - core 包
+    - engine.py 核心引擎
+    - router.py 路由策略
+    - models.py 数据模型
+    - errors.py 错误模型
+    - config/ parser.py / resolver.py / models.py / env_utils.py
+    - plugins/ circuit_breaker.py / rate_limit.py / adaptive_weight.py / base.py
+    - providers/ base.py / openai_compatible.py / registry.py / rate_limit_parser.py
+    - adapters/ 跨厂商适配器
+  - sdk 包
+    - client/hub_client.py 与 factory.py
+    - wrappers/openai_wrapper.py 与 _async_utils.py
+    - integrations/langchain/ chat_model.py / embeddings.py
+    - config/ file.py / appconfig.py
+  - tools：config-validator / config-migrate / llm-importer / sync-appconfig
+  - docs：examples/config-complete.yaml / docs/arch-v2.md
+```

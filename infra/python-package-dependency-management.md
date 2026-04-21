@@ -196,8 +196,18 @@ git tag v0.4.0       # ← 仓库的版本快照，标记某个 commit
 
 ### pyproject.toml 中 version 字段的实际用途
 
-1. **发布到 PyPI** — PyPI 用它做版本索引，下游可以写 `model-hub-sdk>=0.4.0`
-2. **运行时查询** — `importlib.metadata.version("model-hub-sdk")` 返回此值，用于日志/调试
+`version` 字段是否真正参与版本选择，取决于安装渠道：
+
+
+| 安装渠道   | version 字段的作用                                     |
+| ------ | ------------------------------------------------ |
+| PyPI   | **决定版本选择** — PyPI 据此索引包，下游用 `>=0.4.0` 等范围约束才能命中 |
+| Git 源  | **不参与选择** — 装什么由 `rev`/`tag`/commit SHA 决定       |
+
+
+无论从哪个渠道安装，安装完成后 `version` 都会写入包的元数据，可通过 `importlib.metadata.version("model-hub-sdk")` 查询，用于日志、调试、版本上报。
+
+**结论：只有发布到 PyPI 时，维护准确的 `version` 字段才有实际意义；Git 源安装场景下它只是信息标注。**
 
 ---
 

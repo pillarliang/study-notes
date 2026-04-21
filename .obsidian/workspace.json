@@ -11,14 +11,10 @@
             "id": "45cb6b2532af1f26",
             "type": "leaf",
             "state": {
-              "type": "markdown",
-              "state": {
-                "file": "infra/k8s-learning/03-k8s-workload-types.md",
-                "mode": "preview",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "03-k8s-workload-types"
+              "type": "graph",
+              "state": {},
+              "icon": "lucide-git-fork",
+              "title": "Graph view"
             }
           }
         ]
@@ -78,7 +74,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 333.5
+    "width": 419.5
   },
   "right": {
     "id": "18704fb929da8db0",
@@ -185,34 +181,37 @@
       "terminal:Open terminal": false
     }
   },
-  "active": "45cb6b2532af1f26",
+  "active": "82af3ed03fca550f",
   "lastOpenFiles": [
+    "Clippings-1/三分天下：为什么Agent Memory框架是死路.md",
+    "AI/harness-engineering/agent-harness-系统架构图.md",
+    "AI/harness-engineering/agent-harness-思维导图.md",
+    "AI/harness-engineering/agent-harness-思维导图-幕布.txt",
+    "work/model-hub/PlaudModelHub思维导图.md",
+    "AI/harness-engineering/三个-Scaling-维度的统一框架-学习笔记.md",
+    "AI/00-从一个问题的旅程看AI全貌.md",
+    "AI/harness-engineering/Claude_Code-Harness_Engineering.md",
+    "work/model-hub/PlaudModelHub完全指南.md",
+    "AI/harness-engineering/sources/book2-deep-dive-c9-c10-学习笔记.md",
+    "AI/harness-engineering/sources/book2-deep-dive-c7-c8-学习笔记.md",
+    "AI/harness-engineering/sources/book2-deep-dive-c5-c6-学习笔记.md",
+    "AI/harness-engineering/sources/book2-deep-dive-c3-c4-学习笔记.md",
+    "AI/harness-engineering/sources/book2-deep-dive-c1-c2-学习笔记.md",
+    "AI/harness-engineering/sources/book1-claude-code-学习笔记-final-mubu.md",
+    "work/model-hub/PlaudModelHub架构图.md",
+    "infra/python-package-dependency-management.md",
+    "Clippings-1/The Anatomy of an Agent Harness.md",
+    "work/model-hub/Plaud Model Hub 完全指南.md",
+    "work/model-hub/Plaud Model Hub 完全指南.md.tmp.77677.1776656900773",
     "infra/k8s-learning/02-k8s-core-concepts.md",
+    "infra/k8s-learning/05-k8s-architecture.md",
     "infra/k8s-learning/03-k8s-workload-types.md",
     "infra/k8s-learning/09-k8s-observability.md",
     "infra/k8s-learning/10-helm-argocd-deployment.md",
     "infra/k8s-learning/11-k8s-extension-mechanisms.md",
     "infra/k8s-learning/12-k8s-pod-graceful-shutdown.md",
     "infra/k8s-learning/13-k8s-lane-mechanism.md",
-    "infra/k8s-learning/07-k8s-scheduling-resources.md",
-    "infra/k8s-learning/06-k8s-storage.md",
-    "infra/k8s-learning/05-k8s-architecture.md",
-    "infra/k8s-learning/01-docker-basics.md",
     "infra/k8s-learning/02-k8s-core-concepts.md.tmp.19442.1776582305955",
-    "infra/k8s-learning/04-k8s-networking.md",
-    "infra/k8s-learning/08-k8s-security-rbac.md",
-    "infra/k8s-learning/02-k8s-architecture.md",
-    "infra/k8s-learning/09-k8s-extension-mechanisms.md",
-    "infra/k8s-learning/12-k8s-lane-mechanism.md",
-    "infra/k8s-learning/11-k8s-pod-graceful-shutdown.md",
-    "infra/k8s-learning/08-k8s-observability.md",
-    "infra/k8s-learning/05-k8s-storage.md",
-    "infra/k8s-learning/06-k8s-security-rbac.md",
-    "infra/deploy/k8s-extension-mechanisms.md",
-    "infra/deploy/k8s-scheduling-resources.md",
-    "infra/deploy/k8s-security-rbac.md",
-    "infra/deploy/k8s-storage.md",
-    "infra/deploy/k8s-networking.md",
     "AI/basic/ExportBlock-cd0d2ae3-7d1b-4f13-b721-97d0df66f4c3-Part-1/Deep Learning/Transformer/Untitled.png",
     "AI/basic/ExportBlock-cd0d2ae3-7d1b-4f13-b721-97d0df66f4c3-Part-1/Deep Learning/单层神经网络/激活函数/image.png",
     "AI/basic/ExportBlock-cd0d2ae3-7d1b-4f13-b721-97d0df66f4c3-Part-1/Deep Learning/单层神经网络/激活函数/image 1.png",
@@ -230,8 +229,6 @@
     "AI/basic/ExportBlock-cd0d2ae3-7d1b-4f13-b721-97d0df66f4c3-Part-1/Deep Learning/参数更新 - Optimisation solution",
     "AI/basic/ExportBlock-cd0d2ae3-7d1b-4f13-b721-97d0df66f4c3-Part-1/Deep Learning/单层神经网络",
     "AI/basic/ExportBlock-cd0d2ae3-7d1b-4f13-b721-97d0df66f4c3-Part-1/Deep Learning/self-attention｜自注意力机制",
-    "AI/basic/ExportBlock-cd0d2ae3-7d1b-4f13-b721-97d0df66f4c3-Part-1/Deep Learning/Transformer",
-    "AI/basic/ExportBlock-cd0d2ae3-7d1b-4f13-b721-97d0df66f4c3-Part-1/Deep Learning/Transfer Learning 迁移学习",
     "Untitled.canvas"
   ]
 }
