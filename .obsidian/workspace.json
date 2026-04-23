@@ -4,17 +4,17 @@
     "type": "split",
     "children": [
       {
-        "id": "68f674d9fe8d7cb5",
+        "id": "fab17d0cd3030b06",
         "type": "tabs",
         "children": [
           {
-            "id": "45cb6b2532af1f26",
+            "id": "368bad28d1f8da5e",
             "type": "leaf",
             "state": {
-              "type": "graph",
+              "type": "empty",
               "state": {},
-              "icon": "lucide-git-fork",
-              "title": "Graph view"
+              "icon": "lucide-file",
+              "title": "New tab"
             }
           }
         ]
@@ -74,7 +74,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 419.5
+    "width": 334.5
   },
   "right": {
     "id": "18704fb929da8db0",
@@ -181,16 +181,34 @@
       "terminal:Open terminal": false
     }
   },
-  "active": "82af3ed03fca550f",
+  "active": "368bad28d1f8da5e",
   "lastOpenFiles": [
-    "Clippings-1/三分天下：为什么Agent Memory框架是死路.md",
+    "infra/k8s-learning/01-docker-basics.md",
+    "AI/agents/agent_skills_notes.md",
+    "AI/agents/agent_skills_diagram.md",
+    "AI/ai-engineering/ch06-rag-agents-memory/6.1-RAG.md",
+    "work/summary/summary-card-generation.md",
+    "AI/harness-engineering/Claude_Code-Harness_Engineering.md",
     "AI/harness-engineering/agent-harness-系统架构图.md",
+    "diagrams/2026-04-21T1530/diagram.json",
+    "diagrams/2026-04-21T1530/diagram.png",
+    "diagrams/2026-04-21T1530/diagram.svg",
+    "diagrams/2026-04-21T1530",
+    "diagrams/current/arch-raw.json",
+    "diagrams/current/whiteboard_N5Xtw3hx4hAIIhbABIxcufOqnng.png",
+    "diagrams/current/whiteboard_CNEHw7gCyhSfvPb0IibcUYCen79.png",
+    "diagrams/current",
+    "diagrams/2026-04-21T204500/diagram.json",
+    "diagrams/2026-04-21T204500/diagram.png",
+    "diagrams/2026-04-21T204500/diagram.svg",
+    "diagrams/2026-04-21T204500",
+    "diagrams",
+    "Clippings-1/三分天下：为什么Agent Memory框架是死路.md",
     "AI/harness-engineering/agent-harness-思维导图.md",
     "AI/harness-engineering/agent-harness-思维导图-幕布.txt",
     "work/model-hub/PlaudModelHub思维导图.md",
     "AI/harness-engineering/三个-Scaling-维度的统一框架-学习笔记.md",
     "AI/00-从一个问题的旅程看AI全貌.md",
-    "AI/harness-engineering/Claude_Code-Harness_Engineering.md",
     "work/model-hub/PlaudModelHub完全指南.md",
     "AI/harness-engineering/sources/book2-deep-dive-c9-c10-学习笔记.md",
     "AI/harness-engineering/sources/book2-deep-dive-c7-c8-学习笔记.md",
@@ -206,29 +224,11 @@
     "infra/k8s-learning/02-k8s-core-concepts.md",
     "infra/k8s-learning/05-k8s-architecture.md",
     "infra/k8s-learning/03-k8s-workload-types.md",
-    "infra/k8s-learning/09-k8s-observability.md",
-    "infra/k8s-learning/10-helm-argocd-deployment.md",
-    "infra/k8s-learning/11-k8s-extension-mechanisms.md",
-    "infra/k8s-learning/12-k8s-pod-graceful-shutdown.md",
-    "infra/k8s-learning/13-k8s-lane-mechanism.md",
     "infra/k8s-learning/02-k8s-core-concepts.md.tmp.19442.1776582305955",
     "AI/basic/ExportBlock-cd0d2ae3-7d1b-4f13-b721-97d0df66f4c3-Part-1/Deep Learning/Transformer/Untitled.png",
     "AI/basic/ExportBlock-cd0d2ae3-7d1b-4f13-b721-97d0df66f4c3-Part-1/Deep Learning/单层神经网络/激活函数/image.png",
     "AI/basic/ExportBlock-cd0d2ae3-7d1b-4f13-b721-97d0df66f4c3-Part-1/Deep Learning/单层神经网络/激活函数/image 1.png",
     "AI/basic/ExportBlock-cd0d2ae3-7d1b-4f13-b721-97d0df66f4c3-Part-1/Deep Learning/单层神经网络/激活函数/Untitled.png",
-    "AI/basic/ExportBlock-cd0d2ae3-7d1b-4f13-b721-97d0df66f4c3-Part-1/Deep Learning/单层神经网络/激活函数/Untitled 9.png",
-    "AI/basic/ExportBlock-cd0d2ae3-7d1b-4f13-b721-97d0df66f4c3-Part-1/Deep Learning/单层神经网络/激活函数/Untitled 8.png",
-    "AI/basic/ExportBlock-cd0d2ae3-7d1b-4f13-b721-97d0df66f4c3-Part-1/Deep Learning/单层神经网络/激活函数/Untitled 7.png",
-    "AI/basic/ExportBlock-cd0d2ae3-7d1b-4f13-b721-97d0df66f4c3-Part-1/Deep Learning/单层神经网络/激活函数/Untitled 6.png",
-    "AI/basic/ExportBlock-cd0d2ae3-7d1b-4f13-b721-97d0df66f4c3-Part-1/Deep Learning/单层神经网络/激活函数/Untitled 5.png",
-    "AI/basic/ExportBlock-cd0d2ae3-7d1b-4f13-b721-97d0df66f4c3-Part-1/Deep Learning/单层神经网络/激活函数/Untitled 4.png",
-    "AI/basic/ExportBlock-cd0d2ae3-7d1b-4f13-b721-97d0df66f4c3-Part-1/Deep Learning/单层神经网络/激活函数",
-    "AI/basic/ExportBlock-cd0d2ae3-7d1b-4f13-b721-97d0df66f4c3-Part-1/Deep Learning/self-attention｜自注意力机制/Positional Encoding",
-    "AI/basic/ExportBlock-cd0d2ae3-7d1b-4f13-b721-97d0df66f4c3-Part-1/Deep Learning/ChatGPT-生成式学习/了解大型語言模型",
-    "AI/basic/ExportBlock-cd0d2ae3-7d1b-4f13-b721-97d0df66f4c3-Part-1/Deep Learning/图像生成模型",
-    "AI/basic/ExportBlock-cd0d2ae3-7d1b-4f13-b721-97d0df66f4c3-Part-1/Deep Learning/参数更新 - Optimisation solution",
-    "AI/basic/ExportBlock-cd0d2ae3-7d1b-4f13-b721-97d0df66f4c3-Part-1/Deep Learning/单层神经网络",
-    "AI/basic/ExportBlock-cd0d2ae3-7d1b-4f13-b721-97d0df66f4c3-Part-1/Deep Learning/self-attention｜自注意力机制",
     "Untitled.canvas"
   ]
 }

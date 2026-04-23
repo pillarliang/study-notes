@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "AI/ai-engineering/supplementary/Sampling-采样与推理详解.md",
-                "mode": "preview",
+                "file": "AI/harness-engineering/Claude_Code-Harness_Engineering.md",
+                "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Sampling-采样与推理详解"
+              "title": "Claude_Code-Harness_Engineering"
             }
           }
         ]
