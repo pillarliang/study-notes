@@ -4,17 +4,21 @@
     "type": "split",
     "children": [
       {
-        "id": "fab17d0cd3030b06",
+        "id": "b5dcd278aaae846e",
         "type": "tabs",
         "children": [
           {
-            "id": "368bad28d1f8da5e",
+            "id": "5bb508d2e0e1f432",
             "type": "leaf",
             "state": {
-              "type": "empty",
-              "state": {},
+              "type": "markdown",
+              "state": {
+                "file": "viewpoint/Steam, Steel, and Infinite Minds.md",
+                "mode": "source",
+                "source": false
+              },
               "icon": "lucide-file",
-              "title": "New tab"
+              "title": "Steam, Steel, and Infinite Minds"
             }
           }
         ]
@@ -74,7 +78,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 334.5
+    "width": 200
   },
   "right": {
     "id": "18704fb929da8db0",
@@ -152,17 +156,17 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Clippings-1/Karpathy 最新分享：用 LLM 搭建个人知识库，告别 RAG 的低效循环.md",
+                "file": "viewpoint/Steam, Steel, and Infinite Minds.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline of Karpathy 最新分享：用 LLM 搭建个人知识库，告别 RAG 的低效循环"
+              "title": "Outline of Steam, Steel, and Infinite Minds"
             }
           }
         ],
-        "currentTab": 3
+        "currentTab": 4
       }
     ],
     "direction": "horizontal",
@@ -181,8 +185,17 @@
       "terminal:Open terminal": false
     }
   },
-  "active": "368bad28d1f8da5e",
+  "active": "5bb508d2e0e1f432",
   "lastOpenFiles": [
+    "viewpoint/Steam, Steel, and Infinite Minds.md",
+    "viewpoint",
+    "Clippings-1/‍‌⁡‍‬​​⁢⁣​⁢​​﻿⁣⁣‬⁡⁢﻿⁢‌⁢⁢⁣⁤‬﻿⁤⁡​‍⁣⁣﻿⁡​‬‌⁤‬‬‍‍‬⁡⁣⁣﻿智能纪要：Agent架构规划 2026年3月13日 - 飞书云文档.md",
+    "AI/00-从一个问题的旅程看AI全貌.md",
+    "****.md",
+    "AI/agents/deepagents 学习笔记.md",
+    "AI/agents/MCP_学习笔记.md",
+    "AI/agents/信息图标题.svg",
+    "work/image-handling-in-export.md",
     "infra/k8s-learning/01-docker-basics.md",
     "AI/agents/agent_skills_notes.md",
     "AI/agents/agent_skills_diagram.md",
@@ -208,7 +221,6 @@
     "AI/harness-engineering/agent-harness-思维导图-幕布.txt",
     "work/model-hub/PlaudModelHub思维导图.md",
     "AI/harness-engineering/三个-Scaling-维度的统一框架-学习笔记.md",
-    "AI/00-从一个问题的旅程看AI全貌.md",
     "work/model-hub/PlaudModelHub完全指南.md",
     "AI/harness-engineering/sources/book2-deep-dive-c9-c10-学习笔记.md",
     "AI/harness-engineering/sources/book2-deep-dive-c7-c8-学习笔记.md",
@@ -217,18 +229,10 @@
     "AI/harness-engineering/sources/book2-deep-dive-c1-c2-学习笔记.md",
     "AI/harness-engineering/sources/book1-claude-code-学习笔记-final-mubu.md",
     "work/model-hub/PlaudModelHub架构图.md",
-    "infra/python-package-dependency-management.md",
-    "Clippings-1/The Anatomy of an Agent Harness.md",
-    "work/model-hub/Plaud Model Hub 完全指南.md",
     "work/model-hub/Plaud Model Hub 完全指南.md.tmp.77677.1776656900773",
-    "infra/k8s-learning/02-k8s-core-concepts.md",
-    "infra/k8s-learning/05-k8s-architecture.md",
-    "infra/k8s-learning/03-k8s-workload-types.md",
-    "infra/k8s-learning/02-k8s-core-concepts.md.tmp.19442.1776582305955",
     "AI/basic/ExportBlock-cd0d2ae3-7d1b-4f13-b721-97d0df66f4c3-Part-1/Deep Learning/Transformer/Untitled.png",
     "AI/basic/ExportBlock-cd0d2ae3-7d1b-4f13-b721-97d0df66f4c3-Part-1/Deep Learning/单层神经网络/激活函数/image.png",
     "AI/basic/ExportBlock-cd0d2ae3-7d1b-4f13-b721-97d0df66f4c3-Part-1/Deep Learning/单层神经网络/激活函数/image 1.png",
-    "AI/basic/ExportBlock-cd0d2ae3-7d1b-4f13-b721-97d0df66f4c3-Part-1/Deep Learning/单层神经网络/激活函数/Untitled.png",
     "Untitled.canvas"
   ]
 }

@@ -26,6 +26,7 @@ AI 应用 1 ──┐              ┌──→ MCP Server A (数据源 A)
 AI 应用 2 ──┘              └──→ MCP Server B (数据源 B)
 ```
 
+
 ---
 
 ## 2. 整体架构

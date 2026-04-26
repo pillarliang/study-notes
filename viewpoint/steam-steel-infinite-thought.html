@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="author" content="Ivan Zhao">
+  <meta name="description" content="每个时代都由其奇迹材料塑造。钢铁塑造了镀金时代。半导体启动了数字时代。现在人工智能以无限思想的形式到来。">
+  <meta name="keywords" content="人工智能,组织,知识工作,技术变革,历史类比">
+  <meta name="generator" content="Kami">
+  <title>蒸汽、钢铁和无限的思想</title>
+  <style>
+    :root {
+      --serif: TsangerJinKai02-W04, 'Source Han Serif SC', 'Noto Serif CJK SC', 'Songti SC', 'STSong', Georgia, serif;
+      --serif-bold: TsangerJinKai02-W05, 'Source Han Serif SC', 'Noto Serif CJK SC', 'Songti SC', 'STSong', Georgia, serif;
+      --ink-blue: #004a8c;
+      --bg-parchment: #fefdfb;
+      --text-dark: #1a1a1a;
+      --text-light: #666;
+      --border-color: #e0d5c8;
+    }
+
+    @font-face {
+      font-family: TsangerJinKai02-W04;
+      src: url('./assets/fonts/TsangerJinKai02-W04.ttf') format('truetype');
+      font-weight: 400;
+    }
+
+    @font-face {
+      font-family: TsangerJinKai02-W05;
+      src: url('./assets/fonts/TsangerJinKai02-W05.ttf') format('truetype');
+      font-weight: 700;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      -webkit-font-smoothing: antialiased;
+      font-feature-settings: 'kern' 1;
+    }
+
+    body {
+      font-family: var(--serif);
+      font-size: 16px;
+      line-height: 1.75;
+      color: var(--text-dark);
+      background: var(--bg-parchment);
+      padding: 2rem;
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 1.5rem;
+        font-size: 15px;
+      }
+    }
+
+    .page {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      padding: 4rem;
+      box-shadow: 0 0 30px rgba(0,0,0,0.08);
+    }
+
+    @media (max-width: 768px) {
+      .page {
+        padding: 2rem;
+      }
+    }
+
+    /* Title */
+    .header {
+      margin-bottom: 3rem;
+      border-bottom: 2px solid var(--border-color);
+      padding-bottom: 2rem;
+    }
+
+    .header h1 {
+      font-family: var(--serif-bold);
+      font-size: 2.2em;
+      font-weight: 700;
+      line-height: 1.3;
+      color: var(--text-dark);
+      margin-bottom: 0.8rem;
+    }
+
+    .header .subtitle {
+      font-size: 0.95em;
+      color: var(--text-light);
+      margin-bottom: 0.5rem;
+    }
+
+    .header .meta {
+      font-size: 0.85em;
+      color: #999;
+      font-style: italic;
+    }
+
+    /* Headings */
+    h2 {
+      font-family: var(--serif-bold);
+      font-size: 1.6em;
+      font-weight: 700;
+      margin-top: 2.5rem;
+      margin-bottom: 1.2rem;
+      color: var(--text-dark);
+      border-left: 4px solid var(--ink-blue);
+      padding-left: 1rem;
+    }
+
+    h3 {
+      font-family: var(--serif-bold);
+      font-size: 1.2em;
+      font-weight: 700;
+      margin-top: 1.8rem;
+      margin-bottom: 0.8rem;
+      color: var(--text-dark);
+    }
+
+    h4 {
+      font-family: var(--serif-bold);
+      font-size: 1.05em;
+      font-weight: 700;
+      margin-top: 1.4rem;
+      margin-bottom: 0.6rem;
+      color: var(--text-dark);
+    }
+
+    /* Paragraph */
+    p {
+      margin-bottom: 1.2rem;
+      text-align: justify;
+    }
+
+    p:last-child {
+      margin-bottom: 0;
+    }
+
+    strong {
+      font-family: var(--serif-bold);
+      font-weight: 700;
+      color: var(--text-dark);
+    }
+
+    /* List */
+    ul, ol {
+      margin: 1.2rem 0 1.2rem 2rem;
+    }
+
+    li {
+      margin-bottom: 0.6rem;
+      text-align: justify;
+    }
+
+    li strong {
+      color: var(--ink-blue);
+    }
+
+    /* Blockquote */
+    blockquote {
+      border-left: 4px solid var(--ink-blue);
+      padding-left: 1.5rem;
+      margin: 1.5rem 0;
+      color: var(--text-light);
+      font-style: italic;
+      font-size: 0.95em;
+    }
+
+    /* Horizontal rule */
+    hr {
+      border: none;
+      border-top: 1px solid var(--border-color);
+      margin: 2rem 0;
+    }
+
+    /* Table (if needed) */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.5rem 0;
+    }
+
+    th {
+      background: var(--bg-parchment);
+      padding: 0.8rem;
+      text-align: left;
+      border: 1px solid var(--border-color);
+      font-family: var(--serif-bold);
+      font-weight: 700;
+    }
+
+    td {
+      padding: 0.8rem;
+      border: 1px solid var(--border-color);
+    }
+
+    /* Links */
+    a {
+      color: var(--ink-blue);
+      text-decoration: none;
+      border-bottom: 1px solid rgba(0, 74, 140, 0.3);
+      transition: all 0.2s;
+    }
+
+    a:hover {
+      border-bottom-color: var(--ink-blue);
+    }
+
+    /* Figure / Diagram */
+    figure {
+      margin: 2.5rem 0;
+      padding: 1.5rem;
+      background: #f5f4ed;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      page-break-inside: avoid;
+    }
+
+    figure svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    figcaption {
+      margin-top: 1rem;
+      font-style: italic;
+      font-size: 0.9em;
+      color: var(--text-light);
+      text-align: center;
+      line-height: 1.5;
+      font-family: var(--serif);
+    }
+
+    /* PDF pagination */
+    @media print {
+      body {
+        padding: 0;
+        background: white;
+      }
+
+      .page {
+        box-shadow: none;
+        padding: 3.5rem;
+        max-width: 100%;
+        page-break-inside: avoid;
+      }
+
+      h2 {
+        page-break-after: avoid;
+      }
+
+      p {
+        orphans: 3;
+        widows: 3;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="header">
+      <h1>蒸汽、钢铁和无限的思想</h1>
+      <div class="subtitle">从材料革命看人工智能如何重塑组织与经济</div>
+      <div class="meta">原作者：Ivan Zhao | 转载于：X @ivanhzhao</div>
+    </div>
+
+    <h2>序言：材料塑造时代</h2>
+
+    <p>每个时代都由其奇迹材料塑造：</p>
+
+    <ul>
+      <li><strong>钢铁</strong>塑造了镀金时代</li>
+      <li><strong>半导体</strong>启动了数字时代</li>
+      <li><strong>人工智能</strong>以无限思想的形式到来</li>
+    </ul>
+
+    <p>如果历史教会了人们任何东西，那就是<strong>掌握这种材料的人定义了时代</strong>。</p>
+
+    <figure>
+      <svg viewBox="0 0 960 460" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <pattern id="dots-tl" width="22" height="22" patternUnits="userSpaceOnUse">
+            <circle cx="1" cy="1" r="0.9" fill="rgba(20,20,19,0.08)"/>
+          </pattern>
+        </defs>
+
+        <rect width="100%" height="100%" fill="#f5f4ed"/>
+        <rect width="100%" height="100%" fill="url(#dots-tl)" opacity="0.55"/>
+
+        <!-- Horizontal axis -->
+        <line x1="60" y1="228" x2="900" y2="228" stroke="#b8b7b0" stroke-width="1.4"/>
+        <path d="M 894,224 L 900,228 L 894,232" fill="none" stroke="#b8b7b0" stroke-width="1.5" stroke-linecap="round"/>
+
+        <!-- Event 0: x=200, ABOVE, "钢铁" 1850s -->
+        <line x1="200" y1="220" x2="200" y2="168" stroke="#6b6a64" stroke-width="1" stroke-dasharray="3,3"/>
+        <circle cx="200" cy="228" r="5" fill="#6b6a64" stroke="#f5f4ed" stroke-width="1.5"/>
+        <rect x="144" y="128" width="112" height="40" rx="4" fill="#f5f4ed" stroke="#e8e6dc" stroke-width="0.8"/>
+        <text x="200" y="143" fill="#6b6a64" font-size="8" font-family="'JetBrains Mono', monospace" text-anchor="middle" letter-spacing="0.15em">1850s</text>
+        <text x="200" y="159" fill="#141413" font-size="11" font-weight="600" font-family="serif" text-anchor="middle">钢铁 · 镀金时代</text>
+
+        <!-- Event 1: x=480, BELOW, "半导体" 1980s -->
+        <line x1="480" y1="236" x2="480" y2="288" stroke="#6b6a64" stroke-width="1" stroke-dasharray="3,3"/>
+        <circle cx="480" cy="228" r="5" fill="#504e49" stroke="#f5f4ed" stroke-width="1.5"/>
+        <rect x="424" y="288" width="112" height="40" rx="4" fill="#f5f4ed" stroke="#e8e6dc" stroke-width="0.8"/>
+        <text x="480" y="303" fill="#6b6a64" font-size="8" font-family="'JetBrains Mono', monospace" text-anchor="middle" letter-spacing="0.15em">1980s</text>
+        <text x="480" y="319" fill="#141413" font-size="11" font-weight="600" font-family="serif" text-anchor="middle">半导体 · 数字时代</text>
+
+        <!-- Event 2: x=760, ABOVE, "无限思想" 2020s FOCAL -->
+        <line x1="760" y1="220" x2="760" y2="148" stroke="#1B365D" stroke-width="1.2"/>
+        <circle cx="760" cy="228" r="6" fill="#1B365D" stroke="#f5f4ed" stroke-width="1.5"/>
+        <rect x="696" y="100" width="128" height="48" rx="4" fill="#EEF2F7" stroke="#1B365D" stroke-width="1"/>
+        <text x="760" y="117" fill="#1B365D" font-size="8" font-family="'JetBrains Mono', monospace" text-anchor="middle" letter-spacing="0.15em">2020s · FOCAL</text>
+        <text x="760" y="138" fill="#141413" font-size="13" font-weight="600" font-family="serif" text-anchor="middle">无限思想 · AI 时代</text>
+
+        <!-- Legend -->
+        <line x1="40" y1="390" x2="920" y2="390" stroke="rgba(20,20,19,0.10)" stroke-width="0.8"/>
+        <text x="40" y="406" fill="#504e49" font-size="8" font-family="'JetBrains Mono', monospace" letter-spacing="0.22em">LEGEND</text>
+
+        <circle cx="47" cy="424" r="6" fill="#1B365D" stroke="#f5f4ed" stroke-width="1.5"/>
+        <text x="60" y="428" fill="#504e49" font-size="8.5" font-family="serif">焦点时代</text>
+
+        <circle cx="183" cy="424" r="5" fill="#504e49" stroke="#f5f4ed" stroke-width="1.5"/>
+        <text x="196" y="428" fill="#504e49" font-size="8.5" font-family="serif">标准时代</text>
+
+        <line x1="320" y1="424" x2="352" y2="424" stroke="#6b6a64" stroke-width="1" stroke-dasharray="3,3"/>
+        <text x="360" y="428" fill="#504e49" font-size="8.5" font-family="serif">连接线</text>
+      </svg>
+      <figcaption>图 1 · 每个时代由其奇迹材料定义。当前正进入由<strong>无限思想</strong>塑造的人工智能时代。</figcaption>
+    </figure>
+
+    <blockquote>
+      左图：年轻时的安德鲁·卡内基和他的弟弟<br>
+      右图：镀金时代匹兹堡的钢铁厂
+    </blockquote>
+
+    <h3>工业时代的范例：钢铁与美国</h3>
+
+    <p>在1850年代，安德鲁·卡内基在泥泞的匹兹堡街道上当电报员。十分之六的美国人是农民。两代人之内，卡内基和同行们锻造了现代世界：</p>
+
+    <ul>
+      <li>马匹 → 铁路</li>
+      <li>烛光 → 电力</li>
+      <li>铁 → 钢铁</li>
+    </ul>
+
+    <h3>知识工作的演变</h3>
+
+    <p>从那以后，工作从工厂转向了办公室。如今，在旧金山经营的软件公司为数百万知识工作者构建工具。在这个工业城镇，每个人都在谈论AGI，但<strong>全球二十亿知识工作者中的大多数还没有感受到它</strong>。</p>
+
+    <p>核心问题：</p>
+
+    <ul>
+      <li>知识工作很快会是什么样子？</li>
+      <li>当组织结构图吸收从不睡眠的思想时会发生什么？</li>
+    </ul>
+
+    <h3>通过后视镜看未来</h3>
+
+    <p>未来往往难以预测，因为它总是把自己伪装成过去：</p>
+
+    <ul>
+      <li>早期的电话简洁得像电报</li>
+      <li>早期的电影看起来像拍摄的戏剧</li>
+    </ul>
+
+    <p>这就是<strong>马歇尔·麦克卢汉所说的"通过后视镜驾驶到未来"</strong>。</p>
+
+    <p>当今最流行的人工智能形式看起来像过去的谷歌搜索。我们现在处于每一次新技术转变都会发生的那个<strong>不舒适的过渡阶段</strong>——人们看到的是模仿谷歌搜索框的人工智能聊天机器人。</p>
+
+    <h3>本文的框架</h3>
+
+    <p>虽然不能预知接下来的一切，但可以用历史比喻来思考人工智能如何在不同的规模上工作：</p>
+
+    <ol>
+      <li><strong>个人层面</strong>——从自行车到汽车</li>
+      <li><strong>组织层面</strong>——钢铁和蒸汽</li>
+      <li><strong>经济层面</strong>——从佛罗伦萨到大城市</li>
+    </ol>
+
+    <figure>
+      <svg viewBox="0 0 960 460" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <pattern id="dots-ls" width="22" height="22" patternUnits="userSpaceOnUse">
+            <circle cx="1" cy="1" r="0.9" fill="rgba(20,20,19,0.08)"/>
+          </pattern>
+        </defs>
+
+        <rect width="100%" height="100%" fill="#f5f4ed"/>
+        <rect width="100%" height="100%" fill="url(#dots-ls)" opacity="0.55"/>
+
+        <!-- L1: 个人层面 -->
+        <rect x="96" y="52" width="724" height="56" rx="4" fill="#faf9f5" stroke="#141413" stroke-width="1"/>
+        <text x="128" y="74" fill="#141413" font-size="7" font-family="'JetBrains Mono', monospace" letter-spacing="0.15em">01</text>
+        <text x="152" y="74" fill="#141413" font-size="12" font-weight="600" font-family="serif">个人层面</text>
+        <text x="152" y="94" fill="#504e49" font-size="9" font-family="'JetBrains Mono', monospace">从自行车到汽车 · 程序员率先转型</text>
+
+        <!-- L2: 组织层面 FOCAL -->
+        <rect x="96" y="116" width="724" height="56" rx="4" fill="#EEF2F7" stroke="#1B365D" stroke-width="1"/>
+        <text x="128" y="138" fill="#1B365D" font-size="7" font-family="'JetBrains Mono', monospace" letter-spacing="0.15em">02 · FOCAL</text>
+        <text x="224" y="138" fill="#141413" font-size="12" font-weight="600" font-family="serif">组织层面</text>
+        <text x="224" y="158" fill="#1B365D" font-size="9" font-family="'JetBrains Mono', monospace">钢铁与蒸汽 · 跨工作流维护语境</text>
+
+        <!-- L3: 经济层面 -->
+        <rect x="96" y="180" width="724" height="56" rx="4" fill="#f5f4ed" stroke="#504e49" stroke-width="1"/>
+        <text x="128" y="202" fill="#504e49" font-size="7" font-family="'JetBrains Mono', monospace" letter-spacing="0.15em">03</text>
+        <text x="152" y="202" fill="#141413" font-size="12" font-weight="600" font-family="serif">经济层面</text>
+        <text x="152" y="222" fill="#504e49" font-size="9" font-family="'JetBrains Mono', monospace">从佛罗伦萨到大城市 · 知识经济升级</text>
+
+        <!-- Left: SCALE down-arrow -->
+        <line x1="52" y1="64" x2="52" y2="224" stroke="#504e49" stroke-width="1.2"/>
+        <path d="M 47,218 L 52,224 L 57,218" fill="none" stroke="#504e49" stroke-width="1.5" stroke-linecap="round"/>
+        <rect x="28" y="136" width="48" height="12" rx="2" fill="#f5f4ed"/>
+        <text x="52" y="146" fill="#504e49" font-size="8" font-family="'JetBrains Mono', monospace" text-anchor="middle" letter-spacing="0.1em">SCALE</text>
+
+        <!-- Right: IMPACT up-arrow -->
+        <line x1="872" y1="224" x2="872" y2="64" stroke="#1B365D" stroke-width="1.4"/>
+        <path d="M 867,70 L 872,64 L 877,70" fill="none" stroke="#1B365D" stroke-width="1.5" stroke-linecap="round"/>
+        <rect x="848" y="136" width="52" height="12" rx="2" fill="#f5f4ed"/>
+        <text x="872" y="146" fill="#1B365D" font-size="8" font-family="'JetBrains Mono', monospace" text-anchor="middle" letter-spacing="0.1em">IMPACT</text>
+
+        <!-- Legend -->
+        <line x1="40" y1="388" x2="920" y2="388" stroke="rgba(20,20,19,0.10)" stroke-width="0.8"/>
+        <text x="40" y="404" fill="#504e49" font-size="8" font-family="'JetBrains Mono', monospace" letter-spacing="0.22em">LEGEND</text>
+
+        <rect x="40" y="418" width="14" height="10" rx="2" fill="#EEF2F7" stroke="#1B365D" stroke-width="1"/>
+        <text x="60" y="426" fill="#504e49" font-size="8.5" font-family="serif">焦点层（变革核心）</text>
+
+        <rect x="200" y="418" width="14" height="10" rx="2" fill="#faf9f5" stroke="#141413" stroke-width="1"/>
+        <text x="220" y="426" fill="#504e49" font-size="8.5" font-family="serif">起点层</text>
+
+        <rect x="320" y="418" width="14" height="10" rx="2" fill="#f5f4ed" stroke="#504e49" stroke-width="1"/>
+        <text x="340" y="426" fill="#504e49" font-size="8.5" font-family="serif">扩展层</text>
+      </svg>
+      <figcaption>图 2 · 三层框架：AI 影响从个人扩展到组织，再到整个经济结构。组织层是当前最具变革潜力的杠杆点。</figcaption>
+    </figure>
+
+    <h2>个人层面：从自行车到汽车</h2>
+
+    <h3>程序员的变革</h3>
+
+    <p>最初的端倪可以在知识工作的高僧中找到：<strong>程序员</strong>。</p>
+
+    <p>联合创始人西蒙曾是一个10倍程序员，但他现在很少写代码。走过他的办公桌，会看到他一次编排三四个人工智能编码代理，他们不仅输入速度更快，他们还会思考，这样合起来让他成为一个 <strong>30到40倍的工程师</strong>。他在午餐或睡前排队任务，让他们在他不在时工作。<strong>他已经成为无限思想的管理者</strong>。</p>
+
+    <figure>
+      <svg viewBox="0 0 680 420" xmlns="http://www.w3.org/2000/svg">
+        <rect width="100%" height="100%" fill="#f5f4ed"/>
+
+        <!-- Horizontal grid lines (y=320 baseline, step 40) -->
+        <line x1="60" y1="320" x2="620" y2="320" stroke="#e8e7e1" stroke-width="0.8"/>
+        <line x1="60" y1="280" x2="620" y2="280" stroke="#e8e7e1" stroke-width="0.8"/>
+        <line x1="60" y1="240" x2="620" y2="240" stroke="#e8e7e1" stroke-width="0.8"/>
+        <line x1="60" y1="200" x2="620" y2="200" stroke="#e8e7e1" stroke-width="0.8"/>
+        <line x1="60" y1="160" x2="620" y2="160" stroke="#e8e7e1" stroke-width="0.8"/>
+        <line x1="60" y1="120" x2="620" y2="120" stroke="#e8e7e1" stroke-width="0.8"/>
+        <line x1="60" y1="80"  x2="620" y2="80"  stroke="#e8e7e1" stroke-width="0.8"/>
+        <line x1="60" y1="40"  x2="620" y2="40"  stroke="#e8e7e1" stroke-width="0.8"/>
+
+        <!-- Y-axis labels (0/5/10/15/20/25/30/35, scale=8) -->
+        <text x="52" y="324" fill="#6b6a64" font-size="10" font-family="serif" text-anchor="end">0</text>
+        <text x="52" y="284" fill="#6b6a64" font-size="10" font-family="serif" text-anchor="end">5</text>
+        <text x="52" y="244" fill="#6b6a64" font-size="10" font-family="serif" text-anchor="end">10</text>
+        <text x="52" y="204" fill="#6b6a64" font-size="10" font-family="serif" text-anchor="end">15</text>
+        <text x="52" y="164" fill="#6b6a64" font-size="10" font-family="serif" text-anchor="end">20</text>
+        <text x="52" y="124" fill="#6b6a64" font-size="10" font-family="serif" text-anchor="end">25</text>
+        <text x="52" y="84"  fill="#6b6a64" font-size="10" font-family="serif" text-anchor="end">30</text>
+        <text x="52" y="44"  fill="#6b6a64" font-size="10" font-family="serif" text-anchor="end">35</text>
+
+        <!-- Y-axis unit label -->
+        <text x="16" y="184" fill="#6b6a64" font-size="9" font-family="'JetBrains Mono', monospace" letter-spacing="0.12em" transform="rotate(-90 16 184)" text-anchor="middle">PRODUCTIVITY ×</text>
+
+        <!-- X-axis baseline -->
+        <line x1="60" y1="320" x2="620" y2="320" stroke="#141413" stroke-width="0.8"/>
+
+        <!-- Bar 1: 普通程序员 1× (h=8, top y=312) -->
+        <rect x="184" y="312" width="32" height="8" fill="#504e49" rx="2"/>
+        <text x="200" y="308" fill="#141413" font-size="10" font-family="serif" text-anchor="middle">1</text>
+
+        <!-- Bar 2: 西蒙过去 10× (h=80, top y=240) -->
+        <rect x="344" y="240" width="32" height="80" fill="#504e49" rx="2"/>
+        <text x="360" y="236" fill="#141413" font-size="10" font-family="serif" text-anchor="middle">10</text>
+
+        <!-- Bar 3: 西蒙现在 35× (h=280, top y=40) FOCAL -->
+        <rect x="504" y="40" width="32" height="280" fill="#1B365D" rx="2"/>
+        <text x="520" y="36" fill="#1B365D" font-size="10" font-family="serif" font-weight="600" text-anchor="middle">35</text>
+
+        <!-- X-axis category labels -->
+        <text x="200" y="340" fill="#141413" font-size="11" font-family="serif" text-anchor="middle">普通程序员</text>
+        <text x="360" y="340" fill="#141413" font-size="11" font-family="serif" text-anchor="middle">西蒙 · 过去</text>
+        <text x="520" y="340" fill="#141413" font-size="11" font-family="serif" font-weight="600" text-anchor="middle">西蒙 · 现在</text>
+
+        <!-- Legend -->
+        <line x1="60" y1="368" x2="620" y2="368" stroke="#e8e7e1" stroke-width="0.8"/>
+
+        <rect x="60" y="380" width="12" height="12" fill="#1B365D" rx="2"/>
+        <text x="78" y="391" fill="#504e49" font-size="10" font-family="serif">焦点 · 编排 3-4 个 AI 代理</text>
+
+        <rect x="280" y="380" width="12" height="12" fill="#504e49" rx="2"/>
+        <text x="298" y="391" fill="#504e49" font-size="10" font-family="serif">参考基准（× 倍数）</text>
+      </svg>
+      <figcaption>图 3 · 西蒙的生产力跃升：从 10× 程序员到管理 3-4 个 AI 代理的 35× 工程师。这是知识工作"从骑车到开车"的标志。</figcaption>
+    </figure>
+
+    <h3>从自行车到汽车的比喻</h3>
+
+    <p>1970年代《科学美国人》杂志关于运动效率的研究启发了史蒂夫·乔布斯著名的<strong>"心灵自行车"</strong>比喻：</p>
+
+    <ul>
+      <li><strong>1980年代</strong>：乔布斯称个人计算机为"心灵的自行车"</li>
+      <li><strong>1990年代</strong>：我们铺设了互联网这条"信息高速公路"</li>
+      <li><strong>今天</strong>：大多数知识工作仍然是人力驱动，就像我们一直在高速公路上踩自行车</li>
+    </ul>
+
+    <p>有了人工智能代理，像西蒙这样的人已经<strong>从骑自行车毕业到开汽车</strong>了。</p>
+
+    <h3>普及的障碍</h3>
+
+    <p>其他类型的知识工作者何时会得到汽车？必须解决两个问题：</p>
+
+    <h4>问题一：语境碎片化</h4>
+
+    <p>对于<strong>编码</strong>，工具和语境往往住在一个地方：IDE、代码库、终端。但<strong>一般知识工作分散在数十个工具中</strong>。</p>
+
+    <p>例如，一个人工智能代理试图起草产品简介需要从以下信息源提取信息：</p>
+
+    <ul>
+      <li>Slack线程</li>
+      <li>战略文件</li>
+      <li>上一季度的仪表板指标</li>
+      <li>只存在于某人脑海中的机构记忆</li>
+    </ul>
+
+    <p>今天，人类是胶水，用复制粘贴和浏览器标签页切换把所有这些粘合在一起。<strong>在语境被整合之前，代理将停留在狭窄的用例中</strong>。</p>
+
+    <h4>问题二：可验证性缺失</h4>
+
+    <p>代码有一个神奇的特性：可以用测试和错误来验证它。模型制造者用这个来训练人工智能以更好地编码（例如强化学习）。</p>
+
+    <p>但如何验证：</p>
+
+    <ul>
+      <li>项目是否管理良好？</li>
+      <li>战略备忘录是否有价值？</li>
+    </ul>
+
+    <p>我们还没有找到改进通用知识工作模型的方法。所以人类仍然需要在循环中监督、指导并展示什么是好的。</p>
+
+    <h3>人在循环中的陷阱</h3>
+
+    <p>编程代理今年教导我们，拥有"人在循环中"并不总是可取的。这就像：</p>
+
+    <ul>
+      <li>有人个人检查工厂生产线上的每个螺栓</li>
+      <li>或走在汽车前面清路（参见：1865年的《红旗法案》）</li>
+    </ul>
+
+    <p>我们希望人类<strong>从一个杠杆点监督循环，而不是在其中</strong>。一旦语境整合，工作可验证，<strong>数十亿工作者将从踩踏转向驾驶，然后从驾驶转向自动驾驶</strong>。</p>
+
+    <h2>组织层面：钢铁和蒸汽</h2>
+
+    <h3>组织规模的悖论</h3>
+
+    <p>公司是一项最近的发明，它们随着规模的扩大而退化并达到极限。</p>
+
+    <p>几百年前，大多数公司都是十几个人的车间。现在我们有拥有数十万人的跨国公司。通信基础设施（通过会议和消息连接的人脑）在指数级负载下崩溃。</p>
+
+    <p>我们试图用层级、流程和文件来解决这个问题。但<strong>我们一直在用人类规模的工具解决工业规模的问题，就像用木头建摩天大楼</strong>。</p>
+
+    <blockquote>
+      现代公司和组织结构随着铁路公司演变而来（1855年纽约和伊利铁路的组织图），它们是第一批需要协调数千人跨越远距离的企业。
+    </blockquote>
+
+    <h3>启示一：钢铁的奇迹</h3>
+
+    <p>在钢铁之前，19世纪的建筑限制在六七楼。铁很坚硬但易碎且沉重；增加更多楼层，结构在自身重量下崩溃。钢铁改变了一切：</p>
+
+    <ul>
+      <li>既坚硬又可塑</li>
+      <li>框架可以更轻，墙壁更薄</li>
+      <li>突然间建筑物可以上升几十层</li>
+      <li>新型建筑成为可能</li>
+    </ul>
+
+    <p>（伍尔沃思大楼在1913年完成时是纽约最高的建筑，标志着钢铁时代的到来）</p>
+
+    <p><strong>人工智能是组织的钢铁</strong>。它有可能：</p>
+
+    <ul>
+      <li>跨工作流维护语境</li>
+      <li>在需要时浮现决策而不产生噪音</li>
+      <li>人类通信不再必须是承重墙</li>
+    </ul>
+
+    <p>未来的组织改变：</p>
+
+    <ul>
+      <li>每周两小时的对齐会议 → 五分钟的异步审查</li>
+      <li>需要三层批准的执行决策 → 几分钟内完成</li>
+      <li>公司可以真正扩展，而不会出现不可避免的退化</li>
+    </ul>
+
+    <h3>启示二：蒸汽的革命</h3>
+
+    <p>在工业革命初期，早期的纺织工厂坐在河流和溪流旁边，由水轮提供动力。</p>
+
+    <p>当蒸汽机到来时，工厂老板起初用蒸汽机交换水轮并保持其他一切不变。<strong>生产力收益很少</strong>。</p>
+
+    <p>真正的突破来自于工厂老板意识到他们<strong>可以完全脱钩</strong>：</p>
+
+    <ul>
+      <li>建造了更大的磨坊，更靠近工人、港口和原材料</li>
+      <li>围绕蒸汽机重新设计了工厂</li>
+      <li>后来，当电力上线时，进一步权力下放，远离中央动力轴</li>
+      <li>在工厂周围为不同的机器放置较小的发动机</li>
+    </ul>
+
+    <p>结果：<strong>生产力爆炸，第二次工业革命真正起飞</strong>。</p>
+
+    <blockquote>
+      这幅1835年由托马斯·埃洛姆创作的版画描绘了英国兰开夏郡的一家由蒸汽机提供动力的纺织工厂
+    </blockquote>
+
+    <h3>当前阶段：仍在交换水轮</h3>
+
+    <p><strong>我们仍处于"交换出水轮"阶段</strong>。人工智能聊天机器人安装在现有工具上。当旧约束消散，公司可以运行在从不睡眠的无限思想上时，我们还没有重新想象组织的样子。</p>
+
+    <h4>Notion的实验案例</h4>
+
+    <p>在Notion，进行了实验：</p>
+
+    <ul>
+      <li>除了1000名员工外，现在有700多个代理处理重复性工作</li>
+      <li>他们记录会议笔记，回答综合部落知识的问题</li>
+      <li>他们处理IT请求并记录客户反馈</li>
+      <li>他们帮助新员工了解员工福利</li>
+      <li>他们编写周状态报告，所以人们不必复制粘贴</li>
+    </ul>
+
+    <figure>
+      <svg viewBox="0 0 680 420" xmlns="http://www.w3.org/2000/svg">
+
+        <!-- Canvas -->
+        <rect width="100%" height="100%" fill="#f5f4ed"/>
+
+        <!-- ============================================================
+             Donut center: cx=300 cy=200  R=136 (outer)  r=76 (inner)
+             2 segments, clockwise from top (-90°):
+               S1: 41% AI 代理 · -90° to 57.6°  · span 147.6° · large-arc=0  · #1B365D (focal)
+               S2: 59% 人类员工 · 57.6° to 270° · span 212.4° · large-arc=1  · #504e49
+             Outer point at 57.6°: (300+136*cos57.6, 200+136*sin57.6) = (372.9, 314.8)
+             Inner point at 57.6°: (300+76*cos57.6,  200+76*sin57.6)  = (340.7, 264.2)
+             ============================================================ -->
+
+        <!-- S1: 41% · -90° to 57.6° · large-arc=0 (FOCAL) -->
+        <path d="M 300 64 A 136 136 0 0 1 372.9 314.8 L 340.7 264.2 A 76 76 0 0 0 300 124 Z"
+              fill="#1B365D"/>
+
+        <!-- S2: 59% · 57.6° to 270° · large-arc=1 -->
+        <path d="M 372.9 314.8 A 136 136 0 1 1 300 64 L 300 124 A 76 76 0 1 0 340.7 264.2 Z"
+              fill="#504e49"/>
+
+        <!-- Thin separator rings -->
+        <circle cx="300" cy="200" r="136" fill="none" stroke="#f5f4ed" stroke-width="1.5"/>
+        <circle cx="300" cy="200" r="76"  fill="none" stroke="#f5f4ed" stroke-width="1.5"/>
+
+        <!-- Donut hole background -->
+        <circle cx="300" cy="200" r="75" fill="#f5f4ed"/>
+
+        <!-- Center label -->
+        <text x="300" y="193" fill="#1B365D" font-size="26" font-family="serif" font-weight="500" text-anchor="middle">41%</text>
+        <text x="300" y="214" fill="#6b6a64" font-size="10" font-family="serif" text-anchor="middle" letter-spacing="0.1em">AI 代理参与</text>
+
+        <!-- Legend (right of donut) -->
+        <line x1="460" y1="120" x2="460" y2="220" stroke="#e8e7e1" stroke-width="0.8"/>
+
+        <!-- S1 -->
+        <rect x="472" y="136" width="12" height="12" fill="#1B365D" rx="2"/>
+        <text x="492" y="147" fill="#141413" font-size="9.5" font-family="serif" font-weight="500">41%</text>
+        <text x="532" y="147" fill="#504e49" font-size="9" font-family="serif">AI 代理 · 700+</text>
+
+        <!-- S2 -->
+        <rect x="472" y="160" width="12" height="12" fill="#504e49" rx="2"/>
+        <text x="492" y="171" fill="#141413" font-size="9.5" font-family="serif">59%</text>
+        <text x="532" y="171" fill="#504e49" font-size="9" font-family="serif">人类员工 · 1,000</text>
+
+        <!-- Bottom rule -->
+        <line x1="60" y1="380" x2="620" y2="380" stroke="#e8e7e1" stroke-width="0.8"/>
+        <text x="60" y="397" fill="#6b6a64" font-size="9" font-family="'JetBrains Mono', monospace" letter-spacing="0.15em">TOTAL · 1,700+ 工作单元</text>
+        <text x="620" y="397" fill="#6b6a64" font-size="9" font-family="serif" text-anchor="end">Source: Notion · 2025</text>
+
+      </svg>
+      <figcaption>图 4 · Notion 内部 700+ AI 代理与 1000 名员工协作。这是组织"用钢铁加强"的早期范例，但仍是<strong>婴儿步骤</strong>。</figcaption>
+    </figure>
+
+    <p>这只是婴儿步骤。<strong>真正的收益仅受限于我们的想象力和惯性</strong>。</p>
+
+    <hr>
+
+    <h2>经济层面：从佛罗伦萨到大城市</h2>
+
+    <h3>城市规模的演变</h3>
+
+    <p>钢铁和蒸汽不仅改变了建筑和工厂。它们改变了城市。</p>
+
+    <h4>佛罗伦萨：人类规模的城市</h4>
+
+    <p>几百年前，城市是人类规模的。你可以在四十分钟内步行穿过佛罗伦萨。生活的节奏是由一个人能走多远，一个声音能传多远决定的。</p>
+
+    <h4>现代大都市的诞生</h4>
+
+    <p>然后钢铁框架使摩天大楼成为可能。蒸汽引擎为连接城市中心到内陆的铁路提供动力。随之而来的是：</p>
+
+    <ul>
+      <li>电梯</li>
+      <li>地铁</li>
+      <li>高速公路</li>
+    </ul>
+
+    <p>城市在规模和密度上爆炸了。东京。重庆。达拉斯。</p>
+
+    <h4>新的生活方式</h4>
+
+    <p>这些不仅仅是更大版本的佛罗伦萨。它们是<strong>不同的生活方式</strong>：</p>
+
+    <ul>
+      <li><strong>成本</strong>：令人困惑、匿名、难以导航</li>
+      <li><strong>收益</strong>：这种不可读性是规模的代价，但他们也提供更多机会、更多自由</li>
+      <li><strong>结果</strong>：比人类规模的文艺复兴城市能支持<strong>更多人做更多事情的更多组合</strong></li>
+    </ul>
+
+    <h3>知识经济的转变</h3>
+
+    <p>我认为<strong>知识经济即将经历同样的转变</strong>。</p>
+
+    <h4>当前状态：佛罗伦萨式的知识工作</h4>
+
+    <p>今天，知识工作代表了美国GDP的近一半。其中大多数仍以人类规模运作：</p>
+
+    <ul>
+      <li>数十人的团队</li>
+      <li>由会议和电子邮件步调的工作流</li>
+      <li>超过几百人就会崩溃的组织</li>
+    </ul>
+
+    <p><strong>我们用石头和木头建造了佛罗伦萨</strong>。</p>
+
+    <h4>未来愿景：东京式的知识经济</h4>
+
+    <p>当人工智能代理大规模上线时，我们将构建<strong>东京</strong>：</p>
+
+    <ul>
+      <li><strong>规模</strong>：跨越数千个代理和人类的组织</li>
+      <li><strong>连续性</strong>：连续运行的工作流，跨越时区，无需等待某人醒来</li>
+      <li><strong>决策</strong>：用恰好足量的人在循环中合成的决策</li>
+    </ul>
+
+    <h4>新的节奏和成本</h4>
+
+    <p>感觉会不一样：</p>
+
+    <ul>
+      <li><strong>更快、更具杠杆作用</strong>，但起初也更令人困惑</li>
+      <li>每周会议、季度规划周期和年度审查的节奏可能会停止有意义</li>
+      <li>新的节奏出现</li>
+      <li>我们失去了一些易读性</li>
+      <li>我们获得了规模和速度</li>
+    </ul>
+
+    <h3>超越水轮：想象新世界</h3>
+
+    <p><strong>每种奇迹材料都需要人们停止通过后视镜看世界，开始想象新的世界</strong>：</p>
+
+    <ul>
+      <li><strong>卡内基</strong>看着钢铁看到了城市天际线</li>
+      <li><strong>兰开夏磨坊老板</strong>看着蒸汽机看到工厂楼层，不受河流限制</li>
+    </ul>
+
+    <p>我们仍然处于人工智能的<strong>水轮阶段</strong>，将聊天机器人安装在为人类设计的工作流上。</p>
+
+    <p>我们需要：</p>
+
+    <ul>
+      <li><strong>停止</strong>要求人工智能仅仅是我们的副驾驶</li>
+      <li><strong>开始想象</strong>当人类组织用钢铁加强，当琐碎工作委派给从不睡眠的思想时，知识工作会是什么样子</li>
+    </ul>
+
+    <hr>
+
+    <h2>结语：下一个天际线</h2>
+
+    <p>钢铁。蒸汽。无限的思想。</p>
+
+    <p><strong>下一个天际线在那里，等待我们去建造它。</strong></p>
+
+  </div>
+</body>
+</html>
