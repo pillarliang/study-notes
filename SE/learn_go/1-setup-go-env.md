@@ -91,6 +91,8 @@ func main() {
 ### 3.3 编译和运行
 
 ```bash
+$ go run .              # 直接运行
+
 $ go build              # 编译，生成 hello_world 可执行文件
 $ ./hello_world
 Hello, world!
