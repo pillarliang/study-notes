@@ -48,7 +48,9 @@
       "mcp__drawio__open_drawio_mermaid",
       "Bash(lark-cli config *)",
       "Bash(lark-cli whiteboard *)",
-      "Bash(gh api *)"
+      "Bash(gh api *)",
+      "Bash(curl -s https://api.github.com/repos/pillarliang/python-code-style/contents/)",
+      "Bash(curl -s https://api.github.com/repos/pillarliang/python-code-style/contents/skills/python-code-style)"
     ]
   }
 }
