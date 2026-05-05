@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "SE/learn_go/5-Functions.md",
+                "file": "SE/learn_go/7-Types-Methods-Interfaces.md",
                 "mode": "preview",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "5-Functions"
+              "title": "7-Types-Methods-Interfaces"
             }
           }
         ]
@@ -78,7 +78,8 @@
       }
     ],
     "direction": "horizontal",
-    "width": 301.5
+    "width": 301.5,
+    "collapsed": true
   },
   "right": {
     "id": "18704fb929da8db0",
@@ -185,13 +186,15 @@
       "terminal:Open terminal": false
     }
   },
-  "active": "82af3ed03fca550f",
+  "active": "6981c3e7be85404e",
   "lastOpenFiles": [
+    "SE/learn_go/6-Pointers.md",
+    "SE/learn_go/7-Types-Methods-Interfaces.md",
+    "SE/learn_go/5-Functions.md",
     "SE/learn_go/3-composite_types.md",
     "SE/learn_go/go-chapter-4-notes.md",
     "SE/learn_go/4-Blocks-Shadows-Control_Structures.md",
     "SE/learn_go/1-setup-go-env.md",
-    "SE/learn_go/5-Functions.md",
     "SE/learn_go/source/go-chapter-3.pdf",
     "SE/learn_go/source/go-chapter-2.pdf",
     "SE/learn_go/2-Predeclared_Types_Declarations.md",
@@ -228,8 +231,6 @@
     "diagrams/plaud-prd-harness-skill/output/figure-4-sequence.svg",
     "AI/00-从一个问题的旅程看AI全貌.md",
     "infra/observability/opentelemetry-guide.md",
-    "infra/python-package-dependency-management.md",
-    "infra/static-code-analysis-guide.md",
     "SE/learn_go/source/ch7.pdf",
     "SE/learn_go/source/ch6.pdf",
     "SE/learn_go/source/ch5.pdf",
