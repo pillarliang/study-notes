@@ -61,7 +61,7 @@ func main() {
 }
 ```
 
-> 这正是上一章建议在某些场景下避免 `:=` 的原因 —— 它太容易在不经意间制造新变量。**用 `:=` 时，左侧不要有任何外层变量**，除非的确想遮蔽。详见 [[2.Predeclared_Types_Declarations]]。
+> 这正是上一章建议在某些场景下避免 `:=` 的原因 —— 它太容易在不经意间制造新变量。**用 `:=` 时，左侧不要有任何外层变量**，除非的确想遮蔽。详见 [[2-Predeclared_Types_Declarations]]。
 
 ### 2.3 包名也会被遮蔽
 
@@ -262,7 +262,7 @@ for i := 1; i <= 100; i++ {
 
 ### 4.5 `for-range`
 
-第四种形式专门用于遍历 Go 的内置复合类型（[[go-chapter-3-notes|数组、切片、字符串、map、channel]]）以及基于它们的自定义类型。
+第四种形式专门用于遍历 Go 的内置复合类型（[[3-composite-types|数组、切片、字符串、map、channel]]）以及基于它们的自定义类型。
 
 ```go
 evenVals := []int{2, 4, 6, 8, 10, 12}
@@ -356,7 +356,7 @@ for _, sample := range samples {
 
 机制：`for-range` 遍历字符串时，**自动按 UTF-8 解码**，把多字节序列转成一个 32 位的 rune 赋给 value 变量；index 是该 rune 在原字节序列中的起始位置；遇到非法 UTF-8 字节会得到 Unicode 替换字符 `0xfffd`（"�"）。
 
-这就是上一章 [[go-chapter-3-notes#7. 字符串、Rune、Byte|字符串那节]]中"想正确遍历字符必须用 `for-range`"的原因。
+这就是上一章 [[3-composite-types#7. 字符串、Rune、Byte|字符串那节]]中"想正确遍历字符必须用 `for-range`"的原因。
 
 #### `for-range` 的 value 是副本
 
