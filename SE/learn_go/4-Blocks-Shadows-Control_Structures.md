@@ -1,31 +1,33 @@
-# Chapter 4：代码块、遮蔽与控制结构（Blocks, Shadows, and Control Structures）
+# Chapter 4：代码块、shadowing 与控制结构（Blocks, Shadows, and Control Structures）
 
-本章把 Go 的程序组织从"声明数据"推进到"组织逻辑"。先讲 **block**（决定标识符在何处可见、何时被遮蔽），再讲三大控制结构：`if`、`for`、`switch`，最后是几乎不用但必须知道的 `goto`。
+本章把 Go 的程序组织从"声明数据"推进到"组织逻辑"。先讲 **block**（决定标识符在何处可见、何时被 shadow），再讲三大控制结构：`if`、`for`、`switch`，最后是几乎不用但必须知道的 `goto`。
 
 ---
 
 ## 1. 代码块（Block）
 
-Go 允许在多种位置声明变量：函数外、函数参数、函数内局部变量。**每一处声明所在的语法范围称为一个 block**。理解 block 的层级，是理解作用域和遮蔽的前提。
+Go 允许在多种位置声明变量：函数外、函数参数、函数内局部变量。**每一处声明所在的语法范围称为一个 block**。理解 block 的层级，是理解作用域和 shadowing 的前提。
 
 Go 的 block 自外向内有 4 层：
 
-| 层级               | 包含的内容                                                                 |
-| ------------------ | -------------------------------------------------------------------------- |
-| **universe block** | Go 语言本身预置的标识符：`int`、`string`、`true`、`false`、`nil`、`make`、`close` 等 |
-| **package block**  | 在所有函数之外声明的变量、常量、类型、函数                                |
-| **file block**     | `import` 进来的包名，仅对当前文件可见                                      |
-| **inner block**    | 函数体、`if` / `for` / `switch` 等控制结构的 `{}`，每对花括号都是新的 block |
 
-> **universe block 的特殊之处**：Go 只有 25 个关键字，`true`、`false`、`nil`、`int`、`make`、`close` 等并不是关键字，而是声明在 universe block 中的"预声明标识符"（predeclared identifier）。这意味着它们**可以被遮蔽**（见下一节）。
+| 层级                 | 包含的内容                                                              |
+| ------------------ | ------------------------------------------------------------------ |
+| **universe block** | Go 语言本身预置的标识符：`int`、`string`、`true`、`false`、`nil`、`make`、`close` 等 |
+| **package block**  | 在所有函数之外声明的变量、常量、类型、函数                                              |
+| **file block**     | `import` 进来的包名，仅对当前文件可见                                            |
+| **inner block**    | 函数体、`if` / `for` / `switch` 等控制结构的 `{}`，每对花括号都是新的 block            |
+
+
+> **universe block 的特殊之处**：Go 只有 25 个关键字，`true`、`false`、`nil`、`int`、`make`、`close` 等并不是关键字，而是声明在 universe block 中的"预声明标识符"（predeclared identifier）。这意味着它们**可以被 shadow**（见下一节）。
 
 内层 block 可以访问外层 block 的标识符，反过来不行。
 
 ---
 
-## 2. 变量遮蔽（Shadowing Variables）
+## 2. Shadowing（变量遮挡）
 
-### 2.1 什么是遮蔽
+### 2.1 什么是 shadowing
 
 > 当内层 block 声明了一个与外层同名的变量时，内层这个变量"遮住"了外层那个 —— 在内层 block 存活期间，无法访问外层那个同名变量。
 
@@ -34,53 +36,31 @@ func main() {
     x := 10
     if x > 5 {
         fmt.Println(x)   // 10：仍是外层 x
-        x := 5           // 在 if 的 block 里新建了一个 x，遮蔽外层
+        x := 5           // 在 if 的 block 里新建了一个 x，shadow 外层
         fmt.Println(x)   // 5：内层 x
     }
-    fmt.Println(x)       // 10：if block 结束，遮蔽消失，外层 x 重新可见
+    fmt.Println(x)       // 10：if block 结束，shadowing 消失，外层 x 重新可见
 }
 ```
 
-要点：
+### 2.2 包名也会被 shadow
 
-- 外层的 `x` **没有消失也没有被改写**，只是在内层 block 里"被挡住"。
-- `if` 的 `{}` 是一个独立的 block，控制结构都遵循这个规则。
-
-### 2.2 多变量赋值时的遮蔽陷阱
-
-`:=` 的规则是：**左侧只要有一个新变量就合法**，已存在的变量会被复用赋值。但这个"复用"**只看当前 block**，不看外层 block：
-
-```go
-func main() {
-    x := 10
-    if x > 5 {
-        x, y := 5, 20      // 这里 x 也是新变量！因为当前 block 里没有 x
-        fmt.Println(x, y)  // 5 20
-    }
-    fmt.Println(x)         // 10：外层 x 没动
-}
-```
-
-> 这正是上一章建议在某些场景下避免 `:=` 的原因 —— 它太容易在不经意间制造新变量。**用 `:=` 时，左侧不要有任何外层变量**，除非的确想遮蔽。详见 [[2-Predeclared_Types_Declarations]]。
-
-### 2.3 包名也会被遮蔽
-
-`import` 导入的包名属于 file block，照样可以被局部变量遮蔽：
+`import` 导入的包名属于 file block，照样可以被局部变量 shadow：
 
 ```go
 func main() {
     x := 10
     fmt.Println(x)
-    fmt := "oops"        // 在函数内声明了 fmt 字符串，遮蔽了 fmt 包
+    fmt := "oops"        // 在函数内声明了 fmt 字符串，shadow 了 fmt 包
     fmt.Println(fmt)     // 编译错误：string 没有 Println 方法
 }
 ```
 
 报错信息：`fmt.Println undefined (type string has no field or method Println)`。问题不是变量名取得不好，而是这个名字**意外撞上了 file block 中的包名**。
 
-### 2.4 universe block 标识符也会被遮蔽
+### 2.3 universe block 标识符也会被 shadow
 
-由于 `true`、`false`、`nil`、内置函数等都只是声明在 universe block，照样能被遮蔽：
+由于 `true`、`false`、`nil`、内置函数等都只是声明在 universe block，照样能被 shadow：
 
 ```go
 fmt.Println(true)
@@ -90,15 +70,32 @@ fmt.Println(true)     // 输出 10
 
 **绝对不要重定义 universe block 中的标识符**。一旦不小心做了，后果从编译失败到难以追踪的 bug 都有可能。
 
-### 2.5 `go vet` 不会报告遮蔽
+### 2.4 `go vet` 不会报告 shadowing
 
-由于遮蔽偶尔有合理用途，`go vet` 默认**不会**把它当作错误。书中第 267 页 "Using Code-Quality Scanners" 介绍的第三方工具（如 `shadow`）可以专门检测意外遮蔽。
+由于 shadowing 偶尔有合理用途，`go vet` 默认**不会**把它当作错误。书中第 267 页 "Using Code-Quality Scanners" 介绍的第三方工具（如 `shadow`）可以专门检测意外 shadowing。
 
 ---
 
 ## 3. `if` 语句
 
-Go 的 `if` 与其他语言基本一致，只有两点差异。
+**语法骨架：**
+
+```go
+if [简单语句;] 条件 {
+    // 分支语句
+} else if [简单语句;] 条件 {     // else if 可重复，可省
+    // 分支语句
+} else {                         // else 可省
+    // 兜底分支
+}
+```
+
+Go 与其他语言有两点关键差异：
+
+1. **条件两侧不加 `()`**。
+2. **可在头部用一个简单语句声明变量**，作用域覆盖整个 `if` / `else if` / `else` 链。
+
+下面分别展开。
 
 ### 3.1 不写括号
 
@@ -132,18 +129,22 @@ if n := rand.Intn(10); n == 0 {
 
 好处：把"只在判断里用一次"的临时变量限制在最小作用域，不污染外层。
 
-> ⚠️ `if` 头部声明的变量同样遵循遮蔽规则：如果与外层同名，外层那个会被遮住。
+> ⚠️ `if` 头部声明的变量同样遵循 shadowing 规则：如果与外层同名，外层那个会被遮住。
 
 ---
 
 ## 4. `for`：四种形式
 
-C 派生语言里通常有 `for` / `while` / `do-while`，**Go 把它们都合并到了 `for` 一个关键字**。`for` 共有 4 种形式：
+C 派生语言里通常有 `for` / `while` / `do-while`，**Go 把它们都合并到了 `for` 一个关键字**，提供 4 种语法形式：
 
-1. 完整 C 风格 `for`
-2. 仅条件 `for`（替代 `while`）
-3. 无限 `for`
-4. `for-range`
+```go
+for 初始化; 条件; 自增 { ... }     // 形式 1：完整 C 风格三段式
+for 条件 { ... }                   // 形式 2：仅条件（替代 while）
+for { ... }                        // 形式 3：无限循环（靠 break/return 退出）
+for k, v := range 集合 { ... }     // 形式 4：for-range（遍历复合类型）
+```
+
+下面分别展开。
 
 ### 4.1 完整 C 风格 `for`
 
@@ -212,32 +213,11 @@ for {
 >     }
 > }
 > ```
->
-> 注意条件**取了反**：Java 的 `do-while` 表达"满足条件则继续"，Go 的 `if !cond { break }` 表达"不满足条件则退出"。
 
 ### 4.4 `break` 与 `continue`
 
 - `break`：立即跳出最内层 `for`。
 - `continue`：跳过当前迭代剩余部分，进入下一次循环。
-
-`continue` 的价值不在功能（不用它也能写），而在**让代码扁平**。对比下面两段 FizzBuzz：
-
-```go
-// 嵌套 if/else，难读
-for i := 1; i <= 100; i++ {
-    if i % 3 == 0 {
-        if i % 5 == 0 {
-            fmt.Println("FizzBuzz")
-        } else {
-            fmt.Println("Fizz")
-        }
-    } else if i % 5 == 0 {
-        fmt.Println("Buzz")
-    } else {
-        fmt.Println(i)
-    }
-}
-```
 
 ```go
 // 用 continue 把条件平铺
@@ -258,11 +238,28 @@ for i := 1; i <= 100; i++ {
 }
 ```
 
-第二种写法的判断条件**全部左对齐**，更易读。Go 的惯用风格：让 `if` 体尽量短、左对齐，必要时用 `continue` 提前结束本轮。
-
 ### 4.5 `for-range`
 
-第四种形式专门用于遍历 Go 的内置复合类型（[[3-composite-types|数组、切片、字符串、map、channel]]）以及基于它们的自定义类型。
+第四种形式专门用于遍历 Go 的内置复合类型（[[3-composite_types|数组、切片、字符串、map、channel]]）以及基于它们的自定义类型。
+
+**语法骨架（按变量取法分 4 种）：**
+
+```go
+for k, v := range coll { ... }   // 同时取 index/key 和 value
+for k := range coll { ... }      // 只取 index/key（map 常用）
+for _, v := range coll { ... }   // 用 _ 忽略 index/key
+for range coll { ... }           // 都不取，只遍历次数
+```
+
+不同容器里两个变量的含义不同：
+
+| 容器        | 第一个变量      | 第二个变量              |
+| --------- | ---------- | ------------------ |
+| 数组、切片、字符串 | `i`（index） | `v`（value，字符串里是 rune） |
+| map       | `k`（key）   | `v`（value）         |
+| channel   | `v`（value） | —（只有一个变量）          |
+
+**基本用法：**
 
 ```go
 evenVals := []int{2, 4, 6, 8, 10, 12}
@@ -271,14 +268,9 @@ for i, v := range evenVals {
 }
 ```
 
-每次迭代得到两个变量：**位置（index/key）** 和 **值（value）**。命名习惯：
+每次迭代得到两个变量：**位置（index/key）** 和 **值（value）**。
 
-| 容器                     | 第一个变量惯用名 | 第二个变量惯用名 |
-| ------------------------ | ---------------- | ---------------- |
-| 数组、切片、字符串       | `i`（index）     | `v`（value）     |
-| map                      | `k`（key）       | `v`（value）     |
-
-#### 用 `_` 忽略不需要的变量
+用 `_` 忽略不需要的变量
 
 Go 强制使用所有声明的变量，循环变量也不例外。如果不需要 index：
 
@@ -290,7 +282,7 @@ for _, v := range evenVals {
 
 `_` 是占位符，告诉 Go "这里有个值，我故意忽略它"。
 
-#### 只要 key 不要 value（map 专用语法糖）
+#### 4.5.1 只要 key 不要 value（map 专用语法糖）
 
 ```go
 uniqueNames := map[string]bool{"Fred": true, "Raul": true, "Wilma": true}
@@ -303,7 +295,7 @@ for k := range uniqueNames {
 
 > 数组、切片在迭代中通常需要 value，"只取 index" 的需求很少见 —— 如果遇到，往往说明数据结构选错了。
 
-#### 遍历 map：顺序是随机的
+#### 4.5.2 遍历 map：顺序是随机的
 
 ```go
 m := map[string]int{"a": 1, "c": 3, "b": 2}
@@ -324,19 +316,52 @@ for i := 0; i < 3; i++ {
 
 > **例外**：`fmt.Println` 等格式化函数为了便于调试，输出 map 时**会按 key 升序排序**。
 
-#### 遍历字符串：按 rune 而不是 byte
+#### 4.5.3 遍历字符串：按 rune 而不是 byte
+
+**先立三个前提：**
+
+1. **Go 的 string 本质上是只读 byte 序列**。`len(s)` 数的是字节数，不是字符数。
+2. **UTF-8 是变长编码**：ASCII 1 字节，希腊字母/拉丁扩展（π 等）2 字节，大多数汉字 3 字节，emoji/罕见字符 4 字节。
+3. **rune 是 `int32` 的别名，存一个 Unicode 码点**——也就是人类直觉里的"一个字符"。例如 `'a'` 的 rune 值是 97，`'π'` 是 960，`'中'` 是 20013。
+
+> ⚠️ 关键：同一个字符有**两种存储形态**，占用字节数不同。
+
+| 形态 | 容器 | 占用 | 内容（以 `π` 为例） |
+|---|---|---|---|
+| **作为 rune 变量** | `int32`（定长） | 固定 4 字节 | 整数 `960`（码点） |
+| **作为 UTF-8 字节存在 string 里** | byte 序列（变长） | 1~4 字节 | `0xCF 0x80`（两字节） |
+
+数字 `960` 和字节 `CF 80` 不是两个不同的东西——`CF 80` 就是把 `960` 这个码点按 UTF-8 规则压成的字节表示。`for-range` 字符串做的事就是反向操作：**从 string 里按 UTF-8 规则读 1~4 字节，解码还原成一个 rune 装进 value 变量**。
+
+**推论：两种遍历方式拿到的东西完全不同。**
+
+
+| 写法                                  | 每次拿到                  | 多字节字符的下场                |
+| ----------------------------------- | --------------------- | ----------------------- |
+| `for i := 0; i < len(s); i++ { s[i] }` | **byte**（uint8，0~255） | 被切成独立字节，单独看无意义          |
+| `for i, r := range s`               | **rune**（int32，完整码点）  | Go 自动按 UTF-8 解码，一次得一个完整字符 |
+
+
+`for-range` 是 Go 中**唯一会做 UTF-8 解码**的循环形式。普通 for + `s[i]` 只是按字节走索引。这就是"想正确遍历字符必须用 `for-range`"的根本原因。
+
+**用 `"apple_π!"` 验证：**
+
+π 在 UTF-8 中是两字节 `0xCF 0x80`，字符串的字节布局：
+
+
+| byte 位置  | 0  | 1  | 2  | 3  | 4  | 5  | **6**  | **7**  | 8  |
+| -------- | -- | -- | -- | -- | -- | -- | ------ | ------ | -- |
+| 字节值（hex） | 61 | 70 | 70 | 6C | 65 | 5F | **CF** | **80** | 21 |
+| 字符       | a  | p  | p  | l  | e  | _  | π ←┐   | ┘      | !  |
+
 
 ```go
-samples := []string{"hello", "apple_π!"}
-for _, sample := range samples {
-    for i, r := range sample {
-        fmt.Println(i, r, string(r))
-    }
-    fmt.Println()
+for i, r := range "apple_π!" {
+    fmt.Println(i, r, string(r))
 }
 ```
 
-对 `"apple_π!"`，输出会是：
+输出：
 
 ```
 0 97 a
@@ -345,18 +370,18 @@ for _, sample := range samples {
 3 108 l
 4 101 e
 5 95 _
-6 960 n      ← π 的码点是 960
-8 33 !       ← index 跳过了 7
+6 960 π      ← r=960 是 π 的码点，不是 byte 值（byte 上限 255）
+8 33 !       ← byte 7 被 π 占用，下一个 rune 从 byte 8 开始
 ```
 
-两个观察：
+两条关键观察刚好对应回原理：
 
-- 第 6 个位置的值是 **960**（远超 byte 范围 0~255）。
-- index 从 6 直接跳到 8，因为 `π` 在 UTF-8 中占 **2 个字节**。
+- `r=960` 远超 byte 范围（0~255）→ 印证原理 3：拿到的是 rune，不是 byte。
+- index 从 6 跳到 8 → 印证原理 2 和推论：`for-range` 一次"吃掉"了 π 的两个字节。
 
-机制：`for-range` 遍历字符串时，**自动按 UTF-8 解码**，把多字节序列转成一个 32 位的 rune 赋给 value 变量；index 是该 rune 在原字节序列中的起始位置；遇到非法 UTF-8 字节会得到 Unicode 替换字符 `0xfffd`（"�"）。
+**边界情况**：遇到非法 UTF-8 字节时，rune 得到 Unicode 替换字符 `0xfffd`（"�"），index 前进 1 byte。
 
-这就是上一章 [[3-composite-types#7. 字符串、Rune、Byte|字符串那节]]中"想正确遍历字符必须用 `for-range`"的原因。
+参考上一章 [[3-composite_types#7. 字符串、Rune、Byte|字符串那节]]。
 
 #### `for-range` 的 value 是副本
 
@@ -383,7 +408,24 @@ fmt.Println(evenVals)  // [2 4 6 8 10 12]，原切片完全没变
 
 ## 5. 给 `for` 加标签（Labeling）
 
-`break` 和 `continue` 默认作用于**最内层** `for`。要操作外层循环，需要给外层加 **label**：
+`break` 和 `continue` 默认作用于**最内层** `for`。要操作外层循环，需要给外层加 **label**。
+
+**语法骨架：**
+
+```go
+labelName:
+    for ... {
+        for ... {
+            break labelName       // 跳出 labelName 标记的循环（不只是最内层）
+            continue labelName    // 跳到 labelName 标记循环的下一轮
+        }
+    }
+```
+
+- label 名后跟 `:`，缩进与外围函数大括号同层（由 `go fmt` 自动处理）。
+- `break label` / `continue label` 可指向任意被标注的外层循环。
+
+**实例：**
 
 ```go
 func main() {
@@ -424,13 +466,15 @@ outer:
 
 ## 6. 选哪种 `for`
 
-| 场景                                      | 推荐                                    |
-| ----------------------------------------- | --------------------------------------- |
-| 遍历切片 / 数组 / map / 字符串 / channel | `for-range`（默认选项）                 |
-| **遍历字符串**                            | **必须** `for-range`，否则切坏多字节字符 |
-| 不是从头到尾遍历整个集合                  | 完整 `for`                              |
-| 基于计算条件循环（类似 `while`）          | 仅条件 `for`                            |
-| 真无限循环（如事件循环）                  | 无限 `for`，但循环体内**必须有 `break` 或 `return`** |
+
+| 场景                              | 推荐                                       |
+| ------------------------------- | ---------------------------------------- |
+| 遍历切片 / 数组 / map / 字符串 / channel | `for-range`（默认选项）                        |
+| **遍历字符串**                       | **必须** `for-range`，否则切坏多字节字符             |
+| 不是从头到尾遍历整个集合                    | 完整 `for`                                 |
+| 基于计算条件循环（类似 `while`）            | 仅条件 `for`                                |
+| 真无限循环（如事件循环）                    | 无限 `for`，但循环体内**必须有 `break` 或 `return`** |
+
 
 对比："取数组下标 1 到倒数第 2"：
 
@@ -463,6 +507,27 @@ for i := 1; i < len(evenVals) - 1; i++ {
 C 系语言的 `switch` 因为「能比较的类型有限」「默认 fall-through」往往让人避而远之。**Go 的 `switch` 重新设计后变得真正好用**。
 
 ### 7.1 基本结构
+
+**语法骨架：**
+
+```go
+switch [初始化语句;] [比较值] {
+case 值1, 值2, ...:
+    // 分支语句（不写 {}，不写 break）
+case 值3:
+    // 分支语句
+default:
+    // 兜底分支
+}
+```
+
+三处可选位置（`[...]` 表示可省）：
+
+- **初始化语句** —— 与 `if` 头部一致，声明的变量作用域覆盖整个 `switch`。省略时连后面的分号也要去掉。
+- **比较值** —— 每个 `case` 用 `==` 与它比较。省略时退化为「空 switch」（见第 8 节），`case` 后写任意 bool 表达式。
+- **`default`** —— 兜底分支，可省略；位置任意，习惯放最后。
+
+**完整示例：**
 
 ```go
 words := []string{"a", "cow", "smile", "gopher", "octopus", "anthropologist"}
@@ -511,7 +576,7 @@ anthropologist is a long word!
 
 `case` 内可以用 `break` **提前退出该 case**。但若真有这种需要，往往说明该 case 逻辑过于复杂，应当重构。
 
-更需要小心的是：**`switch` 嵌在 `for` 里时，case 内的 `break` 跳的是 `case` 而不是 `for`**。要跳出外层 `for`，必须给 `for` 加 label：
+更需要小心的是：`**switch` 嵌在 `for` 里时，case 内的 `break` 跳的是 `case` 而不是 `for`**。要跳出外层 `for`，必须给 `for` 加 label：
 
 ```go
 func main() {
@@ -538,7 +603,22 @@ loop:                                        // ← 给 for 加 label
 
 ## 8. 空 `switch`（Blank Switch）
 
-`switch` 也可以**不指定被比较值**，每个 `case` 写任意 bool 表达式：
+`switch` 也可以**不指定被比较值**，每个 `case` 写任意 bool 表达式。
+
+**语法骨架：**
+
+```go
+switch [初始化语句;] {            // 注意：分号后面留空，没有比较值
+case bool 表达式1:
+    // 分支
+case bool 表达式2:
+    // 分支
+default:
+    // 兜底
+}
+```
+
+与普通 `switch` 的唯一差别：**省掉比较值**，于是 `case` 后跟的不再是常量值，而是任意布尔表达式。
 
 ```go
 words := []string{"hi", "salutations", "hello"}
@@ -608,7 +688,16 @@ for i := 1; i <= 100; i++ {
 
 ## 10. `goto`：是的，Go 也有
 
-Go 保留了 `goto`，但施加了严格限制，让它**比传统 `goto` 安全得多**：
+**语法骨架：**
+
+```go
+goto labelName     // 无条件跳转
+...
+labelName:         // 跳转目标（label 写法同 §5）
+    // 跳到这里继续执行
+```
+
+Go 保留了 `goto`，但施加了**严格限制**，让它比传统 `goto` 安全得多：
 
 - 不能跳过变量声明。
 - 不能跳进内层 block 或并列 block。
@@ -698,17 +787,17 @@ out:
 
 1. 写一个 `for` 循环，把 100 个 0~100 之间的随机数填进 `[]int`。
 2. 遍历该切片，按规则输出：
-   - 能被 2 整除：`Two!`
-   - 能被 3 整除：`Three!`
-   - 同时能被 2 和 3 整除：`Six!`（**只输出 Six，不输出 Two/Three**）
-   - 否则：`Never mind`
+  - 能被 2 整除：`Two!`
+  - 能被 3 整除：`Three!`
+  - 同时能被 2 和 3 整除：`Six!`（**只输出 Six，不输出 Two/Three**）
+  - 否则：`Never mind`
 3. 新建程序：在 `main` 中声明 `total int`，写一个 `for` 循环让 `i` 从 0 到 9（不含 10），循环体：
-   ```go
+  ```go
    total := total + i
    fmt.Println(total)
-   ```
+  ```
    循环结束后打印 `total`。问题：实际打印什么？bug 在哪？
-   > 提示：`total := total + i` 中的 `:=` 在 `for` 的 block 内**新建了一个局部 `total`**，遮蔽了外层的 `total`。每轮迭代外层 `total` 都从 0 开始计算，最终外层 `total` 仍是 0 —— 这正是本章第 2 节"遮蔽"陷阱的现实版本。
+  > 提示：`total := total + i` 中的 `:=` 在 `for` 的 block 内**新建了一个局部 `total`**，shadow 了外层的 `total`。每轮迭代外层 `total` 都从 0 开始计算，最终外层 `total` 仍是 0 —— 这正是本章第 2 节 shadowing 陷阱的现实版本。
 
 ---
 
@@ -716,23 +805,26 @@ out:
 
 ### 控制结构对比
 
-| 结构              | 关键特性                                                           |
-| ----------------- | ------------------------------------------------------------------ |
-| `if`              | 无 `()`；可在头部声明作用域变量                                   |
-| 完整 `for`        | 三段都可省；初始化必须用 `:=`，省略后分号也要去                    |
-| 仅条件 `for`      | 等价于 `while`，**不写分号**                                       |
-| 无限 `for`        | 必须靠 `break` / `return` 退出                                     |
-| `for-range`       | 唯一能正确按 rune 遍历字符串的形式；map 顺序随机                  |
-| `switch`          | case 默认不 fall-through；多值用逗号；可在头部声明作用域变量      |
-| 空 `switch`       | case 写任意布尔表达式；同变量等值比较应退化为普通 `switch`         |
-| `goto`            | 限制：不跳过声明、不跳进内/并列 block；通常有更好的替代            |
+
+| 结构          | 关键特性                                    |
+| ----------- | --------------------------------------- |
+| `if`        | 无 `()`；可在头部声明作用域变量                      |
+| 完整 `for`    | 三段都可省；初始化必须用 `:=`，省略后分号也要去              |
+| 仅条件 `for`   | 等价于 `while`，**不写分号**                    |
+| 无限 `for`    | 必须靠 `break` / `return` 退出               |
+| `for-range` | 唯一能正确按 rune 遍历字符串的形式；map 顺序随机           |
+| `switch`    | case 默认不 fall-through；多值用逗号；可在头部声明作用域变量 |
+| 空 `switch`  | case 写任意布尔表达式；同变量等值比较应退化为普通 `switch`    |
+| `goto`      | 限制：不跳过声明、不跳进内/并列 block；通常有更好的替代         |
+
 
 ### 最容易踩的坑
 
-1. `:=` 在内层 block 里同名变量永远是新变量，**容易意外遮蔽**外层；包名、`true`/`nil` 也能被遮蔽。
+1. `:=` 在内层 block 里同名变量永远是新变量，**容易意外 shadow** 外层；包名、`true`/`nil` 也能被 shadow。
 2. `for-range` 的 value 是**拷贝**，修改它不会影响原集合。
 3. **Go 1.22 起** `for-range` 每轮迭代创建新变量，goroutine 捕获循环变量的旧坑被修复，但行为受 `go.mod` 中 `go` 指令版本控制。
 4. 普通 `for` 用 `i++` 按字节步进，**不能正确遍历多字节字符串**。
 5. `switch` 嵌在 `for` 里时，`break` 默认跳出的是 `case`，要跳出 `for` 必须 label。
 6. map 的 `for-range` 顺序**每次都不同**（防 Hash DoS），不要依赖；调试时 `fmt.Println` 是按 key 排序输出的特例。
 7. 空 `case` 是"什么都不做"，**不是 fall-through**。
+
