@@ -50,7 +50,14 @@
       "Bash(lark-cli whiteboard *)",
       "Bash(gh api *)",
       "Bash(curl -s https://api.github.com/repos/pillarliang/python-code-style/contents/)",
-      "Bash(curl -s https://api.github.com/repos/pillarliang/python-code-style/contents/skills/python-code-style)"
+      "Bash(curl -s https://api.github.com/repos/pillarliang/python-code-style/contents/skills/python-code-style)",
+      "Bash(grep -n \"_calculate_backoff\\\\|retry_after_first\\\\|exponential_only\\\\|failover_immediately\\\\|rate_limit_backoff_strategy\" \"/Users/liangzhu/Documents/work/plaud-model-hub/packages/core/src/model_hub_core/engine.py\" | head -20)",
+      "Read(//Users/liangzhu/Documents/work/plaud-model-hub/packages/core/src/model_hub_core/**)",
+      "Bash(ls /Users/liangzhu/Documents/work/plaud-model-hub/ 2>&1 | head -30)",
+      "Read(//Users/liangzhu/Documents/work/plaud-model-hub/**)",
+      "Bash(ls /Users/liangzhu/Documents/work/plaud-model-hub/ && ls /Users/liangzhu/Documents/work/config-files/)",
+      "Read(//Users/liangzhu/Documents/work/config-files/**)",
+      "mcp__notion__notion-fetch"
     ]
   }
 }

@@ -560,7 +560,104 @@ Histogram bucket [0.5s, 1.0s] 命中了 12 次
 
 这是 Grafana 中"从 Metrics 面板点击跳转到 Jaeger/Tempo 查看 Trace"的底层机制。
 
-### 3.6 三种 Instrument 的代码示例
+### 3.6 Instrument API 签名与代码示例
+
+业务侧只接触两类调用：**创建 Instrument**（一次性，模块加载时执行）和**记录测量值**（高频，每次业务事件触发）。下文先列签名，再给完整示例。
+
+#### 3.6.1 Meter 获取
+
+```python
+from opentelemetry import metrics
+from opentelemetry.metrics import Meter
+
+meter: Meter = metrics.get_meter(
+    name: str,                          # 通常传 __name__，与 logger 命名习惯一致
+    version: str | None = None,         # instrumentation 版本，可选
+    schema_url: str | None = None,      # OTel schema URL，可选
+    attributes: dict | None = None,     # Meter 级别的固定 attributes
+)
+```
+
+返回的 `Meter` 实例用于创建所有 Instrument。同名 `get_meter` 会复用同一实例，可放心在模块顶层调用。
+
+#### 3.6.2 同步 Instrument 创建签名
+
+```python
+# Counter：单调递增计数器
+counter: Counter = meter.create_counter(
+    name: str,                          # 必填，snake_case，不要手加 _total
+    unit: str = "",                     # UCUM 单位："s"/"By"/"1" 等，详见 3.7
+    description: str = "",              # 人类可读说明，仅 metadata
+)
+
+# UpDownCounter：可增可减计数器
+up_down: UpDownCounter = meter.create_up_down_counter(
+    name: str,
+    unit: str = "",
+    description: str = "",
+)
+
+# Histogram：值分布
+histogram: Histogram = meter.create_histogram(
+    name: str,
+    unit: str = "",
+    description: str = "",
+    explicit_bucket_boundaries_advisory: list[float] | None = None,  # ★ 生产必填
+)
+```
+
+要点：
+
+- `**name` 不要手加 `_total`、不要带单位后缀**，交给 exporter（详见 3.7 命名映射）。
+- `**unit` 用 UCUM 串**，常用 `"s"`、`"ms"`（不推荐，行为不一致）、`"By"`、`"1"`。Prometheus exporter 会据此自动追加 `_seconds` / `_bytes` 后缀。
+- **Histogram 的 `explicit_bucket_boundaries_advisory` 必须显式给**，默认桶覆盖不到秒级以下或长任务（详见 7.1.3）。
+- 返回的 Instrument 对象**线程安全**，可作为模块级单例复用。
+
+#### 3.6.3 同步 Instrument 记录签名
+
+```python
+# Counter / UpDownCounter
+counter.add(
+    amount: int | float,                # Counter 必须 ≥ 0；UpDownCounter 任意
+    attributes: dict[str, str | int | float | bool] | None = None,
+    context: Context | None = None,     # 不传则自动取当前激活的 Trace context
+) -> None
+
+# Histogram
+histogram.record(
+    amount: int | float,                # 本次测量值，通常 ≥ 0
+    attributes: dict[str, ...] | None = None,
+    context: Context | None = None,
+) -> None
+```
+
+要点：
+
+- `**attributes` 决定时间序列基数**：每个唯一组合会创建一条新序列，禁止把 user_id / trace_id 放进来（详见 3.4）。
+- `**context` 用于 Exemplar 关联**：默认取当前 Span context，所以在 `with tracer.start_as_current_span(...)` 内调用 `record()` 即可自动挂上 trace_id。
+- 调用近似 O(1)：内部仅做 attribute 查表 + 原子累加，真正的聚合和导出由后台 `MetricReader` 异步完成。
+- 返回 `None`，**异常会被 SDK 吞掉**（避免污染业务逻辑），调试时可调高 OTel 内部日志级别。
+
+#### 3.6.4 异步 Instrument 创建签名
+
+```python
+from opentelemetry.metrics import CallbackOptions, Observation
+
+def cpu_callback(options: CallbackOptions) -> Iterable[Observation]:
+    yield Observation(value=psutil.cpu_percent(), attributes={"host": "server-1"})
+
+gauge: ObservableGauge = meter.create_observable_gauge(
+    name: str,
+    callbacks: Sequence[Callable[[CallbackOptions], Iterable[Observation]]],
+    unit: str = "",
+    description: str = "",
+)
+# 同款签名：create_observable_counter / create_observable_up_down_counter
+```
+
+异步 Instrument **没有** `.add()` / `.record()` 方法——SDK 在每次导出周期（默认 60s）调用 `callbacks` 列表中的每个函数，回调返回的 `Observation` 即本周期采样值。
+
+#### 3.6.5 完整示例
 
 ```python
 from opentelemetry import metrics
@@ -614,6 +711,48 @@ cpu_gauge = meter.create_observable_gauge(
     callbacks=[get_cpu_usage]
 )
 ```
+
+### 3.7 OTel → Prometheus 命名映射
+
+OTel 内部名（厂商中立）→ Prometheus 落盘名（snake_case + 后缀）由 exporter 自动完成。**业务代码无感，但查看板要用落盘名**。
+
+**按 Instrument 类型看后缀变化**：
+
+
+| Instrument                                                | 落盘名变化                                                               |
+| --------------------------------------------------------- | ------------------------------------------------------------------- |
+| Counter / ObservableCounter                               | 未以 `_total` 结尾时**自动追加** `_total`（幂等）                                |
+| Histogram                                                 | 拆成三条 series：`<name>_bucket{le=...}` / `<name>_sum` / `<name>_count` |
+| UpDownCounter / ObservableUpDownCounter / ObservableGauge | 不变                                                                  |
+
+
+**另外两条转换规则**：
+
+- `**unit` 映射成全称后缀**（名字未以该单位结尾时才加）：`s` → `_seconds`、`By` → `_bytes`、`1` 或空 → 无。`ms` / `%` 各 exporter 行为不一致，**不要用**。
+- **非法字符**（`.`、`-`、空格）一律替换为 `_`。直接写 `snake_case` 最省事。
+
+**叠加顺序：先单位、后 `_total`**：
+
+```
+create_counter("api_request_size", unit="By")
+  → api_request_size_bytes              （加单位）
+  → api_request_size_bytes_total        （加 _total）
+```
+
+**命名三戒**：
+
+1. **不手加 `_total`** —— 交给 exporter（手加合法但绕开 "OTel 中立" 约定）
+2. **不用 `xxx_count` 命名 Counter** —— 会撞 Histogram 自动生成的 `_count`；用 `xxx_counter` 或直接 `xxx`
+3. **维度放 label，不放名字**：`http_requests_total{method="GET"}` ✓；`http_get_requests_total` ✗
+
+**项目实例**（`@trace_span("summary_task_processor", ..., option={"latency_unit": "s"})`）：
+
+```
+Counter:    summary_task_processor_counter   (unit=1)  →  summary_task_processor_counter_total
+Histogram:  summary_task_processor_latency   (unit=s)  →  summary_task_processor_latency_seconds_{bucket,sum,count}
+```
+
+PromQL 查询用右边的名字。
 
 ---
 
@@ -861,6 +1000,272 @@ Prometheus 只是时序数据库，本身不画图。看板由 Grafana 在浏览
 - **模板变量 → 多 query**：`${service}` 选了多个值时，Grafana 会展开成多个并发 query，结果按 series 拼回一张图。
 
 > Grafana 的 `histogram_quantile` 与 SQL 的精确分位数为什么对不上，详见 [7.1](#71-histogram-分位数读数陷阱p95--p99)；和 Metabase / Redshift 在 counter 上也对不齐的根因，详见 [7.2](#72-grafanaprometheus-vs-metaberedshiftsql-范式对比)。
+
+### 4.6 PromQL 语法结构（学习笔记）
+
+> PromQL 是 Prometheus 的查询语言。它的核心是**对时间序列做集合运算**，不是 SQL 式的"行/列查询"。理解了它的数据类型和求值模型，所有看板查询都能拆开看懂。
+
+#### 4.6.1 四种数据类型
+
+
+| 类型                 | 一句话                    | 例子                                         |
+| ------------------ | ---------------------- | ------------------------------------------ |
+| **Instant Vector** | 一组时间序列在**同一时刻**各取一个值   | `summary_task_processor_counter_total`     |
+| **Range Vector**   | 一组时间序列在**一个时间窗口**内的所有值 | `summary_task_processor_counter_total[5m]` |
+| **Scalar**         | 单个浮点数                  | `0.95`、`time()`                            |
+| **String**         | 字符串（极少用）               | `"plaud"`                                  |
+
+
+> **关键直觉**：多数函数（`rate` / `increase` / `avg_over_time`）**只接受 Range Vector**；多数运算和聚合算子**只对 Instant Vector** 有效。**Range Vector → 函数 → Instant Vector** 是最常见的转换。
+
+#### 4.6.2 四层结构（由内到外）
+
+PromQL 查询的最大形态可以拆成四层，**只有 selector 是必需的**，外层都是可选包装：
+
+```
+                aggregation
+              ┌────────────────┐
+              │ sum by(...) (  │
+              │                │
+              │   ┌──────────┐ │
+              │   │ function │ │      ← rate / increase / histogram_quantile
+              │   │          │ │
+              │   │ ┌──────┐ │ │
+              │   │ │ range│ │ │      ← [5m] / [1h]
+              │   │ │      │ │ │
+              │   │ │ ┌──┐ │ │ │
+              │   │ │ │selector│ │    ← metric_name{label="..."}
+              │   │ │ └──┘ │ │ │
+              │   │ └──────┘ │ │
+              │   └──────────┘ │
+              │ )              │
+              └────────────────┘
+```
+
+逐层对应到一个真实查询（前一节的看板那个）：
+
+```promql
+sum by(__name__) (
+  increase(
+    summary_task_processor_counter_total{service="plaud-summary", environment=~"$env"}
+    [10m]
+  )
+)
+```
+
+
+| 层           | 必需？ | 对应代码                                                | 作用                                             |
+| ----------- | --- | --------------------------------------------------- | ---------------------------------------------- |
+| Selector    | ✅   | `summary_task_processor_counter_total{service=...}` | 选出符合 label 的所有 series（**Instant Vector**）      |
+| Range       | 可选  | `[10m]`                                             | 把每条 series 变成"过去 10 分钟"的样本数组（**Range Vector**） |
+| Function    | 可选  | `increase(...)`                                     | 对每条 series 算 10 分钟内累计增量（→ **Instant Vector**）  |
+| Aggregation | 可选  | `sum by(__name__) (...)`                            | 把多条 series 按 label 维度合并（→ **Instant Vector**）  |
+
+所以最简形式 `summary_task_processor_counter_total{service="plaud-summary"}` 就是合法查询，返回当前时刻每条 series 的最新样本。Range 一旦出现，外面**必须**接一个能吃 Range Vector 的函数（`rate` / `increase` / `histogram_quantile` 等），否则 Grafana 画不出图——因为 Range Vector 不能直接渲染成时序曲线。
+
+
+#### 4.6.3 Selector：选出时间序列
+
+完整形式：
+
+```promql
+metric_name{label1=op"value1", label2=op"value2", ...}
+```
+
+
+| 操作符  | 含义                         | 例子                        |
+| ---- | -------------------------- | ------------------------- |
+| `=`  | 完全相等                       | `service="plaud-summary"` |
+| `!=` | 不等于                        | `status!="500"`           |
+| `=~` | 正则匹配（RE2 语法，行锚定隐式 `^...$`） | `environment=~"prod       |
+| `!~` | 正则不匹配                      | `path!~"/health.*"`       |
+
+
+**Grafana 模板变量**：`environment=~"$env"` 中 `$env` 是 Grafana 在发请求前替换成 `prod|staging|dev`（多选时变量自动展开成 `(prod|staging)`）。
+
+`**__name__` 是隐式 label**：每条时间序列都自带 `__name__` 标签，值就是 metric 名。下面三种写法等价：
+
+```promql
+http_requests_total                          # 通常写法
+{__name__="http_requests_total"}             # 等价：通过 label 选
+{__name__=~"http_.*_total"}                  # 用正则选一组 metric（少见但有用）
+```
+
+`sum by(__name__) (...)` 就是利用这一点：聚合时把 metric 名作为唯一保留维度，看板图例直接显示 metric 名。
+
+#### 4.6.4 Range Vector：时间窗口
+
+```promql
+metric[5m]      # 过去 5 分钟
+metric[1h]      # 过去 1 小时
+metric[7d]      # 过去 7 天
+metric[5m:30s]  # 过去 5 分钟，子查询固定 step=30s（不常用）
+```
+
+**窗口语义**：在求值时刻 `t`，`metric[5m]` 取的是 `(t - 5m, t]` 区间内**所有原始样本**。注意：
+
+- **左开右闭**。Grafana 上 11:00 这个数据点的 `[10m]` 覆盖 `(10:50, 11:00]`，不是"11 点这一个 10 分钟"。详见 §7.2.2。
+- 窗口内必须**至少有 2 个样本**才能算 `rate` / `increase`，否则返回空。**经验：窗口长度 ≥ scrape interval × 4**（默认 scrape 15s，则窗口 ≥ 1m）。
+- 窗口拉得越大，曲线越钝；拉小到接近 scrape 间隔，噪音大。看板默认 `[5m]` 是稳健折中。
+
+#### 4.6.5 常用函数
+
+按目的分组记忆。
+
+**Counter 专用（必须配 Range Vector）**：
+
+
+| 函数                | 用途                 | 公式直觉                             | 何时用                |
+| ----------------- | ------------------ | -------------------------------- | ------------------ |
+| `rate(c[5m])`     | 平均每秒增量             | `(end - start) / 5m`（带 reset 处理） | 速率（QPS / TPS）      |
+| `irate(c[5m])`    | **最近两个样本**的瞬时速率    | `(last - prev) / Δt`             | 实时性高的小窗口；噪音大，不适合告警 |
+| `increase(c[5m])` | 5 分钟内累计新增          | `rate(c[5m]) × 5m`               | 看"这段时间发生了多少次"      |
+| `resets(c[1h])`   | 1 小时内 counter 重置次数 | 检测 reset                         | 排查重启 / 丢点          |
+
+
+> 三者都会**自动处理 counter reset**（重启从 0 开始时不会算成大负数）。
+
+**Histogram 专用**：
+
+```promql
+# P99 延迟（标准模式，le 必须保留）
+histogram_quantile(0.99, sum by(le) (rate(latency_bucket[5m])))
+
+# P99 按 service 分组
+histogram_quantile(0.99, sum by(le, service) (rate(latency_bucket[5m])))
+```
+
+> `histogram_quantile` 必须把 `le` 这个 label 保留下来（它就是桶边界）。聚合时一定要 `by(le, ...)`。详见 §7.1。
+
+**Gauge / 即时值（直接读最近值或 over_time 系列）**：
+
+```promql
+mem_used_bytes                       # 当前值（Instant Vector）
+avg_over_time(mem_used_bytes[5m])    # 5 分钟均值
+max_over_time(mem_used_bytes[1h])    # 1 小时峰值
+```
+
+`*_over_time` 全家：`avg_over_time` / `min_over_time` / `max_over_time` / `sum_over_time` / `count_over_time` / `quantile_over_time` / `stddev_over_time`。
+
+**通用数学函数**：`abs / ceil / floor / round / clamp_max / clamp_min / sqrt / ln / exp / sgn / delta` 等。
+
+#### 4.6.6 聚合算子（Aggregation Operators）
+
+把多条 series 压成更少条 series，用 `by(...)` 保留维度，`without(...)` 排除维度：
+
+```promql
+sum (rate(http_requests_total[5m]))                           # 全聚合，结果 1 条
+sum by(method)        (rate(http_requests_total[5m]))         # 按 method 分组，结果 N 条
+sum without(instance) (rate(http_requests_total[5m]))         # 把 instance 维度合并，其余保留
+```
+
+
+| 算子                                 | 含义                                         |
+| ---------------------------------- | ------------------------------------------ |
+| `sum`                              | 求和                                         |
+| `avg`                              | 平均                                         |
+| `min` / `max`                      | 极值                                         |
+| `count`                            | series 条数（不是样本值！）                          |
+| `topk(n, ...)` / `bottomk(n, ...)` | 取最大/最小的 n 条 series（带 label）                |
+| `quantile(0.95, ...)`              | **跨 series 求分位**（不是 Histogram 内部的桶分位，注意区分） |
+| `group`                            | 去重，保留 label 组合                             |
+| `stddev` / `stdvar`                | 标准差 / 方差                                   |
+
+
+> `**by` vs `without` 选谁**：维度少且明确想保留 → `by`；维度多、只想去掉 1~2 个高基数 label（如 `instance`）→ `without`。
+
+#### 4.6.7 二元运算与 Vector Matching
+
+两个 vector 相除（计算比率）时，Prometheus 按 label 自动配对：
+
+```promql
+# 错误率 = 5xx 请求数 / 总请求数
+sum(rate(http_requests_total{status=~"5.."}[5m]))
+/
+sum(rate(http_requests_total[5m]))
+```
+
+更复杂的场景（label 不完全对齐、一对多匹配）需要 `on()` / `ignoring()` / `group_left()` / `group_right()`，初学先跳过，遇到再查。
+
+#### 4.6.8 求值模型：在哪一刻计算什么
+
+理解这一点比记函数更重要。Grafana 看板渲染时（参见 §4.5）：
+
+```
+对时间区间 [start, end]，每隔 step 选一个评估点 t：
+  - 把 PromQL 表达式整体在 t 时刻求一次值
+  - selector 拿 t 时刻每条 series 的最近一个样本
+  - [5m] 拿 (t - 5m, t] 区间所有样本
+  - rate / increase 在这个区间上算
+```
+
+所以"P99 曲线"实际上是**在每个评估点都算了一次 P99**，曲线连起来不是滑动窗口，而是逐点估算的结果。窗口越大、各评估点之间相关性越强，曲线越平滑。
+
+#### 4.6.9 常用查询模板（照抄即用）
+
+```promql
+# 1. QPS（每秒请求数）
+sum(rate(http_requests_total[5m]))
+
+# 2. 错误率
+sum(rate(http_requests_total{status=~"5.."}[5m]))
+/
+sum(rate(http_requests_total[5m]))
+
+# 3. P99 延迟
+histogram_quantile(0.99,
+  sum by(le) (rate(http_request_duration_seconds_bucket[5m])))
+
+# 4. 最近 10 分钟任务执行总数（项目看板那条）
+sum by(__name__) (
+  increase(summary_task_processor_counter_total{
+    service="plaud-summary",
+    environment=~"$env"
+  }[10m])
+)
+
+# 5. Top 5 慢 endpoint
+topk(5,
+  histogram_quantile(0.99,
+    sum by(le, endpoint) (rate(http_request_duration_seconds_bucket[5m]))))
+
+# 6. 7 天对比（同比）
+sum(rate(http_requests_total[5m]))
+/
+sum(rate(http_requests_total[5m] offset 7d))
+
+# 7. SLO 错误预算消耗速率
+sum(rate(http_requests_total{status=~"5.."}[5m]))
+/ sum(rate(http_requests_total[5m]))
+> 0.001     # 错误率超过 0.1% 触发
+```
+
+#### 4.6.10 PromQL 速查（一图流总结）
+
+```
+        ┌───────────────────────── 写一条 PromQL ─────────────────────────┐
+        │                                                                │
+   想看什么？                                                            │
+        │                                                                │
+        ├── 计数趋势（次数 / QPS）                                         │
+        │      Counter → rate(c[5m]) / increase(c[5m])                  │
+        │                                                                │
+        ├── 延迟分布（P50 / P95 / P99）                                    │
+        │      Histogram → histogram_quantile(0.99,                     │
+        │                    sum by(le, ...) (rate(h_bucket[5m])))      │
+        │                                                                │
+        ├── 即时数值（CPU / 内存 / 队列长度）                              │
+        │      Gauge → 直接 g  /  avg_over_time(g[5m])                  │
+        │                                                                │
+        └── 跨维度排名（最慢 / 最多）                                      │
+               topk(n, ...) / bottomk(n, ...)                            │
+                                                                         │
+   再想要？                                                              │
+        ├── 按维度合并 → sum by(method) (...) / sum without(pod) (...)    │
+        ├── 按维度过滤 → {label="x", label!~"y.*"}                       │
+        ├── 跨表达式比例 → expr1 / expr2（注意 label 对齐）                 │
+        └── 与历史对比 → expr offset 7d                                   │
+```
 
 ---
 

@@ -4,11 +4,13 @@
 
 ### 各平台安装方式
 
-| 平台 | 安装方式 |
-|------|--------|
-| **macOS** | 下载 `.pkg` 安装包，或使用 Homebrew：`brew install go` |
-| **Windows** | 下载 `.msi` 安装包，或使用 Chocolatey：`choco install golang` |
-| **Linux/BSD** | 下载 gzipped TAR 文件并手动安装 |
+
+| 平台            | 安装方式                                                |
+| ------------- | --------------------------------------------------- |
+| **macOS**     | 下载 `.pkg` 安装包，或使用 Homebrew：`brew install go`        |
+| **Windows**   | 下载 `.msi` 安装包，或使用 Chocolatey：`choco install golang` |
+| **Linux/BSD** | 下载 gzipped TAR 文件并手动安装                              |
+
 
 Linux 手动安装示例：
 
@@ -33,14 +35,16 @@ go version go1.20.5 darwin/arm64
 
 所有 Go 开发工具都通过 `go` 命令访问：
 
-| 命令 | 用途 |
-|------|------|
+
+| 命令           | 用途       |
+| ------------ | -------- |
 | `go version` | 查看 Go 版本 |
-| `go build` | 编译代码 |
-| `go fmt` | 格式化代码 |
-| `go mod` | 依赖管理 |
-| `go test` | 运行测试 |
-| `go vet` | 静态检查常见错误 |
+| `go build`   | 编译代码     |
+| `go fmt`     | 格式化代码    |
+| `go mod`     | 依赖管理     |
+| `go test`    | 运行测试     |
+| `go vet`     | 静态检查常见错误 |
+
 
 ---
 
@@ -117,6 +121,7 @@ $ go fmt ./...    # 格式化当前目录及所有子目录的 Go 文件
 > `./...` 是 Go 工具的通用模式，表示"当前目录及所有子目录"。
 
 **Go 的格式规则：**
+
 - 使用 **tab** 缩进（不是空格）
 - 左花括号 `{` **必须**和声明在同一行（否则是语法错误）
 
@@ -255,12 +260,14 @@ go build
 
 **更新方式：**
 
-| 平台 | 更新方式 |
-|------|--------|
-| macOS (Homebrew) | `brew upgrade go` |
+
+| 平台                   | 更新方式                   |
+| -------------------- | ---------------------- |
+| macOS (Homebrew)     | `brew upgrade go`      |
 | Windows (Chocolatey) | `choco upgrade golang` |
-| 安装包用户 | 下载最新安装包覆盖安装 |
-| Linux/BSD | 备份旧版本 → 解压新版本 → 删除旧版本 |
+| 安装包用户                | 下载最新安装包覆盖安装            |
+| Linux/BSD            | 备份旧版本 → 解压新版本 → 删除旧版本  |
+
 
 Linux 更新示例：
 
@@ -283,3 +290,4 @@ $ rm -rf /usr/local/old-go
 5. **IDE 选择** — VS Code、GoLand、Go Playground
 6. **Makefile** — 自动化构建流程
 7. **兼容性承诺** — Go 的版本稳定性保证
+
