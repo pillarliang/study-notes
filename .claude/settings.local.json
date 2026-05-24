@@ -57,7 +57,9 @@
       "Read(//Users/liangzhu/Documents/work/plaud-model-hub/**)",
       "Bash(ls /Users/liangzhu/Documents/work/plaud-model-hub/ && ls /Users/liangzhu/Documents/work/config-files/)",
       "Read(//Users/liangzhu/Documents/work/config-files/**)",
-      "mcp__notion__notion-fetch"
+      "mcp__notion__notion-fetch",
+      "Bash(ls -la \"/Users/liangzhu/Documents/work/plaud-project-summary\" 2>&1 | head -50)",
+      "Read(//Users/liangzhu/Documents/work/plaud-project-summary/**)"
     ]
   }
 }

@@ -1,5 +1,8 @@
 # Plaud Model Hub 完全指南
 
+> 📂 **对应源码**：`/Users/liangzhu/Documents/work/plaud-model-hub`
+> 本文档无法直接回答的细节，可直接到该源码目录查阅（关键路径见第十七章）。
+
 ---
 
 ## 目录

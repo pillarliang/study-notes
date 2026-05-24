@@ -992,7 +992,7 @@ Prometheus 只是时序数据库，本身不画图。看板由 Grafana 在浏览
 
 几个初次使用容易踩的点：
 
-- **step 跟着面板宽度自动变**：同一个 query，把窗口从 1h 拉到 24h，step 会从秒级变到分钟级，曲线会"变平"——不是数据变了，是采样粒度粗了。
+- **step = 图上两个相邻数据点的间隔**：Grafana 把它作为参数发给 Prometheus（`/api/v1/query_range?...&step=30s`），Prometheus 每隔一个 step 跑一次 PromQL 得到一个点。step 跟着面板宽度自动变，同一个 query 把窗口从 1h 拉到 24h，step 会从秒级变到分钟级，曲线"变平"不是数据变了、是采样粒度粗了。想固定密度可在 Query Options → **Min step** 手动设下限；step 不应小于 scrape interval，否则只是用同一批样本重复求值。
 - **range vector 必须和 rate / increase / sum_over_time 等函数搭配**：`rate(http_requests_total[5m])` 中的 `[5m]` 是回看窗口，长度需要 ≥ scrape interval × 4 才稳。
 - **Instant query 只取一个点**：Stat 面板显示的"当前值"其实是 Grafana 选定时刻往前看一小段的结果，不是真正的"现在"。
 - **Auto-refresh ≠ 实时**：刷新间隔最快通常 5s，每次刷新都会整轮重跑全部 PromQL，刷新太频繁会拖垮 Prometheus。
