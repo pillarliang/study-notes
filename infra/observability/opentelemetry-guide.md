@@ -18,7 +18,7 @@
 
 **关键设计原则**：Span 名描述操作而非实现；高基数（user_id、trace_id 等）放 Trace attributes 或日志，不放 Metric label；Histogram 一律显式配 `explicit_bucket_boundaries_advisory`；生产环境采样率 10–20%；Batch + 异步导出避免阻塞业务线程。
 
-**常见踩坑**：Metrics 的 Cumulative / Delta temporality 选错会导致断崖；Grafana 的 `histogram_quantile` 和 Metabase / SQL 的 `PERCENTILE_CONT` 永远对不上（桶插值误差）；asyncio 后台任务默认丢失 OTel 上下文，需手动 `attach`。
+**常见踩坑**：Metrics 的 Cumulative / Delta temporality 选错会导致断崖；Grafana 的 `histogram_quantile` 和 Metabase / SQL 的 `PERCENTILE_CONT` 永远对不上（桶插值误差）；asyncio 后台任务默认丢失 OTel 上下文，需手动 `attach`；**Histogram bucket 在进程内 SDK 一步就切完(无法在 Prometheus 侧补救)**，**`explicit_bucket_boundaries_advisory` 可能被宿主全局 View 静默覆盖**(详见 7.1.5–7.1.7)。
 
 ---
 
@@ -1274,8 +1274,8 @@ sum(rate(http_requests_total{status=~"5.."}[5m]))
 ### 5.1 依赖安装
 
 ```bash
-# 核心包
-pip install opentelemetry-api opentelemetry-sdk
+# 核心包 —— 1.21+ 才稳定支持 explicit_bucket_boundaries_advisory(详见 7.1.7)
+pip install "opentelemetry-api>=1.21.0" "opentelemetry-sdk>=1.21.0"
 
 # Exporters
 pip install opentelemetry-exporter-otlp          # OTLP (推荐)
@@ -2018,12 +2018,182 @@ _summary_task_latency = meter.create_histogram(
 3. **桶数量控制在 15~30**（每多一个桶 = 每个 label 组合多一条 series，基数成本线性增长——见 [3.4](#34-attributes-与时间序列基数重点)）。
 4. 加桶是**破坏性变更**：Prometheus 里已有历史数据的 series 会出现"缺桶"或"多桶"，`histogram_quantile` 跨这个时间点会算错。如需切换，最好新起指标名或标注 version label。
 
-#### 7.1.5 小抄
+#### 7.1.5 桶化发生在 SDK 进程内,不可逆
+
+很多人(包括 Grafana 操作员)以为可以在 Prometheus / Grafana 改 bucket 拿到更精细的 percentile。**错的**。完整链路是这样:
+
+```
+代码:   histogram.record(471_000, attributes)   # 471s = 471000ms
+         │
+         ▼  ← 此时 471000 这个值只存在进程内存
+OTel SDK Histogram instrument(进程内):
+   - 找 471000 落在哪个桶 → +Inf 桶 +1
+   - _sum += 471000
+   - _count += 1
+   - 丢弃原始值 471000        ← 关键:这里就再也没人记得"刚才记录的是 471"
+         │
+         ▼
+PeriodicExportingMetricReader (60s 一次 export) → OTel Collector → Prometheus
+   - 转发的是 _bucket / _sum / _count counter,不是原始值
+         │
+         ▼
+Grafana 查询:
+   - histogram_quantile() 只能基于桶反推,471 永远反查不回来
+```
+
+含义:**bucket 边界配置是进程内 SDK 这一步决定的,数据进 Prometheus 之前已经被切完**。Prometheus 是被动接桶 counter,改 Prometheus / Grafana 配置救不回来。**只能在创建 Histogram 时就把 boundary 配对**。
+
+`Histogram.record()` 的语义也要在这里澄清一下:它收到的**是真实数值**(471000ms 这个原始数),但 instrument 内部立刻按 boundary 把它分到桶里。所以传值方式没问题,问题永远在 boundary 设计。
+
+#### 7.1.6 `+Inf` 桶与 `histogram_quantile` 的天花板效应
+
+OTel SDK Python 默认 boundary 最大有限桶是 `10000`。如果 unit 是 `ms`,这意味着**任何 ≥ 10 秒的样本全部落到 `+Inf` 桶**。
+
+`histogram_quantile()` 看到 `+Inf` 桶里有计数时,只能在**最后一个有限桶的上界处截断估值**(Prometheus 实现细节,不展开),所以 P99 / P95 永远等于 10000ms,**无论实际有多慢**。
+
+实战例子:
+
+- LLM `claude-sonnet-4.5` 一次 invoke 实际耗时 **471 秒**(8 分钟)
+- `_bucket{le="+Inf"} += 1` ✅ 计数对
+- `_sum += 471000` ✅ 总和对
+- Grafana p99 panel: `histogram_quantile(0.99, ...)` = **10000ms**(永远卡在天花板)
+
+→ **真实故障了,但看板一切正常**。这是最危险的监控盲区:错误数 = 0(请求最终成功),延迟 = 10s(被截断),完全看不出"上游慢但没坏"这类降级。
+
+排查窍门:**Grafana 上 p99 长期等于某个整数毫秒值**(10000 / 30000 / 60000 这种圆数字),99% 是踩了 +Inf 截断。直接去 Prometheus 查 `<metric>_bucket` 的 `le` 标签集合,看上界是不是太小。
+
+#### 7.1.7 advisory 不一定生效:被全局 View / OTel Collector 覆盖
+
+`explicit_bucket_boundaries_advisory` 设计上是**建议**(hint),不是命令。OTel Metrics SDK 的优先级:
+
+```
+View(aggregation=ExplicitBucketHistogramAggregation(boundaries=[...]))   ← 最高,强制
+        ↑
+explicit_bucket_boundaries_advisory=[...]                                 ← 中,建议
+        ↑
+SDK 默认 boundary                                                        ← 最低,兜底
+```
+
+**实战踩坑**:代码里 `meter.create_histogram(..., explicit_bucket_boundaries_advisory=[0, 100, 500, ..., 60000])` 写得清清楚楚,Prometheus 拿到的依然是默认 `5, 10, 20, ..., 10000` 那一套。
+
+可能的原因:
+
+1. **宿主 `MeterProvider` 注册了全局 `View`** 覆盖了所有 histogram 的 aggregation。常见模式是统一限制 bucket 数避免 cardinality 爆炸。
+2. **OTel Collector / Remote Write pipeline 用 `transform` processor 重写了 histogram 聚合**。
+3. **OTel Python 版本 < 1.21**:`explicit_bucket_boundaries_advisory` 是 1.21.0 才稳定的 Instrument advisory API,旧版会静默忽略这个 kwarg。
+
+诊断步骤:
+
+```bash
+# 1. 看 Prometheus 实际 bucket 上界
+# (用 list_prometheus_label_values 或直接 promql)
+sum by(le) ({__name__=~"<metric>_bucket"})
+
+# 2. 对比代码里配的 boundary,如果不一致 → 被覆盖了
+
+# 3. 检查 OTel SDK 版本
+python -c "import opentelemetry.sdk; print(opentelemetry.sdk.version.__version__)"
+# 必须 >= 1.21.0
+
+# 4. 检查宿主 init_otel 是否注册了全局 View / Collector 是否有 transform processor
+```
+
+应对方案(按优先级):
+
+- **优先 A**:让宿主在 `MeterProvider(views=[...])` 里**主动注册 View**强制覆盖回正确 boundary —— View 优先级最高,绕过所有上层覆盖。SDK 库可以暴露一个 `get_recommended_views()` helper 让宿主合并进去。
+- **优先 B**:bump opentelemetry-api / sdk 到 ≥ 1.21,确认 advisory 生效后再 ship。
+- **优先 C**:接受 bucket 测不准,另开一条 Counter 告警通道(见 7.1.9)。
+
+#### 7.1.8 unit 选错的双向失真
+
+OTel SDK 的默认 boundary `5, 10, 20, ..., 10000` 是**无单位的纯数字**。同一组 boundary 在 `unit="ms"` 和 `unit="s"` 下含义完全不同:
+
+| unit | 最小桶 | 最大有限桶 | 适合的真实分布 | 不适合的场景 |
+|---|---|---|---|---|
+| `"ms"` | 5 ms | 10000 ms = **10 秒** | 0–10s 的通用 HTTP 请求 | LLM 长链路推理(10s~20min 全在 `+Inf`) |
+| `"s"` | 5 s | 10000 s = **2.78 小时** | 长任务(任务级 AI summary 30s~30min) | 亚秒级调用(DB query 100ms 全在第一个桶,P50/P75 完全不可用) |
+
+**两种用法都会导致失真,只是方向相反**。
+
+最容易踩坑的场景:同一项目里 SDK A 用 `unit="ms"`、SDK B 用 `unit="s"`,两边都不传 advisory,Grafana 上一个看着卡 10s(其实是 10s 上限被压扁),另一个看着均匀分布在前 1~2 个桶(其实是亚秒级精度丢失)。**Prometheus 的 `_bucket` series 名后缀(`_milliseconds_bucket` vs `_seconds_bucket`)是唯一能区分的线索**,看到这种名字差异立刻警觉。
+
+最佳实践:**整个项目统一一个 unit**(推荐 `ms`,跟 OTel semconv `gen_ai.client.operation.duration` 等主流约定一致),advisory 也共用一套常量,避免双向失真。
+
+> ⚠️ `unit="ms"` 在 OTel 1.21 之前 exporter 行为不一致(有的会自动 `_milliseconds` 后缀、有的不加),实测好你的 exporter 行为后再固化。
+
+#### 7.1.9 兜底方案:Counter 做"超阈值"告警,不依赖 bucket
+
+bucket 配错的可能性永远存在(版本升级、新 region 部署遗漏 View、Collector 配置变更)。最稳妥的告警源是**完全不依赖 bucket 精度**的 Counter:
+
+```python
+SLOW_THRESHOLDS_MS = (60_000, 300_000, 600_000)   # 1min / 5min / 10min
+
+slow_counter = meter.create_counter(
+    name="myservice.slow_requests_total",
+    description="Requests exceeding latency thresholds",
+    unit="1",
+)
+
+def record_latency(endpoint: str, latency_ms: float, success: bool):
+    histogram.record(latency_ms, {"endpoint": endpoint})   # 给 P50/P99 用,会受 bucket 影响
+    for threshold in SLOW_THRESHOLDS_MS:                    # 给告警用,不受 bucket 影响
+        if latency_ms >= threshold:
+            slow_counter.add(1, {
+                "endpoint": endpoint,
+                "threshold_ms": str(threshold),
+                "success": "true" if success else "false",
+            })
+```
+
+告警查询:
+
+```promql
+# 1 分钟内出现过 ≥10min 的请求 → 立刻排查上游
+sum(increase(myservice_slow_requests_total{threshold_ms="600000"}[1m])) by (endpoint) > 0
+```
+
+特点:
+
+- **不依赖 bucket 配置**:即使 histogram 的 advisory 失效、boundary 错得离谱,这条 counter 仍正确。
+- **基数可控**:threshold 数量固定(3 个),Prometheus 上多 N × cardinality(endpoint) 条 series,远低于 histogram bucket 数。
+- **缺点**:不能算 percentile,只能告"超过阈值的次数"。所以两者互补,不是替代。
+
+#### 7.1.10 排查工具:绕过 quantile 看真实分布
+
+当怀疑 `histogram_quantile` 失真时,有三个口子可以验证真相:
+
+```promql
+# 1. 直接看均值 —— _sum 字段没被截断,长尾抬升均值能反映出来
+rate(myservice_latency_milliseconds_sum[5m])
+/
+rate(myservice_latency_milliseconds_count[5m])
+
+# 2. 看 +Inf 桶有没有计数 —— 有就说明有样本溢出了你的 boundary
+sum(increase(myservice_latency_milliseconds_bucket{le="+Inf"}[5m])) by (endpoint)
+-
+sum(increase(myservice_latency_milliseconds_bucket{le="10000"}[5m])) by (endpoint)
+# > 0 即有样本 > 10s,p99 显示 10000 是被截断的
+
+# 3. 看实际 bucket 列表(确认 boundary 是否符合预期)
+sum by(le) (rate({__name__=~"myservice_latency_milliseconds_bucket"}[5m]))
+```
+
+更彻底的:在 `histogram.record()` 同一处**同时打一条结构化日志**含原始 `latency_ms`,扔到 Elasticsearch / OpenSearch / Loki。日志保留每个样本,可以做 `percentile_cont(0.99)`(SQL 精确算法)或 `percentiles` agg(ES),拿到 bucket-independent 的真实 P99,跟 Grafana 上 histogram 估算值对比验证。
+
+> 这跟 7.1.1 提到的"SQL 精确分位数 vs PromQL 估算"是同一个范式 —— **真要追准确度,绕开 histogram 走原始样本**。Histogram 永远是"够用就行"的近似,不是真相。
+
+#### 7.1.11 小抄
 
 - 看见 P95/P99 先问一句"这是 histogram 估的还是 SQL 算的"。
-- Grafana 上 P95 抖几秒，别急着查业务，先看桶够不够密。
-- 新建 Histogram **一律显式配 `explicit_bucket_boundaries_advisory`**，别信默认。
-- 需要精确分位数 → OpenTelemetry 侧开启 **Exponential Histogram**（指数桶，自适应分布；目前已成为新项目推荐）；或直接用 SQL。
+- Grafana 上 P95 抖几秒,别急着查业务,先看桶够不够密。
+- 新建 Histogram **一律显式配 `explicit_bucket_boundaries_advisory`**,别信默认。
+- **配了 advisory 不等于生效** —— Prometheus 上看实际 `le` 标签集合二次验证(7.1.7)。
+- **Grafana p99 长期等于 10000 / 60000 这种圆数字** = 几乎确定踩了 +Inf 桶天花板(7.1.6)。
+- **unit 选错也会失真**:`ms` 上界 10s 太小、`s` 下界 5s 太大,推荐全项目统一 `ms`(7.1.8)。
+- **关键告警别只靠 histogram quantile**,补一条 Counter 阈值告警兜底(7.1.9)。
+- `**rate(_sum)/rate(_count)` 是 histogram 失真时的备用指标**:`_sum` 字段不会被 +Inf 桶截断(7.1.10)。
+- `**explicit_bucket_boundaries_advisory` 需要 opentelemetry-api ≥ 1.21.0**,旧版本静默忽略,记得 pin 版本。
+- 需要精确分位数 → OpenTelemetry 侧开启 **Exponential Histogram**(指数桶,自适应分布;目前已成为新项目推荐);或直接用 SQL。
 
 ### 7.2 Grafana(Prometheus) vs Metabase(Redshift/SQL) 范式对比
 

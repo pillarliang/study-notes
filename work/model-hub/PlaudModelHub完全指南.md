@@ -1113,16 +1113,18 @@ plugins:                   # [可选] 缺省时用各插件代码默认值
 
 #### 顶层字段表
 
-| 字段              | 必填 | 类型   | 说明                                                          |
-| --------------- | -- | ---- | ----------------------------------------------------------- |
-| `config_schema` | 否  | str  | `v1` 或 `v2`；省略默认 `v1`                                       |
-| `version`       | 是  | int  | ≥ 1；配置变更后递增，ConfigStore 据此触发热加载                             |
-| `env`           | 是  | str  | `dev` / `staging` / `prod`；同一文件可承载多套环境，SDK 端按 env 过滤         |
-| `providers`     | 否  | dict | v2 预设映射；v1 用 endpoint.base_url + credentials 替代              |
-| `models`        | 是  | dict | 逻辑模型映射，key = `{app_id}:{logical_model}`                     |
-| `policies`      | 否  | dict | 路由策略映射，key 与 models 对应；可定义 `default` 兜底                     |
-| `credentials`   | 否  | dict | v1 凭证映射；v2 推荐内联到 provider                                   |
-| `plugins`       | 否  | dict | 插件配置（langfuse / otel / circuit_breaker / rate_limit）        |
+
+| 字段              | 必填  | 类型   | 说明                                                   |
+| --------------- | --- | ---- | ---------------------------------------------------- |
+| `config_schema` | 否   | str  | `v1` 或 `v2`；省略默认 `v1`                                |
+| `version`       | 是   | int  | ≥ 1；配置变更后递增，ConfigStore 据此触发热加载                      |
+| `env`           | 是   | str  | `dev` / `staging` / `prod`；同一文件可承载多套环境，SDK 端按 env 过滤 |
+| `providers`     | 否   | dict | v2 预设映射；v1 用 endpoint.base_url + credentials 替代      |
+| `models`        | 是   | dict | 逻辑模型映射，key = `{app_id}:{logical_model}`              |
+| `policies`      | 否   | dict | 路由策略映射，key 与 models 对应；可定义 `default` 兜底              |
+| `credentials`   | 否   | dict | v1 凭证映射；v2 推荐内联到 provider                            |
+| `plugins`       | 否   | dict | 插件配置（langfuse / otel / circuit_breaker / rate_limit） |
+
 
 #### Provider 预设完整字段
 
@@ -1149,15 +1151,17 @@ providers:
     region: us-east-1                     # → extra.region
 ```
 
-| 字段               | 必填   | 类型   | 说明                                                                                                       |
-| ---------------- | ---- | ---- | -------------------------------------------------------------------------------------------------------- |
-| `provider`       | 是    | str  | `openai` / `azure_openai` / `anthropic` / `genai` / `vertex_ai` / `volcengine` / `dashscope` / `bedrock` |
-| `base_url`       | 视厂商  | str  | OpenAI 兼容代理、Azure 必填；Anthropic / GenAI 用官方默认可省                                                           |
-| `api_key`        | 视厂商  | str  | 支持 `${VAR}` 与 `${VAR:-default}` 环境变量语法                                                                   |
-| `credential_ref` | 否    | str  | v1 兼容；v2 内联 `api_key` 后无需此字段                                                                             |
-| `enabled`        | 否    | bool | 硬开关，优先级最高（详见 4.7）                                                                                        |
-| `defaults`       | 否    | dict | endpoint 默认值；支持 `weight` / `enabled` / `priority` / `timeout_ms` / `max_retries`                         |
-| 其他键              | 否    | any  | 非保留字段自动收集进 `extra`，透传给 Provider 适配器                                                                      |
+
+| 字段               | 必填  | 类型   | 说明                                                                                                       |
+| ---------------- | --- | ---- | -------------------------------------------------------------------------------------------------------- |
+| `provider`       | 是   | str  | `openai` / `azure_openai` / `anthropic` / `genai` / `vertex_ai` / `volcengine` / `dashscope` / `bedrock` |
+| `base_url`       | 视厂商 | str  | OpenAI 兼容代理、Azure 必填；Anthropic / GenAI 用官方默认可省                                                           |
+| `api_key`        | 视厂商 | str  | 支持 `${VAR}` 与 `${VAR:-default}` 环境变量语法                                                                   |
+| `credential_ref` | 否   | str  | v1 兼容；v2 内联 `api_key` 后无需此字段                                                                             |
+| `enabled`        | 否   | bool | 硬开关，优先级最高（详见 4.7）                                                                                        |
+| `defaults`       | 否   | dict | endpoint 默认值；支持 `weight` / `enabled` / `priority` / `timeout_ms` / `max_retries`                         |
+| 其他键              | 否   | any  | 非保留字段自动收集进 `extra`，透传给 Provider 适配器                                                                      |
+
 
 > **保留字段**（不会进 `extra`）：`provider`、`base_url`、`api_key`、`credential_ref`、`defaults`、`extra`、`enabled`。
 
@@ -1177,11 +1181,13 @@ policies:
     #   - ai-demo:gemini-2.5-flash
 ```
 
-| 字段                        | 必填 | 类型           | 默认值               | 说明                                                                  |
-| ------------------------- | -- | ------------ | ----------------- | ------------------------------------------------------------------- |
-| `strategy`                | 否  | str          | `WEIGHTED_RANDOM` | `WEIGHTED_RANDOM` / `ROUND_ROBIN` / `PRIORITY`（大小写均接受）              |
-| `enable_session_affinity` | 否  | bool         | `true`            | 同 `session_id` 一致性哈希到同 endpoint，多轮对话场景必开                            |
-| `fallback_model`          | 否  | str \| list  | —                 | 单值走 Chain 模式（含循环检测、`max_fallback_depth=3`）；列表走 List 模式逐个尝试         |
+
+| 字段                        | 必填  | 类型         | 默认值               | 说明                                                         |
+| ------------------------- | --- | ---------- | ----------------- | ---------------------------------------------------------- |
+| `strategy`                | 否   | str        | `WEIGHTED_RANDOM` | `WEIGHTED_RANDOM` / `ROUND_ROBIN` / `PRIORITY`（大小写均接受）     |
+| `enable_session_affinity` | 否   | bool       | `true`            | 同 `session_id` 一致性哈希到同 endpoint，多轮对话场景必开                   |
+| `fallback_model`          | 否   | str | list | —                 | 单值走 Chain 模式（含循环检测、`max_fallback_depth=3`）；列表走 List 模式逐个尝试 |
+
 
 #### Plugins 完整字段
 
@@ -1216,12 +1222,14 @@ plugins:
     exclude_429_from_circuit_breaker: true      # 防止限流误熔断
 ```
 
-| 插件                | 关键字段                                                                                                                    | 默认行为                       |
-| ----------------- | ----------------------------------------------------------------------------------------------------------------------- | -------------------------- |
-| `langfuse`        | `enabled` / `public_key` / `secret_key` / `host`                                                                        | 启用，凭证从环境变量读取               |
-| `otel`            | `enabled` / `service_name`                                                                                              | 启用，service 名 `model-hub-sdk` |
-| `circuit_breaker` | `failure_threshold=0.5` / `min_calls=5` / `window_size_seconds=60` / `open_duration_seconds=30` / `half_open_max_calls=3` | 启用，5 次以上调用且失败率 > 50% 触发熔断 |
-| `rate_limit`      | `bucket_capacity=10` / `refill_rate=1.0` / `respect_retry_after=true` / `default_retry_after_seconds=60`                | 启用，遵守服务端 Retry-After，兜底 60s |
+
+| 插件                | 关键字段                                                                                                                      | 默认行为                         |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------- | ---------------------------- |
+| `langfuse`        | `enabled` / `public_key` / `secret_key` / `host`                                                                          | 启用，凭证从环境变量读取                 |
+| `otel`            | `enabled` / `service_name`                                                                                                | 启用，service 名 `model-hub-sdk` |
+| `circuit_breaker` | `failure_threshold=0.5` / `min_calls=5` / `window_size_seconds=60` / `open_duration_seconds=30` / `half_open_max_calls=3` | 启用，5 次以上调用且失败率 > 50% 触发熔断    |
+| `rate_limit`      | `bucket_capacity=10` / `refill_rate=1.0` / `respect_retry_after=true` / `default_retry_after_seconds=60`                  | 启用，遵守服务端 Retry-After，兜底 60s  |
+
 
 #### 凭证（v1 兼容）
 
@@ -1239,18 +1247,20 @@ credentials:
 
 #### 速用速查（按"想改什么 → 改哪一行"）
 
-| 想做的事                    | 改哪里                                                       |
-| ----------------------- | --------------------------------------------------------- |
-| 新增一个供应商账号               | `providers.<name>` 增加预设                                   |
-| 新增一个业务可见的模型名            | `models.<app>:<model>` 用字符串 / 简化 / 完整格式之一                 |
-| 让一个模型多 endpoint 容灾      | `models.<app>:<model>.endpoints` 用列表                      |
-| 改单 endpoint 的超时/重试      | endpoint 块内 `timeout_ms` / `max_retries`                  |
-| 改一组 endpoint 的默认超时/重试   | `providers.<name>.defaults`                               |
-| 紧急下线一个供应商账号             | `providers.<name>.enabled: false`                         |
-| 给一个模型配跨模型降级             | `policies.<app>:<model>.fallback_model`                   |
-| 全局开关熔断 / 限流 / 追踪        | `plugins.<plugin>.enabled`                                |
-| 调路由权重                   | endpoint 内 `weight`（仅 `WEIGHTED_RANDOM` 生效）               |
-| 主备切换                    | `policies.*.strategy: PRIORITY` + endpoint 内 `priority`   |
+
+| 想做的事                  | 改哪里                                                     |
+| --------------------- | ------------------------------------------------------- |
+| 新增一个供应商账号             | `providers.<name>` 增加预设                                 |
+| 新增一个业务可见的模型名          | `models.<app>:<model>` 用字符串 / 简化 / 完整格式之一               |
+| 让一个模型多 endpoint 容灾    | `models.<app>:<model>.endpoints` 用列表                    |
+| 改单 endpoint 的超时/重试    | endpoint 块内 `timeout_ms` / `max_retries`                |
+| 改一组 endpoint 的默认超时/重试 | `providers.<name>.defaults`                             |
+| 紧急下线一个供应商账号           | `providers.<name>.enabled: false`                       |
+| 给一个模型配跨模型降级           | `policies.<app>:<model>.fallback_model`                 |
+| 全局开关熔断 / 限流 / 追踪      | `plugins.<plugin>.enabled`                              |
+| 调路由权重                 | endpoint 内 `weight`（仅 `WEIGHTED_RANDOM` 生效）             |
+| 主备切换                  | `policies.*.strategy: PRIORITY` + endpoint 内 `priority` |
+
 
 ---
 
@@ -1266,27 +1276,31 @@ credentials:
 
 > 同一请求按 `(fallback_model 链 → endpoint 池 → 同 endpoint 退避)` 三层依次降级；每一次实际打到 Provider 的 HTTP 调用都包在统一的"前置插件 → 路由 → 调用 → 后置插件"七段管道里。
 
-| 层 | 函数 | 循环对象 | 退出条件 | 失败抛出 |
-| --- | --- | --- | --- | --- |
-| L1 跨模型 fallback | `_invoke_with_fallback` 📍 `engine.py:208` | `policy.fallback_model` 列表 | 任一 model 成功 | `NoAvailableEndpointError`（含原因链） |
-| L2 单模型 failover | `_invoke_internal` 📍 `engine.py:333` while attempt | `tried_endpoints` 之外的剩余 endpoint | 任一 endpoint 成功 / `attempt > max_retries` | `NoAvailableEndpointError`（all endpoints exhausted） |
-| L3 同 endpoint 退避 | `_invoke_internal` 内 429 分支 📍 `engine.py:451` | `rate_limit_retried[endpoint_id]`（每 endpoint 至多 1 次退避） | 第二次 429 / 5xx / 成功 | 上抛到 L2 推进 attempt |
 
-> L1 是**递归**（链式 fallback `policy.fallback_is_chain=True` 时复用同函数 +1 depth）；L2 是 **`while`**；L3 是 **L2 的同 attempt 内 `continue`**——退避不消耗 attempt 预算。
+| 层                | 函数                                                  | 循环对象                                                   | 退出条件                                     | 失败抛出                                                |
+| ---------------- | --------------------------------------------------- | ------------------------------------------------------ | ---------------------------------------- | --------------------------------------------------- |
+| L1 跨模型 fallback  | `_invoke_with_fallback` 📍 `engine.py:208`          | `policy.fallback_model` 列表                             | 任一 model 成功                              | `NoAvailableEndpointError`（含原因链）                    |
+| L2 单模型 failover  | `_invoke_internal` 📍 `engine.py:333` while attempt | `tried_endpoints` 之外的剩余 endpoint                       | 任一 endpoint 成功 / `attempt > max_retries` | `NoAvailableEndpointError`（all endpoints exhausted） |
+| L3 同 endpoint 退避 | `_invoke_internal` 内 429 分支 📍 `engine.py:451`      | `rate_limit_retried[endpoint_id]`（每 endpoint 至多 1 次退避） | 第二次 429 / 5xx / 成功                       | 上抛到 L2 推进 attempt                                   |
+
+
+> L1 是**递归**（链式 fallback `policy.fallback_is_chain=True` 时复用同函数 +1 depth）；L2 是 `**while`**；L3 是 **L2 的同 attempt 内 `continue`**——退避不消耗 attempt 预算。
 
 #### 5.1.2 七阶段管道（每次 L2 循环执行一遍）
 
 每个 attempt 对应**一次完整的 7 阶段执行**。状态变量在 attempt 间持续累积；管道内部按下表严格串行：
 
-| 阶段 | 名称 | 关键动作 | 失败行为 | 代码位置 |
-| --- | --- | --- | --- | --- |
-| ① | 入参验证 | 按 `passthrough_mode` / `request_type` 校验必填字段（CHAT→messages、EMBEDDING→input、PASSTHROUGH→raw_request+raw_method+source_style 等） | 抛 `ConfigError`，**不进入循环**，无重试 | `_validate_request` 📍 `:1668` |
-| ② | 上下文构建 | 若 `context is None`：从 request 派生 `RoutingContext(app_id, env, region, session_id, request_id=uuid4)`；否则补 `request_id` | — | `:354-364` |
-| ③ | `before_request` 插件链 | 顺序遍历 `self.plugins`，每个插件可改写 request；返回最后一个插件的输出 | 插件抛错 → 直接 `raise`（不走 fallback） | `:367-368` |
-| ④ | 路由决策 | (1) 拉 `model_config`（按 request_type 过滤 endpoints）→ 若无 raise `NoAvailableEndpointError`<br>(2) 拉 `policy`<br>(3) 收集排除集 = 手动熔断 ∪ 各 `EndpointFilterProvider.get_unavailable_endpoints()` ∪ `tried_endpoints`<br>(4) 各 `WeightAdjustmentProvider.get_weight_multipliers()` 合并（降权取 min、加成取 max、降权优先）→ 复制 endpoints 改 weight<br>(5) `Router.choose(endpoints, policy, session_id, excluded)` 返回 `EndpointConfig`<br>(6) 取 credential、合并 timeout，构造 `RoutingDecision` | 排除后无可用 endpoint → `NoAvailableEndpointError` → 跳到 L1 fallback | `_route` 📍 `:1389` |
-| ⑤ | Provider 调用 | `provider = registry.get(decision.provider)` → `provider.invoke(request, decision)` 走真正 HTTP | 抛 `ProviderError(status_code, response_headers)` 或其他异常 | `:390-393` |
-| ⑥ | 成功收尾 | 计算 `latency_ms` → `_notify_invocation_success`（驱动熔断器/自适应权重的成功事件）→ 回填响应元数据（`logical_model / app_id / env / request_id / session_id / trace_id / latency_ms`）→ `retry_count > 0` 时挂 `retry_stats` → 顺序遍历 `after_response` 插件 → `return` | — | `:395-416` |
-| ⑦ | 失败分支 | 见 5.1.4 决策矩阵；分类后或 `continue`（不耗 attempt）或 `attempt += 1`（消耗预算） | attempt 超限 → `_notify_retry_exhausted` + `on_error` 插件 → `NoAvailableEndpointError` 上抛 L1 | `:418-498`、`:500-512` |
+
+| 阶段  | 名称                   | 关键动作                                                                                                                                                                                                                                                                                                                                                                                                                                            | 失败行为                                                                                      | 代码位置                           |
+| --- | -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ------------------------------ |
+| ①   | 入参验证                 | 按 `passthrough_mode` / `request_type` 校验必填字段（CHAT→messages、EMBEDDING→input、PASSTHROUGH→raw_request+raw_method+source_style 等）                                                                                                                                                                                                                                                                                                                   | 抛 `ConfigError`，**不进入循环**，无重试                                                             | `_validate_request` 📍 `:1668` |
+| ②   | 上下文构建                | 若 `context is None`：从 request 派生 `RoutingContext(app_id, env, region, session_id, request_id=uuid4)`；否则补 `request_id`                                                                                                                                                                                                                                                                                                                           | —                                                                                         | `:354-364`                     |
+| ③   | `before_request` 插件链 | 顺序遍历 `self.plugins`，每个插件可改写 request；返回最后一个插件的输出                                                                                                                                                                                                                                                                                                                                                                                                 | 插件抛错 → 直接 `raise`（不走 fallback）                                                            | `:367-368`                     |
+| ④   | 路由决策                 | (1) 拉 `model_config`（按 request_type 过滤 endpoints）→ 若无 raise `NoAvailableEndpointError` (2) 拉 `policy` (3) 收集排除集 = 手动熔断 ∪ 各 `EndpointFilterProvider.get_unavailable_endpoints()` ∪ `tried_endpoints` (4) 各 `WeightAdjustmentProvider.get_weight_multipliers()` 合并（降权取 min、加成取 max、降权优先）→ 复制 endpoints 改 weight (5) `Router.choose(endpoints, policy, session_id, excluded)` 返回 `EndpointConfig` (6) 取 credential、合并 timeout，构造 `RoutingDecision` | 排除后无可用 endpoint → `NoAvailableEndpointError` → 跳到 L1 fallback                             | `_route` 📍 `:1389`            |
+| ⑤   | Provider 调用          | `provider = registry.get(decision.provider)` → `provider.invoke(request, decision)` 走真正 HTTP                                                                                                                                                                                                                                                                                                                                                    | 抛 `ProviderError(status_code, response_headers)` 或其他异常                                    | `:390-393`                     |
+| ⑥   | 成功收尾                 | 计算 `latency_ms` → `_notify_invocation_success`（驱动熔断器/自适应权重的成功事件）→ 回填响应元数据（`logical_model / app_id / env / request_id / session_id / trace_id / latency_ms`）→ `retry_count > 0` 时挂 `retry_stats` → 顺序遍历 `after_response` 插件 → `return`                                                                                                                                                                                                           | —                                                                                         | `:395-416`                     |
+| ⑦   | 失败分支                 | 见 5.1.4 决策矩阵；分类后或 `continue`（不耗 attempt）或 `attempt += 1`（消耗预算）                                                                                                                                                                                                                                                                                                                                                                                  | attempt 超限 → `_notify_retry_exhausted` + `on_error` 插件 → `NoAvailableEndpointError` 上抛 L1 | `:418-498`、`:500-512`          |
+
 
 > ⚠️ 阶段 ① 的 `ConfigError`、阶段 ③ 的非 `ProviderError` 异常都**绕过 fallback**——只有 `NoAvailableEndpointError`（L2 显式抛）才触发 L1 的 fallback 循环。`ProviderError` 不可重试时也会被 L2 转化为 `NoAvailableEndpointError`（先尝试本模型剩余 endpoint，全部不行再上抛）。
 
@@ -1337,22 +1351,27 @@ sequenceDiagram
     Eng-->>User: ModelResponse
 ```
 
+
+
 #### 5.1.4 错误分支决策矩阵（阶段 ⑦ 唯一真相表）
 
 📍 `engine.py:418-492`，按出现顺序判定，**先到先匹配**：
 
-| 触发条件 | `is_retryable` | `attempt` 预算 | 是否 failover | 是否退避 sleep | 后续动作 |
-| --- | --- | --- | --- | --- | --- |
-| 4xx 不可重试 + 还有未 tried endpoint | False | ❌ 不增加 | ✅ 加入 `tried_endpoints` | ❌ | `continue`（同 attempt 换 endpoint） |
-| 4xx 不可重试 + 无可用 endpoint | False | ❌ | — | ❌ | `on_error` 插件 → `NoAvailableEndpointError` 抛 L1 |
-| 429 首次 + `_get_backoff_seconds` 返回秒数 | True | ❌ 不增加 | ❌ 同 endpoint | ✅ `time.sleep(backoff)` | `rate_limit_retried[ep]=1`，下轮重试同 ep |
-| 429 首次 + 退避返回 None（`failover_immediately` 且无 Retry-After） | True | ✅ +1（隐式，循环末尾统一加） | ✅ | ❌ | 直接 failover |
-| 429 再次（同 endpoint 已退避过） | True | ✅ +1 | ✅ | ❌ | failover |
-| 5xx | True | ✅ +1 | ✅ | ❌（退避在下轮 ④→⑤ 之间不发生 sleep；下次 429 才会 sleep） | failover |
-| 非 `ProviderError` 异常 | — | — | — | — | 立即 `on_error` 插件 → `raise`，**绕过 fallback** |
-| `attempt > current_max_retries` | — | — | — | — | 退出 while → `NoAvailableEndpointError` 上抛 L1 |
+
+| 触发条件                                                      | `is_retryable` | `attempt` 预算     | 是否 failover            | 是否退避 sleep                               | 后续动作                                            |
+| --------------------------------------------------------- | -------------- | ---------------- | ---------------------- | ---------------------------------------- | ----------------------------------------------- |
+| 4xx 不可重试 + 还有未 tried endpoint                             | False          | ❌ 不增加            | ✅ 加入 `tried_endpoints` | ❌                                        | `continue`（同 attempt 换 endpoint）                |
+| 4xx 不可重试 + 无可用 endpoint                                   | False          | ❌                | —                      | ❌                                        | `on_error` 插件 → `NoAvailableEndpointError` 抛 L1 |
+| 429 首次 + `_get_backoff_seconds` 返回秒数                      | True           | ❌ 不增加            | ❌ 同 endpoint           | ✅ `time.sleep(backoff)`                  | `rate_limit_retried[ep]=1`，下轮重试同 ep             |
+| 429 首次 + 退避返回 None（`failover_immediately` 且无 Retry-After） | True           | ✅ +1（隐式，循环末尾统一加） | ✅                      | ❌                                        | 直接 failover                                     |
+| 429 再次（同 endpoint 已退避过）                                   | True           | ✅ +1             | ✅                      | ❌                                        | failover                                        |
+| 5xx                                                       | True           | ✅ +1             | ✅                      | ❌（退避在下轮 ④→⑤ 之间不发生 sleep；下次 429 才会 sleep） | failover                                        |
+| 非 `ProviderError` 异常                                      | —              | —                | —                      | —                                        | 立即 `on_error` 插件 → `raise`，**绕过 fallback**      |
+| `attempt > current_max_retries`                           | —              | —                | —                      | —                                        | 退出 while → `NoAvailableEndpointError` 上抛 L1     |
+
 
 **关键不变量**：
+
 - `is_retryable = status_code == 429 or status_code >= 500`（📍 `errors.py:80`），4xx 全部不可重试。
 - `should_circuit_break` 与 `is_retryable` 同义（📍 `errors.py:88`），4xx 业务错误不会污染熔断器。
 - 4xx 路径**不消耗 attempt** 是有意设计——保证"所有 endpoint 都试过"才放弃，最大化覆盖；副作用是单 attempt 可能扫遍全部 endpoint。
@@ -1362,40 +1381,46 @@ sequenceDiagram
 
 每层循环维护各自状态，跨层不共享。理解这张表 = 理解为什么 fallback / failover / 退避三种降级互不干扰：
 
-| 变量 | 作用域 | 初始值 | 何时更新 | 跨 attempt 持续？ |
-| --- | --- | --- | --- | --- |
-| `fallback_chain: set[str]` | L1 递归参数 | `set()` | 每层 `chain | {model_key}`（**不可变**，新建 set） | ✅ 跨递归层 |
-| `fallback_depth: int` | L1 递归参数 | `0` | 链式 fallback 时 `depth+1` | ✅ 跨递归层 |
-| `fallback_models_tried: list[str]` | L1 累积 | `[]` | 每尝试一个 fb_model 就 append | ✅ 写入最终 `retry_stats` |
-| `attempt: int` | L2 局部 | `0` | 仅 5xx/429 再次/`failover_immediately` 时 +1 | ✅ 同 model 内 |
-| `current_max_retries: int` | L2 局部 | `engine_config.default_max_retries` | 每轮路由后被 `_get_max_retries(request, ep_id)` 覆盖（request > endpoint > default） | ✅ 但被下一轮覆盖 → 见 5.2.4 混写陷阱 |
-| `tried_endpoints: set[str]` | L2 局部 | `set()` | 每次失败 `add(endpoint_id)` | ✅ 排除已坏 ep |
-| `rate_limit_retried: dict[str, int]` | L2 局部 | `{}` | 429 首次退避时 `[ep]=1` | ✅ per-ep 计数 |
-| `last_error: Exception` | L2 局部 | `None` | 每次 except 覆盖 | ✅ 用于异常上抛 |
-| `retry_stats: RetryStats` | L2 局部 | 空 | 每次 `record_retry` | ✅ 写入响应 |
-| `decision: RoutingDecision` | L2 局部 | `None` | 每次 `_route` 后覆盖 | ❌ 每轮重算 |
-| `context.endpoint_id / context.attempt` | 跨层共享对象 | — | 每次 ④ 后写入 | ✅ 插件可读 |
+
+| 变量                                      | 作用域     | 初始值                                 | 何时更新                                                                       | 跨 attempt 持续？                |
+| --------------------------------------- | ------- | ----------------------------------- | -------------------------------------------------------------------------- | ---------------------------- |
+| `fallback_chain: set[str]`              | L1 递归参数 | `set()`                             | 每层 `chain                                                                  | {model_key}`（**不可变**，新建 set） |
+| `fallback_depth: int`                   | L1 递归参数 | `0`                                 | 链式 fallback 时 `depth+1`                                                    | ✅ 跨递归层                       |
+| `fallback_models_tried: list[str]`      | L1 累积   | `[]`                                | 每尝试一个 fb_model 就 append                                                    | ✅ 写入最终 `retry_stats`         |
+| `attempt: int`                          | L2 局部   | `0`                                 | 仅 5xx/429 再次/`failover_immediately` 时 +1                                   | ✅ 同 model 内                  |
+| `current_max_retries: int`              | L2 局部   | `engine_config.default_max_retries` | 每轮路由后被 `_get_max_retries(request, ep_id)` 覆盖（request > endpoint > default） | ✅ 但被下一轮覆盖 → 见 5.2.4 混写陷阱     |
+| `tried_endpoints: set[str]`             | L2 局部   | `set()`                             | 每次失败 `add(endpoint_id)`                                                    | ✅ 排除已坏 ep                    |
+| `rate_limit_retried: dict[str, int]`    | L2 局部   | `{}`                                | 429 首次退避时 `[ep]=1`                                                         | ✅ per-ep 计数                  |
+| `last_error: Exception`                 | L2 局部   | `None`                              | 每次 except 覆盖                                                               | ✅ 用于异常上抛                     |
+| `retry_stats: RetryStats`               | L2 局部   | 空                                   | 每次 `record_retry`                                                          | ✅ 写入响应                       |
+| `decision: RoutingDecision`             | L2 局部   | `None`                              | 每次 `_route` 后覆盖                                                            | ❌ 每轮重算                       |
+| `context.endpoint_id / context.attempt` | 跨层共享对象  | —                                   | 每次 ④ 后写入                                                                   | ✅ 插件可读                       |
+
 
 > `fallback_chain` 故意做成**不可变**——每层递归 `chain | {model_key}` 新建 set，防止并发递归时父子互相污染（📍 `:244` `_invoke_with_fallback`）。
 
 #### 5.1.6 进入与退出的精确边界
 
-| 入参/前置条件 | 行为 |
-| --- | --- |
-| `request.app_id + request.logical_model` 在配置中找不到 | 阶段 ④ `model_config = None` → 直接 `NoAvailableEndpointError` → L1 尝试 fallback_model |
-| `request.request_type` 与 endpoint 的 `request_types` 不匹配 | 配置层在 `get_model_config` 阶段过滤掉，等同上一行 |
-| `request.max_retries` 显式传入 | 覆盖 endpoint 和 default，三级查找最高优先级 |
-| `request.timeout_ms` 显式传入 | 覆盖 endpoint 和 default（📍 `_get_timeout_ms`） |
-| `context` 由调用方传入 | 直接复用，仅在 `request_id is None` 时补 uuid（保留 trace_id / user_id 等观测字段） |
-| `policy.fallback_model = []` 且全 endpoint 失败 | L1 没有可遍历对象 → 把 L2 抛出的 `NoAvailableEndpointError` 原样 `raise` |
-| `policy.fallback_is_chain = False`（list 模式） | L1 直接 `_invoke_internal(fb_request)`，不递归，不增加 depth；无循环检测意义（每个 fb 都是叶子调用） |
-| `policy.fallback_is_chain = True`（chain 模式） | L1 递归 `_invoke_with_fallback(..., depth+1)`，受 `max_fallback_depth=3` 与 `fallback_chain` 双重保护 |
 
-| 出参/最终响应 | 携带信息 |
-| --- | --- |
-| 成功 `ModelResponse` | `logical_model / app_id / env / request_id / session_id / trace_id / latency_ms / endpoint_id（in usage）`；若有重试还携带 `retry_stats(retry_count, retried_endpoints, total_backoff_ms, status_codes)`；若走过 fallback 还含 `original_model / final_model / fallback_models_tried` |
-| L2 抛 `NoAvailableEndpointError` | `reason="all endpoints exhausted after N attempts, last error: ..."`，`__cause__` 指向最后一次 `ProviderError` |
-| L1 抛 `NoAvailableEndpointError` | `reason="circular fallback detected: ..."` 或 `"max fallback depth (3) exceeded"` 或最后一个 fb_model 的失败原因 |
+| 入参/前置条件                                                 | 行为                                                                                           |
+| ------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `request.app_id + request.logical_model` 在配置中找不到        | 阶段 ④ `model_config = None` → 直接 `NoAvailableEndpointError` → L1 尝试 fallback_model            |
+| `request.request_type` 与 endpoint 的 `request_types` 不匹配 | 配置层在 `get_model_config` 阶段过滤掉，等同上一行                                                          |
+| `request.max_retries` 显式传入                              | 覆盖 endpoint 和 default，三级查找最高优先级                                                              |
+| `request.timeout_ms` 显式传入                               | 覆盖 endpoint 和 default（📍 `_get_timeout_ms`）                                                  |
+| `context` 由调用方传入                                        | 直接复用，仅在 `request_id is None` 时补 uuid（保留 trace_id / user_id 等观测字段）                            |
+| `policy.fallback_model = []` 且全 endpoint 失败             | L1 没有可遍历对象 → 把 L2 抛出的 `NoAvailableEndpointError` 原样 `raise`                                  |
+| `policy.fallback_is_chain = False`（list 模式）             | L1 直接 `_invoke_internal(fb_request)`，不递归，不增加 depth；无循环检测意义（每个 fb 都是叶子调用）                     |
+| `policy.fallback_is_chain = True`（chain 模式）             | L1 递归 `_invoke_with_fallback(..., depth+1)`，受 `max_fallback_depth=3` 与 `fallback_chain` 双重保护 |
+
+
+
+| 出参/最终响应                         | 携带信息                                                                                                                                                                                                                                                                  |
+| ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 成功 `ModelResponse`              | `logical_model / app_id / env / request_id / session_id / trace_id / latency_ms / endpoint_id（in usage）`；若有重试还携带 `retry_stats(retry_count, retried_endpoints, total_backoff_ms, status_codes)`；若走过 fallback 还含 `original_model / final_model / fallback_models_tried` |
+| L2 抛 `NoAvailableEndpointError` | `reason="all endpoints exhausted after N attempts, last error: ..."`，`__cause_`_ 指向最后一次 `ProviderError`                                                                                                                                                               |
+| L1 抛 `NoAvailableEndpointError` | `reason="circular fallback detected: ..."` 或 `"max fallback depth (3) exceeded"` 或最后一个 fb_model 的失败原因                                                                                                                                                                 |
+
 
 #### 5.1.7 流式调用的生命周期差异
 
@@ -1403,12 +1428,14 @@ sequenceDiagram
 
 整体管道一致，差异集中在阶段 ⑤–⑥–⑦：
 
-| 阶段 | 非流式 | 流式 |
-| --- | --- | --- |
-| ⑤ | `provider.invoke()` 一次性返回完整 `ModelResponse` | `provider.invoke_stream()` 仅返回 `Iterator[StreamChunk]`，**真实数据在迭代时才到达** |
-| 重试边界 | 整个 ⑤ 调用包在 while 内 | **只有"获取迭代器"包在 while 内**（`stream = provider.invoke_stream(...)` 抛错可重试）；拿到迭代器即 `break` 跳出循环 |
-| ⑥ | 立即填元数据→`after_response` 插件 | 边迭代边 yield；流尽后聚合（`id` 取首 chunk、`content` 拼接 delta、`usage` 取末 chunk）再调 `after_response` |
-| ⑦ | 错误矩阵适用 | 已 yield 任何 chunk 后再失败 → **直接抛错，不可 fallback**（数据已发出，无法回收） |
+
+| 阶段   | 非流式                                         | 流式                                                                                        |
+| ---- | ------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| ⑤    | `provider.invoke()` 一次性返回完整 `ModelResponse` | `provider.invoke_stream()` 仅返回 `Iterator[StreamChunk]`，**真实数据在迭代时才到达**                    |
+| 重试边界 | 整个 ⑤ 调用包在 while 内                           | **只有"获取迭代器"包在 while 内**（`stream = provider.invoke_stream(...)` 抛错可重试）；拿到迭代器即 `break` 跳出循环 |
+| ⑥    | 立即填元数据→`after_response` 插件                  | 边迭代边 yield；流尽后聚合（`id` 取首 chunk、`content` 拼接 delta、`usage` 取末 chunk）再调 `after_response`    |
+| ⑦    | 错误矩阵适用                                      | 已 yield 任何 chunk 后再失败 → **直接抛错，不可 fallback**（数据已发出，无法回收）                                  |
+
 
 异步路径 `ainvoke / ainvoke_stream / _ainvoke_internal` 完全镜像同步语义，仅把 `time.sleep` 替换为 `asyncio.sleep`、迭代器换为 `AsyncIterator`，状态机和阶段划分一致。
 
@@ -1455,28 +1482,32 @@ while attempt <= current_max_retries:
     # 调用 → 失败 → attempt += 1
 ```
 
-**`current_max_retries` 是动态变量**，每轮被当前选中 endpoint 的查找结果重写。`max_retries=2` ⇒ attempt 取 0/1/2 ⇒ **最多 3 次"消耗预算"的尝试**。
+`**current_max_retries` 是动态变量**，每轮被当前选中 endpoint 的查找结果重写。`max_retries=2` ⇒ attempt 取 0/1/2 ⇒ **最多 3 次"消耗预算"的尝试**。
 
 #### 5.2.2 三级查找规则
 
 `_get_max_retries` 三级 fallback，**没有 min/max 比较**：
 
-| 优先级 | 来源                                | 备注              |
-| --- | --------------------------------- | --------------- |
-| 1   | `request.max_retries`             | 业务调用时显式传入       |
-| 2   | `endpoint.max_retries`            | YAML 单 endpoint 覆盖 |
+
+| 优先级 | 来源                                  | 备注                  |
+| --- | ----------------------------------- | ------------------- |
+| 1   | `request.max_retries`               | 业务调用时显式传入           |
+| 2   | `endpoint.max_retries`              | YAML 单 endpoint 覆盖  |
 | 3   | `engine_config.default_max_retries` | 源码 dataclass 默认 = 2 |
+
 
 > `default_max_retries` 不是上限，只是兜底。endpoint 写 5 就生效 5，写 0 就生效 0。
 
 #### 5.2.3 attempt 消耗规则
 
-| 错误类型              | 消耗 attempt | 行为                |
-| ----------------- | ---------- | ----------------- |
-| 4xx 不可重试          | ❌ 不增加      | failover 到其他 endpoint，**不耗预算** |
-| 429 首次（同 endpoint 退避） | ❌ 不增加      | 退避后重试同 endpoint   |
-| 429 再次            | ✅ +1       | failover          |
-| 5xx               | ✅ +1       | failover          |
+
+| 错误类型                  | 消耗 attempt | 行为                             |
+| --------------------- | ---------- | ------------------------------ |
+| 4xx 不可重试              | ❌ 不增加      | failover 到其他 endpoint，**不耗预算** |
+| 429 首次（同 endpoint 退避） | ❌ 不增加      | 退避后重试同 endpoint                |
+| 429 再次                | ✅ +1       | failover                       |
+| 5xx                   | ✅ +1       | failover                       |
+
 
 **例外**：`failover_immediately` 策略下，首次 429 直接 failover、消耗 attempt（详见 5.3）。
 
@@ -1486,11 +1517,13 @@ while attempt <= current_max_retries:
 
 例：4 endpoint 配 `[gemini=3, gpt-5=0, gpt-4-1=2, o3=2]`，全部失败：
 
+
 | attempt | while 检查（用上轮 bound） | 路由     | 更新后 bound |
-| ------- | ----------------- | ------ | --------- |
-| 0       | `0 <= 2`（default）✓ | gemini | 3         |
-| 1       | `1 <= 3` ✓        | gpt-5  | **0**     |
-| 2       | `2 <= 0` ✗        | —      | 直接退出      |
+| ------- | ------------------- | ------ | --------- |
+| 0       | `0 <= 2`（default）✓  | gemini | 3         |
+| 1       | `1 <= 3` ✓          | gpt-5  | **0**     |
+| 2       | `2 <= 0` ✗          | —      | 直接退出      |
+
 
 **gpt-4-1 / o3 永远试不到**——gpt-5 的 `max_retries=0` 把后续循环卡死。
 
@@ -1505,15 +1538,18 @@ while attempt <= current_max_retries:
 
 failover 后下一轮 `_route()` **排除已 tried 的 endpoint**，在剩余池里**按 `policies.strategy` 重新选**：
 
-| `strategy`              | failover 行为                  |
-| ----------------------- | ---------------------------- |
-| `WEIGHTED_RANDOM`（默认）   | 剩余池按 weight 加权随机，**顺序不确定**   |
-| `PRIORITY`              | 按 priority 降序逐个尝试，**确定的链式 failover** |
-| `ROUND_ROBIN`           | 轮询，跳过 tried 取下一个             |
+
+| `strategy`            | failover 行为                          |
+| --------------------- | ------------------------------------ |
+| `WEIGHTED_RANDOM`（默认） | 剩余池按 weight 加权随机，**顺序不确定**           |
+| `PRIORITY`            | 按 priority 降序逐个尝试，**确定的链式 failover** |
+| `ROUND_ROBIN`         | 轮询，跳过 tried 取下一个                     |
+
 
 要让 failover 顺序固定，必须用 `PRIORITY`，并给每个 endpoint 配 `priority` 字段。
 
 #### 5.2.7 退避公式
+
 
 | 参数                      | 默认值                     | 说明      |
 | ----------------------- | ----------------------- | ------- |
@@ -1522,6 +1558,7 @@ failover 后下一轮 `_route()` **排除已 tried 的 endpoint**，在剩余池
 | `backoff_factor`        | 1.0                     | 退避基数    |
 | `max_backoff_seconds`   | 10.0                    | 最大退避时间  |
 | `jitter_factor`         | 0.25                    | 抖动 ±25% |
+
 
 `backoff = factor × 2^attempt + jitter`，attempt=0 → ~1s，1 → ~2s，2 → ~4s（封顶 10s）。
 
@@ -2197,12 +2234,12 @@ plugins:
 限流器源码里包含三个子功能，**接入引擎的程度不同**——下游使用方需要按这张表理解实际可用能力：
 
 
-| 子功能                            | 状态         | 证据                                                                                |
-| ------------------------------ | ---------- | --------------------------------------------------------------------------------- |
-| **被动 429 标记排除**                | ✅ 完整可用     | `on_error → is_limited → get_unavailable_endpoints → engine._get_excluded_endpoints` 链路全通 |
-| **Retry-After 解析 + 引擎退避**      | ✅ 完整可用     | 5 段链路：Provider → ProviderError → Parser → quota → `RetryInfoProvider` → Engine `_calculate_backoff` |
-| **令牌桶（主动控速）**                  | ⚠️ 未接入引擎   | `TokenBucket` 类完整、配置可读、过滤路径已接入；但 `consume_token` 在生产代码 **0 次调用**——桶永远不被消费，"桶空 → 排除"判定无法触发 |
-| **`X-RateLimit-*` 配额头解析**      | 🔍 仅观测     | 解析后存入 `quota.limit_*` / `remaining_*`，当前未参与路由决策                                    |
+| 子功能                       | 状态       | 证据                                                                                                  |
+| ------------------------- | -------- | --------------------------------------------------------------------------------------------------- |
+| **被动 429 标记排除**           | ✅ 完整可用   | `on_error → is_limited → get_unavailable_endpoints → engine._get_excluded_endpoints` 链路全通           |
+| **Retry-After 解析 + 引擎退避** | ✅ 完整可用   | 5 段链路：Provider → ProviderError → Parser → quota → `RetryInfoProvider` → Engine `_calculate_backoff` |
+| **令牌桶（主动控速）**             | ⚠️ 未接入引擎 | `TokenBucket` 类完整、配置可读、过滤路径已接入；但 `consume_token` 在生产代码 **0 次调用**——桶永远不被消费，"桶空 → 排除"判定无法触发           |
+| `**X-RateLimit-`* 配额头解析** | 🔍 仅观测   | 解析后存入 `quota.limit_`* / `remaining_*`，当前未参与路由决策                                                     |
 
 
 **配置项真实影响范围**（下游决策依据）：
@@ -2248,10 +2285,11 @@ plugins:
 ```
 
 > **下游使用方应对**：
+>
 > - 配置里显式写 `enable_token_bucket: false`，避免误以为它在工作
 > - 主动控速的需求由"被动 429 + Retry-After 退避 + 自适应权重渐进降权"组合覆盖
 >
-> **如果团队需要让令牌桶生效**：需在 [`engine.py`](file:///Users/liangzhu/Documents/work/plaud-model-hub/packages/core/src/model_hub_core/engine.py) 的 endpoint 选定后、Provider 调用前补一个钩子调 `consume_token(endpoint_id)`，并设计请求失败时的令牌回补策略。属于代码改动，不是配置能解决的。
+> **如果团队需要让令牌桶生效**：需在 `[engine.py](file:///Users/liangzhu/Documents/work/plaud-model-hub/packages/core/src/model_hub_core/engine.py)` 的 endpoint 选定后、Provider 调用前补一个钩子调 `consume_token(endpoint_id)`，并设计请求失败时的令牌回补策略。属于代码改动，不是配置能解决的。
 
 #### 配置（标注真实生效情况）
 
@@ -2287,7 +2325,7 @@ engine:
 
 #### Retry-After 的两个独立用途
 
-📍 [`rate_limit.py:407-442`](file:///Users/liangzhu/Documents/work/plaud-model-hub/packages/core/src/model_hub_core/plugins/rate_limit.py#L407-L442) `get_suggested_backoff` | [`engine.py:1729-1736`](file:///Users/liangzhu/Documents/work/plaud-model-hub/packages/core/src/model_hub_core/engine.py#L1729-L1736) `_calculate_backoff`
+📍 `[rate_limit.py:407-442](file:///Users/liangzhu/Documents/work/plaud-model-hub/packages/core/src/model_hub_core/plugins/rate_limit.py#L407-L442)` `get_suggested_backoff` | `[engine.py:1729-1736](file:///Users/liangzhu/Documents/work/plaud-model-hub/packages/core/src/model_hub_core/engine.py#L1729-L1736)` `_calculate_backoff`
 
 `_handle_rate_limit_error` 把解析后的 Retry-After 写入 `quota.retry_after_seconds` 和 `quota.limited_until` 之后，会被两条独立路径各自消费：
 
@@ -2300,7 +2338,7 @@ quota.is_limited=True + now < quota.limited_until
   ↓ Router 路由时跳过它，直到 limited_until 过期
 ```
 
-> 启用 AW + `soft_limit_on_429=true` 时，**`is_limited` 不再被标记，这条路径关闭**——endpoint 不会被排除，由 AW 降权处理。
+> 启用 AW + `soft_limit_on_429=true` 时，`**is_limited` 不再被标记，这条路径关闭**——endpoint 不会被排除，由 AW 降权处理。
 
 **用途 ⓑ：告诉 Engine 单次重试要退避多久**（与 `soft_limit_on_429` **无关**）
 
@@ -2319,7 +2357,7 @@ RateLimitPlugin 实现 RetryInfoProvider 接口
 
 #### Engine 退避策略（`rate_limit_backoff_strategy`）
 
-📍 [`engine.py:89-94, 1693-1744`](file:///Users/liangzhu/Documents/work/plaud-model-hub/packages/core/src/model_hub_core/engine.py#L1693-L1744)
+📍 `[engine.py:89-94, 1693-1744](file:///Users/liangzhu/Documents/work/plaud-model-hub/packages/core/src/model_hub_core/engine.py#L1693-L1744)`
 
 引擎在收到 429 后如何选退避时间，由 `engine.rate_limit_backoff_strategy` 决定：
 
@@ -2336,7 +2374,7 @@ RateLimitPlugin 实现 RetryInfoProvider 接口
 - `max_backoff_seconds`（默认 60）：所有退避值的上限——即使 Retry-After 写了 600 秒也只等 60 秒
 - `backoff_factor`（默认 1.0）+ `jitter`（默认 true）：指数退避的基础与抖动开关
 
-> ⚠️ **配置位置 caveat**：`rate_limit_backoff_strategy` 字段属于 **`EngineConfig`**（[`engine.py:60-95`](file:///Users/liangzhu/Documents/work/plaud-model-hub/packages/core/src/model_hub_core/engine.py#L60-L95)），**不在限流器插件配置里**。当前**没有 yaml → EngineConfig 的反序列化路径**——仓库内所有 yaml 示例都没有 `engine:` 节，全靠在 wrapper 工厂函数里直接传 Python 对象：
+> ⚠️ **配置位置 caveat**：`rate_limit_backoff_strategy` 字段属于 `**EngineConfig`**（`[engine.py:60-95](file:///Users/liangzhu/Documents/work/plaud-model-hub/packages/core/src/model_hub_core/engine.py#L60-L95)`），**不在限流器插件配置里**。当前**没有 yaml → EngineConfig 的反序列化路径**——仓库内所有 yaml 示例都没有 `engine:` 节，全靠在 wrapper 工厂函数里直接传 Python 对象：
 >
 > ```python
 > from model_hub_core.engine import EngineConfig
@@ -2350,11 +2388,13 @@ RateLimitPlugin 实现 RetryInfoProvider 接口
 
 **Gemini / Vertex 在三种策略下的实际表现**（因不返 Retry-After header）：
 
-| 策略                       | OpenAI / Anthropic 等返 header 的 provider | Google Gemini / Vertex                  |
-| ------------------------ | ---------------------------------------- | --------------------------------------- |
-| `retry_after_first`（默认）  | 用服务端建议值精确退避                              | 永远拿不到 → **退化为指数退避公式**                   |
-| `exponential_only`       | 同公式                                      | 同左（行为一致）                                |
-| `failover_immediately`   | 拿到值则退避；拿不到则换 endpoint                    | 永远拿不到 → **永远立即 failover**（同 endpoint 不重试） |
+
+| 策略                      | OpenAI / Anthropic 等返 header 的 provider | Google Gemini / Vertex                    |
+| ----------------------- | --------------------------------------- | ----------------------------------------- |
+| `retry_after_first`（默认） | 用服务端建议值精确退避                             | 永远拿不到 → **退化为指数退避公式**                     |
+| `exponential_only`      | 同公式                                     | 同左（行为一致）                                  |
+| `failover_immediately`  | 拿到值则退避；拿不到则换 endpoint                   | 永远拿不到 → **永远立即 failover**（同 endpoint 不重试） |
+
 
 **怎么选**（按场景）：
 
@@ -2385,25 +2425,25 @@ raise ProviderError(..., response_headers=self._extract_response_headers(e))
 
 不同 provider 在 429 响应中传达"建议等待时长"的方式差别巨大，决定了 Retry-After 解析路径在哪些 provider 上**真正生效**：
 
-| Provider                         | 等待时长在哪                                    | 当前代码能否解析 | 实际效果                                            |
-| -------------------------------- | ----------------------------------------- | -------- | ----------------------------------------------- |
-| OpenAI                           | HTTP header `Retry-After`（秒数）             | ✅ 能      | 服务端建议值精确退避                                      |
-| Anthropic                        | HTTP header `retry-after`（秒数）             | ✅ 能      | 同上                                              |
-| Azure OpenAI                     | HTTP header `Retry-After`                 | ✅ 能      | 同上                                              |
+
+| Provider                        | 等待时长在哪                                                                        | 当前代码能否解析 | 实际效果                                                               |
+| ------------------------------- | ----------------------------------------------------------------------------- | -------- | ------------------------------------------------------------------ |
+| OpenAI                          | HTTP header `Retry-After`（秒数）                                                 | ✅ 能      | 服务端建议值精确退避                                                         |
+| Anthropic                       | HTTP header `retry-after`（秒数）                                                 | ✅ 能      | 同上                                                                 |
+| Azure OpenAI                    | HTTP header `Retry-After`                                                     | ✅ 能      | 同上                                                                 |
 | **Google Gemini**（google-genai） | **JSON body** `error.details[].retryDelay`（google.rpc.RetryInfo 风格，如 `"23s"`） | ❌ **不能** | 拿不到值 → 走 `default_retry_after_seconds`（60s 固定窗口） + Engine 落到指数退避公式 |
-| **Vertex AI**                    | 同上（google.rpc.RetryInfo）                  | ❌ **不能** | 同上                                              |
-| AWS Bedrock                      | botocore `ClientError` 的 metadata（无标准 header） | ❌ **不能** | 同上                                              |
+| **Vertex AI**                   | 同上（google.rpc.RetryInfo）                                                      | ❌ **不能** | 同上                                                                 |
+| AWS Bedrock                     | botocore `ClientError` 的 metadata（无标准 header）                                 | ❌ **不能** | 同上                                                                 |
+
 
 **为什么 Gemini 会这样**：
 
 1. Gemini 的 429 响应**不在 header 里放 `Retry-After`**，建议时长是 google.rpc 标准的 RetryInfo proto 形式塞在 body：
-
-   ```json
+  ```json
    {"error": {"code": 429, "status": "RESOURCE_EXHAUSTED",
               "details": [{"@type": "type.googleapis.com/google.rpc.RetryInfo",
                            "retryDelay": "23s"}]}}
-   ```
-
+  ```
 2. `_extract_response_headers` 沿用的是 OpenAI/Anthropic httpx 风格，只读 `error.response.headers` / `error.headers`
 3. `RateLimitHeaderParser.extract_retry_after` 也只翻 headers dict，不读 body
 4. 因此 Gemini 撞 429 时，"`23s`"这个数永远进不到 `quota.retry_after_seconds`，链路在 Gemini 这条路径上等于空转
@@ -2415,7 +2455,7 @@ raise ProviderError(..., response_headers=self._extract_response_headers(e))
 - ❌ 重试时机不是服务端建议的精确值，仅是 `factor × 2^attempt` 公式估算
 - ❌ 高并发时容易反复撞 429（公式给的等待短于服务端期望）
 
-**如果要补齐 Gemini 这条路径**：需要在 [`providers/genai.py`](file:///Users/liangzhu/Documents/work/plaud-model-hub/packages/core/src/model_hub_core/providers/genai.py) 抛 `ProviderError` 之前解析异常 body 的 `error.details[].retryDelay`，塞进 `ProviderError.response_headers["retry-after"]`（或新增 body parser 路径），现有解析链路就能自动接上。属于代码改动，不是配置能解决的。
+**如果要补齐 Gemini 这条路径**：需要在 `[providers/genai.py](file:///Users/liangzhu/Documents/work/plaud-model-hub/packages/core/src/model_hub_core/providers/genai.py)` 抛 `ProviderError` 之前解析异常 body 的 `error.details[].retryDelay`，塞进 `ProviderError.response_headers["retry-after"]`（或新增 body parser 路径），现有解析链路就能自动接上。属于代码改动，不是配置能解决的。
 
 #### 令牌桶工作流程（设计参考，当前未生效）
 
@@ -2523,11 +2563,11 @@ effective_weight = max(1, int(base_weight × multiplier))
 公式涉及三个权重数值，对应三个不同的概念层次：
 
 
-| 数值                 | 来源                    | 性质                          | 类比         |
-| ------------------ | --------------------- | --------------------------- | ---------- |
-| `base_weight`      | yaml 里写死的 `weight: N` | **配置意图**（产品决策，插件不改写）         | 商品**原价**   |
-| `multiplier`       | 插件按 error_rate 实时计算   | **运行时健康度**（每次路由都重算，0.1~1.0） | 临时**折扣**   |
-| `effective_weight` | `base × multiplier`   | Router 实际使用的值                | 当前**实付价**  |
+| 数值                 | 来源                    | 性质                          | 类比        |
+| ------------------ | --------------------- | --------------------------- | --------- |
+| `base_weight`      | yaml 里写死的 `weight: N` | **配置意图**（产品决策，插件不改写）        | 商品**原价**  |
+| `multiplier`       | 插件按 error_rate 实时计算   | **运行时健康度**（每次路由都重算，0.1~1.0） | 临时**折扣**  |
+| `effective_weight` | `base × multiplier`   | Router 实际使用的值               | 当前**实付价** |
 
 
 **为什么不直接改 `weight`，而要分两步**：
@@ -2573,12 +2613,12 @@ Provider 调用（耗时不定）
 **为什么用"事件流 + 滑动窗口"而不是其他方式**：
 
 
-| 方式                       | 优点                  | 缺点                  |
-| ------------------------ | ------------------- | ------------------- |
-| **事件流 + 滑动窗口**（当前方案）     | ground truth、零延迟、自动恢复 | 内存占用 ~ QPS × window |
-| 定时拉 Provider/网关 metrics | 解耦                  | 秒级延迟、依赖外部系统          |
-| 全局计数器 + 周期性重置             | 实现简单                | 重置瞬间会有"窗口边界震荡"      |
-| EWMA（指数加权移动平均）          | 平滑                  | 调参更难、不直观             |
+| 方式                      | 优点                    | 缺点                  |
+| ----------------------- | --------------------- | ------------------- |
+| **事件流 + 滑动窗口**（当前方案）    | ground truth、零延迟、自动恢复 | 内存占用 ~ QPS × window |
+| 定时拉 Provider/网关 metrics | 解耦                    | 秒级延迟、依赖外部系统         |
+| 全局计数器 + 周期性重置           | 实现简单                  | 重置瞬间会有"窗口边界震荡"      |
+| EWMA（指数加权移动平均）          | 平滑                    | 调参更难、不直观            |
 
 
 关键优势是**自动恢复无需额外逻辑**：旧 429 记录走出窗口（被 popleft）后，分母分子同时下降，error_rate 自然回落，乘数自然回升到 1.0。
@@ -2595,7 +2635,7 @@ deque: [(90,F), (100,T), (120,F), (140,T), (160,F), (180,T), (190,F), (200,F)]
 
 > **关键：`is_target_error` 是写入时贴的标签，不是事后回查**。每次调用结束时由 `InvocationLifecycleHook` 算出 bool，连同时间戳一起入队，所以算 `error_rate` 时只需数第二位 `True` 的占比，不必回去翻原始异常。
 >
-> [`adaptive_weight.py:89-108`](file:///Users/liangzhu/Documents/work/plaud-model-hub/packages/core/src/model_hub_core/plugins/adaptive_weight.py#L89-L108)：
+> `[adaptive_weight.py:89-108](file:///Users/liangzhu/Documents/work/plaud-model-hub/packages/core/src/model_hub_core/plugins/adaptive_weight.py#L89-L108)`：
 >
 > ```python
 > def on_invocation_success(self, endpoint_id, latency_ms):
@@ -2638,7 +2678,7 @@ AW 没有显式的"恢复"动作，也没有状态机。每次路由都从滑动
 
 ##### 力 2：新成功调用进入窗口稀释
 
-Engine 强制 `effective_weight ≥ 1`（📍 [`engine.py:1554`](file:///Users/liangzhu/Documents/work/plaud-model-hub/packages/core/src/model_hub_core/engine.py#L1554)），即使 multiplier 压到 `min_weight_ratio=0.1`，endpoint 仍能拿到至少 1 份探测流量。endpoint 真的恢复正常，新调用全部 `(t, False)` 入队，分母涨而分子不涨，`error_rate` 被稀释。
+Engine 强制 `effective_weight ≥ 1`（📍 `[engine.py:1554](file:///Users/liangzhu/Documents/work/plaud-model-hub/packages/core/src/model_hub_core/engine.py#L1554)`），即使 multiplier 压到 `min_weight_ratio=0.1`，endpoint 仍能拿到至少 1 份探测流量。endpoint 真的恢复正常，新调用全部 `(t, False)` 入队，分母涨而分子不涨，`error_rate` 被稀释。
 
 ##### 关键自洽：力 2 是力 1 的前提
 
@@ -2835,10 +2875,10 @@ multiplier = 1.0 - error_rate
 `penalty_factor=1.5` 让削减幅度**大于**失败幅度，给恢复留空间：
 
 
-| error_rate | `penalty=1.0` 乘数 | `penalty=1.5` 乘数 | 含义对比                          |
-| ---------- | ---------------- | ---------------- | ----------------------------- |
-| 30%        | 0.70             | 0.55             | 同样 30% 失败，1.5 多削 15% 流量       |
-| 50%        | 0.50             | 0.25             | 同样 50% 失败，1.5 多削 25% 流量       |
+| error_rate | `penalty=1.0` 乘数 | `penalty=1.5` 乘数 | 含义对比                        |
+| ---------- | ---------------- | ---------------- | --------------------------- |
+| 30%        | 0.70             | 0.55             | 同样 30% 失败，1.5 多削 15% 流量     |
+| 50%        | 0.50             | 0.25             | 同样 50% 失败，1.5 多削 25% 流量     |
 | 70%        | 0.30             | 0.10（兜底）         | 1.5 直接到下限，迅速放手让 endpoint 恢复 |
 
 
@@ -2860,11 +2900,11 @@ multiplier = 1.0 - error_rate
 **调参信号**（与下文"参数调优"配合使用）：
 
 
-| 现象                                    | 判断                | 调整方向                          |
-| ------------------------------------- | ----------------- | ----------------------------- |
-| 流量经常被打到下限 6 还在 429                 | 削得不够狠             | `penalty_factor` 调高（→ 2.0）   |
-| GSU/PT 一抖动就被 PayGo 抢走 70%+ 流量      | 削得太狠，成本不优        | `penalty_factor` 调低（→ 1.0~1.2） |
-| 大部分场景                                  | 默认值即可             | 保持 `1.5`                      |
+| 现象                            | 判断        | 调整方向                           |
+| ----------------------------- | --------- | ------------------------------ |
+| 流量经常被打到下限 6 还在 429            | 削得不够狠     | `penalty_factor` 调高（→ 2.0）     |
+| GSU/PT 一抖动就被 PayGo 抢走 70%+ 流量 | 削得太狠，成本不优 | `penalty_factor` 调低（→ 1.0~1.2） |
+| 大部分场景                         | 默认值即可     | 保持 `1.5`                       |
 
 
 #### 参数调优
@@ -3317,21 +3357,128 @@ v2 Passthrough 架构大幅简化了 Wrapper 实现（从 v1 的 ~7,800 行降�
 
 📍 `core/errors.py:10` ModelHubError | `:39` NoAvailableEndpointError | `:55` ProviderError | `:96` CircuitBreakerOpenError
 
+#### 类层级
+
 ```
-ModelHubError                         ← 基类
-  ├── ConfigError                     ← 配置错误
+ModelHubError                         ← 基类，所有 Hub 异常的根
+  ├── ConfigError                     ← 配置加载/解析错误（解析阶段就抛，绕过 fallback）
   ├── RoutingError                    ← 路由决策错误
-  │     └── NoAvailableEndpointError  ← 所有 endpoint 不可用（触发 fallback）
-  ├── CircuitBreakerOpenError         ← 特定 endpoint 熔断中
-  ├── ProviderError                   ← Provider API 错误
-  │     ├── status_code: int          ← HTTP 状态码
-  │     ├── is_retryable: bool        ← 是否可重试
-  │     └── should_circuit_break: bool ← 是否计入熔断
-  ├── TimeoutError                    ← 请求超时
-  └── DeprecatedAPIError              ← 已废弃 API 调用
+  │     └── NoAvailableEndpointError  ← 找不到可用 endpoint（触发 L1 fallback）
+  ├── CircuitBreakerOpenError         ← 特定 endpoint 处于 OPEN 状态
+  ├── ProviderError                   ← Provider HTTP 调用失败（驱动重试/failover/熔断）
+  │     ├── status_code: int          ← HTTP 状态码（429 / 5xx / 4xx）
+  │     ├── provider: str             ← 哪家厂商抛的（"openai" / "anthropic" / ...）
+  │     ├── body: dict | None         ← 原始 error body（DashScope 子分类靠它）
+  │     ├── subcode: str | None       ← SDK plugin 写入的细分码（如 VOLCANO_CONTENT_FILTER）
+  │     ├── response_headers: dict    ← 上游响应头（Retry-After、x-request-id 等）
+  │     └── original_error: Exception ← 底层 SDK 抛的原始异常
+  ├── TimeoutError(ProviderError)     ← 请求超时（多 timeout_ms 字段）
+  └── DeprecatedAPIError              ← 调到已下线 API
 ```
 
-`ProviderError` 是最关键的错误类型，驱动了 CoreEngine 的重试/failover/熔断决策。
+#### 每种错误的触发时机和处理路径
+
+| 异常 | 何时抛 | 谁抛 | Engine 怎么处理 |
+|---|---|---|---|
+| `ConfigError` | 配置 yaml 缺字段、循环 fallback、cred ref 不存在 | `ConfigParser` 解析阶段 | 直接上抛，不进 fallback |
+| `ProviderError` | 上游 API 返回 4xx/5xx | `Provider.invoke()` 内部 | 进 5.1.4 决策矩阵：retry / failover / 上抛 |
+| `TimeoutError` | 超时（>`timeout_ms`） | `Provider.invoke()` 内部 | 同 ProviderError，按 5xx 处理 |
+| `CircuitBreakerOpenError` | endpoint 处于 OPEN 状态时被选中 | `CircuitBreaker.before_request` | 当作"endpoint 不可用"，由 `EndpointFilterProvider` 在路由前排除，**不会真的抛到业务方** |
+| `NoAvailableEndpointError` | Router 找不到候选 endpoint，或 L2 重试耗尽 | `Router.choose()` / `_invoke_internal` | 上抛到 L1，进 fallback_model 链 |
+
+#### ProviderError 的可重试性是怎么判定的
+
+[`EngineConfig.retry_on_status_codes`](../../../../Documents/work/plaud-model-hub/packages/core/src/model_hub_core/engine.py) 默认 `[408, 409, 429, 500, 502, 503, 504, 529]`。Engine 拿到 `ProviderError` 后：
+
+```
+status_code ∈ retry_on_status_codes  →  is_retryable=True
+  ├─ 还有 attempt 预算 → 按 5.3 策略 retry 或 failover
+  └─ attempt 耗尽 → 排除当前 endpoint，进 _route 再选；选不出 → NoAvailableEndpointError
+
+status_code ∉ retry_on_status_codes  →  is_retryable=False
+  └─ 不重试，但仍 failover 到其他 endpoint（**不消耗 attempt**）；全部 endpoint 跑完 → NoAvailableEndpointError
+```
+
+即使是 4xx 不可重试错误，**只要这个 logical_model 下还有其他 endpoint 没试过，就会被 failover**。直到全部跑完才上抛 NoAvailableEndpointError 进 fallback。
+
+#### NoAvailableEndpointError 的三种触发场景
+
+📍 触发点见 `core/engine.py:273/278/505/569/575` 和 `core/router.py:70/81`
+
+| 场景 | 何时发生 | reason 字段 |
+|---|---|---|
+| **A. 路由直接抛**（router.py:70） | `_route()` 第一次就找不到 endpoint（全部 `enabled=false` / 熔断 / 被 excluded） | `"all endpoints are disabled or circuit-broken"` |
+| **B. L2 retry 耗尽**（engine.py:505/569） | 跑了 1 个或多个 endpoint 都失败、且 attempt 用完 | `"all endpoints exhausted after N attempts, last error: ..."` |
+| **C. L1 fallback 防护**（engine.py:273/278） | fallback 链出现循环 / 超过 `max_fallback_depth` | `"circular fallback detected: ..."` / `"max fallback depth exceeded"` |
+
+**A 和 B 的区别决定了 hub_metrics 里 `endpoint_id` 标签为什么有时为空、有时有值** ——
+
+| 场景 | hub_metrics on_error 拿到的 `context.endpoint_id` | 标签结果 |
+|---|---|---|
+| A | 路由阶段就抛了，`context.endpoint_id` **从未被赋值** | **空** |
+| B | engine 先成功路由过、调用过 endpoint，`context.endpoint_id` 还停在最后一次尝试的值 | 有值（**最后一次尝试**的 endpoint，不是真正的报错主体） |
+
+> 看 panel 时：「空 endpoint + NoAvailableEndpointError」≈ 「整条 endpoint 链同时被熔断/降权到 0」；「带 endpoint + NoAvailableEndpointError」≈ 「依次跑过几个 endpoint，最后一个失败时正好剩余 endpoint 也都被排除了」。
+
+#### error.last_error 链：定位真正的底层错误
+
+`NoAvailableEndpointError` 几乎永远不是「真正的报错」，它只是个聚合标志。真正的根因在 `__cause__` / `last_error` 里：
+
+```python
+try:
+    response = client.chat(model="gpt-5", messages=...)
+except NoAvailableEndpointError as e:
+    # e.reason — engine 写入的描述
+    # e.__cause__ — 触发它的底层 ProviderError（由 `raise ... from e` 保留）
+    # e.last_error — fallback 链尾的最后一次错误
+    real = e.last_error or e.__cause__
+    if isinstance(real, ProviderError):
+        print(real.status_code, real.body, real.response_headers)
+```
+
+`hub_metrics.on_error` 在 engine 内部失败路径上拿到的 `error` 参数本身就是底层 `ProviderError`（不是包装后的 NoAvailableEndpointError），因此 panel 上 `error_type=ProviderError + status_code=429/5xx` 才是真正定位故障的维度，`error_type=NoAvailableEndpointError` 只是告诉你「整条链耗尽了」。
+
+#### CircuitBreakerOpenError 为什么业务方几乎看不到
+
+熔断器同时实现两个接口：
+- `EndpointFilterProvider.get_unavailable_endpoints()` — Router 路由**前**就把 OPEN endpoint 排除掉
+- `before_request(endpoint_id)` — 万一漏过（如未实现 filter 的旧版），在调用前抛 `CircuitBreakerOpenError`
+
+正常路径下 endpoint 在路由阶段就被过滤了，根本不会进 invoke。所以 `CircuitBreakerOpenError` 实际是个**兜底防线**，业务方只在配置异常时才碰得到。
+
+#### 业务方应该 catch 什么
+
+```python
+from model_hub_core.errors import (
+    NoAvailableEndpointError,
+    ProviderError,
+    ConfigError,
+)
+
+try:
+    response = client.chat(...)
+except NoAvailableEndpointError as e:
+    # 所有可能的 endpoint 和 fallback model 都试过了，真没办法
+    # 不要再 retry，应该走业务侧降级（缓存 / 兜底文案 / 报错给用户）
+    metrics.inc("biz.summary_hub_exhausted")
+    raise BusinessLevelError(...) from e
+except ProviderError as e:
+    # 罕见：engine 的兜底分支（如 stream 启动失败）直接抛
+    if e.status_code in (400, 422):
+        # 4xx 通常是 prompt 有问题，重试也没用
+        raise BadPromptError(...) from e
+    raise
+except ConfigError as e:
+    # 启动时就该挂掉，跑到这里说明配置热更出问题
+    logger.critical("hub config broken", exc_info=e)
+    raise
+```
+
+不要 catch `Exception` 直接吞 —— `CircuitBreakerOpenError` 是兜底信号，`TimeoutError` 是 ProviderError 子类，分清楚再处理。
+
+#### 一句话总览
+
+> **ProviderError 描述「某个 endpoint 失败了」，NoAvailableEndpointError 描述「整条链都失败了」。前者是因，后者是果；hub_metrics 同时记录两者，看的时候要分开解读。**
 
 ### 多级追踪 ID
 
@@ -3350,17 +3497,17 @@ ModelHubError                         ← 基类
 ### EngineConfig 完整字段（📍 `core/engine.py:58`）
 
 
-| 字段                            | 类型        | 默认值                       | 说明                                 |
-| ----------------------------- | --------- | ------------------------- | ---------------------------------- |
-| `default_max_retries`         | int       | 2                         | 全局最大重试次数（可被 endpoint/request 覆盖）   |
-| `retry_on_status_codes`       | list[int] | [408,409,429,500-504,529] | 触发重试的状态码                           |
-| `backoff_factor`              | float     | 1.0                       | 退避基数：`factor × 2^attempt`          |
-| `max_backoff_seconds`         | float     | 10.0                      | 单次退避上限                             |
-| `jitter`                      | bool      | True                      | 是否添加随机抖动（防惊群）                      |
-| `jitter_factor`               | float     | 0.25                      | 抖动范围：backoff × (1 ± 0.25 × random) |
+| 字段                            | 类型        | 默认值                       | 说明                                                               |
+| ----------------------------- | --------- | ------------------------- | ---------------------------------------------------------------- |
+| `default_max_retries`         | int       | 2                         | 全局最大重试次数（可被 endpoint/request 覆盖）                                 |
+| `retry_on_status_codes`       | list[int] | [408,409,429,500-504,529] | 触发重试的状态码                                                         |
+| `backoff_factor`              | float     | 1.0                       | 退避基数：`factor × 2^attempt`                                        |
+| `max_backoff_seconds`         | float     | 10.0                      | 单次退避上限                                                           |
+| `jitter`                      | bool      | True                      | 是否添加随机抖动（防惊群）                                                    |
+| `jitter_factor`               | float     | 0.25                      | 抖动范围：backoff × (1 ± 0.25 × random)                               |
 | `rate_limit_backoff_strategy` | str       | "retry_after_first"       | 429 处理策略 ⚠️ 当前**只能 Python 代码传入**，无 yaml 入口（详见 §7.5「Engine 退避策略」） |
-| `default_timeout_ms`          | int       | 30000                     | 默认请求超时                             |
-| `max_fallback_depth`          | int       | 3                         | 最大 fallback 深度                     |
+| `default_timeout_ms`          | int       | 30000                     | 默认请求超时                                                           |
+| `max_fallback_depth`          | int       | 3                         | 最大 fallback 深度                                                   |
 
 
 ---
@@ -3632,7 +3779,7 @@ weight 控制流量分配比例（WEIGHTED_RANDOM/ROUND_ROBIN），priority 控�
 - ~~令牌桶：主动限速~~ ⚠️ 设计意图，未接入引擎；配置 `enable_token_bucket: false` 显式关闭
 - ✅ **限流器的被动部分（解析 Retry-After）**：告诉 Engine 单次重试要等多久——这是限流器目前不可替代的核心价值
 - ✅ **自适应权重**：429 频繁发生时按错误率平滑转移流量
-- ✅ **`soft_limit_on_429=true` 联动**：限流器收到 429 不再二值排除 endpoint，让 AW 渐进降权接管
+- ✅ `**soft_limit_on_429=true` 联动**：限流器收到 429 不再二值排除 endpoint，让 AW 渐进降权接管
 
 ### Q8: min_weight_ratio 能设为 0 吗？
 
@@ -3650,17 +3797,19 @@ weight 控制流量分配比例（WEIGHTED_RANDOM/ROUND_ROBIN），priority 控�
 
 **对 `rate_limit_backoff_strategy` 三个选项的影响**（仅对 Gemini）：
 
-| 策略 | Gemini 实际行为 |
-|---|---|
-| `retry_after_first`（默认） | 拿不到值 → 退化为指数退避公式 |
-| `exponential_only` | 同上 |
-| `failover_immediately` | 拿不到值 → **永远立即换 endpoint，本地不重试** |
+
+| 策略                      | Gemini 实际行为                     |
+| ----------------------- | ------------------------------- |
+| `retry_after_first`（默认） | 拿不到值 → 退化为指数退避公式                |
+| `exponential_only`      | 同上                              |
+| `failover_immediately`  | 拿不到值 → **永远立即换 endpoint，本地不重试** |
+
 
 **怎么缓解**：
 
 - 单 endpoint 场景：保持默认 `retry_after_first`（公式退避兜底），适当调大 `default_retry_after_seconds` 与 `max_backoff_seconds` 防止反复撞 429
 - 多 endpoint 场景：建议启用**自适应权重插件**——它统计 429 频率渐进降权，能在不依赖 Retry-After 的情况下把流量平滑切到健康 endpoint
-- 想彻底解决：需要在 [`providers/genai.py`](file:///Users/liangzhu/Documents/work/plaud-model-hub/packages/core/src/model_hub_core/providers/genai.py) 抛 `ProviderError` 之前解析 body 的 `retryDelay`，塞进 `response_headers["retry-after"]`，现有链路就能自动接上（属于代码改动，配置无法搞定）
+- 想彻底解决：需要在 `[providers/genai.py](file:///Users/liangzhu/Documents/work/plaud-model-hub/packages/core/src/model_hub_core/providers/genai.py)` 抛 `ProviderError` 之前解析 body 的 `retryDelay`，塞进 `response_headers["retry-after"]`，现有链路就能自动接上（属于代码改动，配置无法搞定）
 
 详见 §7.5「Provider 端如何把响应头送进来」末尾的 provider 差异表。
 

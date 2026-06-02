@@ -59,7 +59,13 @@
       "Read(//Users/liangzhu/Documents/work/config-files/**)",
       "mcp__notion__notion-fetch",
       "Bash(ls -la \"/Users/liangzhu/Documents/work/plaud-project-summary\" 2>&1 | head -50)",
-      "Read(//Users/liangzhu/Documents/work/plaud-project-summary/**)"
+      "Read(//Users/liangzhu/Documents/work/plaud-project-summary/**)",
+      "WebFetch(domain:pi.dev)",
+      "Bash(perl -i -pe ' *)",
+      "mcp__drawio__open_drawio_xml",
+      "Skill(ai-learning)",
+      "Skill(ai-learning:*)",
+      "Bash(awk '/```mermaid/,/```$/' \"/Users/liangzhu/Library/Mobile Documents/iCloud~md~obsidian/Documents/study-notes/AI/harness-engineering/00-Agent-Harness-知识全景图.md\")"
     ]
   }
 }

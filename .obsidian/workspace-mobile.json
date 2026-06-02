@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "AI/harness-engineering/Claude_Code-Harness_Engineering.md",
-                "mode": "source",
+                "file": "AI/harness-engineering/Pi/24-AgentEvent-订阅模型与-Compaction-子系统.md",
+                "mode": "preview",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Claude_Code-Harness_Engineering"
+              "title": "24-AgentEvent-订阅模型与-Compaction-子系统"
             }
           }
         ]
@@ -112,7 +112,7 @@
         "state": {
           "type": "backlink",
           "state": {
-            "file": "AI/ai-engineering/supplementary/Sampling-采样与推理详解.md",
+            "file": "work/model-hub/PlaudModelHub完全指南.md",
             "collapseAll": false,
             "extraContext": false,
             "sortOrder": "alphabetical",
@@ -169,8 +169,20 @@
       "bases:新建数据库": false
     }
   },
-  "active": "558c5d5626e30591",
+  "active": "c54cf109978555d4",
   "lastOpenFiles": [
+    "work/model-hub/PlaudModelHub完全指南.md",
+    "work/model-hub/PlaudModelHub思维导图.md",
+    "infra/k8s-learning/02-k8s-core-concepts.md",
+    "infra/k8s-learning/05-k8s-architecture.md",
+    "infra/k8s-learning/03-k8s-workload-types.md",
+    "infra/k8s-learning/01-docker-basics.md",
+    "AI/harness-engineering/Pi/06-Sessions-会话树.md",
+    "AI/harness-engineering/Pi/05-Keybindings-快捷键.md",
+    "AI/harness-engineering/Pi/04-Settings-配置全集.md",
+    "AI/harness-engineering/Pi/02-交互模式与-CLI-参考.md",
+    "AI/harness-engineering/Pi/03-Providers-认证与配置.md",
+    "AI/harness-engineering/Claude_Code-Harness_Engineering.md",
     "text-to-diagrams-skill-flow.md",
     "AI/ai-engineering/supplementary/大模型训练全链路-学习笔记.md",
     "AI/ai-engineering/supplementary/Sampling-采样与推理详解.md",
