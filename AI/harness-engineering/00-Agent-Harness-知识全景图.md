@@ -50,6 +50,74 @@ flowchart LR
 
 ---
 
+## § 0.1 概念辨析：agent / runtime / agentLoop / 基础设施模块
+
+**为什么容易混淆**：讨论、博客、源码里这四个词常被混着用——有人说"agent loop 调 LLM"，有人说"runtime 调 LLM"，有人说"LLM client 调 LLM"。三句话对的是同一件事的不同抽象层，但平铺在一起会让人误以为它们是并列模块。
+
+### 层级关系：包含，不是并列
+
+从外到内：
+
+```
+agent（整个进程 / 系统）
+  └── runtime（agent 的执行环境，提供所有运行时设施）
+        ├── 基础设施模块（被动）
+        │     ├── LLM client          ← SDK 封装、认证、重试
+        │     ├── tool registry       ← 工具元数据
+        │     ├── tool executor       ← 执行单个工具调用
+        │     ├── context store       ← 存对话历史
+        │     └── observability hook  ← 日志、trace
+        │
+        └── agentLoop（主动循环，串起所有基础设施）
+              while not done:
+                  response = LLM_client.call(context)        ← 调模型在这
+                  if is_final(response): break
+                  result = tool_executor.run(response.tool_call)
+                  context_store.append(result)
+```
+
+### 三个层级的分工
+
+| 层 | 性质 | 职责 | 类比 |
+|---|---|---|---|
+| **runtime** | 全部基础设施 + agentLoop | 提供 agent 跑起来需要的全部能力 | JVM / Node.js runtime |
+| **基础设施模块** | 被动模块 | 提供单一能力，等待被调用 | HTTP client 库 |
+| **agentLoop** | 主动循环 | 决定**何时**用哪个能力，把流程推进起来 | 应用主循环 |
+
+### 不同 framework 的命名对照
+
+概念在每个生态里都存在，只是名字不同——选型时按概念对位即可：
+
+| Framework | runtime 对应物 | agentLoop 对应物 |
+|---|---|---|
+| LangChain | `AgentExecutor` 周边设施 | `AgentExecutor._call()` 主循环 |
+| OpenAI Assistants | Assistants API 服务端 | run 状态机推进 |
+| Claude Agent SDK | harness | `query()` 内部循环 |
+| smolagents | `CodeAgent` 实例 | `run()` 内的 step 循环 |
+| Pi | `AgentSessionRuntime` + `AgentSession` | `agent-loop.ts` 内的 while 循环 |
+| Claude Code | query loop 周边设施 | `queryLoop` |
+
+### 关键判断
+
+- runtime 是宿主环境，agentLoop 是宿主里那个不停跑的决策循环
+- **agentLoop 包含 Model 调用**——它是 loop 体的核心步骤；LLM client 是这一步的执行者
+- LLM 调用既属于 agentLoop（作为 loop 的一步）也属于 LLM client（作为模块的功能）——前者是"何时调"，后者是"怎么调"
+- 基础设施模块是被动的：tool executor 不会自己决定执行什么工具，context store 不会自己决定写入什么。**真正"按下按钮"的是 agentLoop**
+- "agent 怎么工作"描述的是 agentLoop；"agent 部署在哪、依赖什么"描述的是 runtime
+- 本文档 §0 心跳骨架里的 8 行 while 伪代码就是 agentLoop 的最小形态；§1–§7 七个环节谈的都是 runtime 内部基础设施模块对 agentLoop 的支撑细节——比如 §2 调模型谈的是 LLM client 模块如何演化、§4 决策+执行工具谈的是 tool executor 模块如何演化
+
+### 与 T 层协议的衔接
+
+[[survey-etclovg/02-T-工具接口与协议]] 用 *integration boundary* 给协议分类时，function calling 落在 "Model ↔ Function" 边界——这条边界恰好就在 **agentLoop 与 LLM client 之间**：
+
+- LLM 通过 function calling 协议输出结构化指令（JSON）
+- agentLoop 收到指令后用 tool executor 真正执行
+- MCP / OpenAPI / A2A / AGENTS.md 则跨在 runtime 与外部实体之间，属于 runtime 边界协议
+
+function calling 看似在 agent 内部的原因正是这条：它连接的是 LLM client 和 agentLoop 这两个 runtime 内部组件，没有跨出 runtime 边界。
+
+---
+
 ## § 1 环节① 构造输入
 
 **根本问题**：模型每次只能看到一份 messages 数组，但真实需求里"输入"包含至少 15 种来源（用户、CLAUDE.md、tool result、hook、扩展、slash command…），且各自语义、生命周期、缓存策略完全不同。
