@@ -44,6 +44,45 @@
 
 服务之间的协调全靠中间的 **Redis** —— 它是所有消息、状态、队列的中转站。
 
+### 1.1 三个 "worker" 别搞混
+
+后文 "worker" 出现频率很高，但它可能指三个完全不同的东西。先钉死：
+
+| 名字 | 是什么 | 跑在哪 | 在本文里的角色 |
+|---|---|---|---|
+| **worker-service** | 一个 Go 后端服务，多副本（记作 worker-1 / worker-3 / w7…） | K8s（EKS）节点上的 Pod | **调度引擎**：创建 sandbox、派命令、收事件。后文单独出现 "worker" 默认指它 |
+| **Worker Agent** | sandbox 容器里的执行体（Python sigma-worker 进程 + adapter） | E2B / Docker / AgentCore 平台 | **被创建出来的执行者**，跑 LLM、调工具 |
+| **EKS worker node** | K8s 集群的机器节点 | —— | 只是承载 worker-service Pod 的物理机，本文基本不涉及 |
+
+**一句话**：worker-service 创建并指挥 Worker Agent；两者不在同一台机器上，靠 HTTP（那个 `https://sb-xyz.e2b.app` 地址）跨网络通信。
+
+### 1.2 服务跑在哪（部署拓扑）
+
+```
+K8s (EKS) 集群
+  ├── agent-service Pod   (多副本)  ← Master 大脑
+  ├── worker-service Pod  (多副本)  ← 调度引擎
+  ├── context-service Pod
+  ├── sandbox-gateway Pod           ← 出网保安
+  └── Redis                         ← 公共中转站
+
+E2B / AgentCore / Docker  (另一套基础设施，不在上面的集群里)
+  └── sandbox 容器        ← Worker Agent 跑在这里
+```
+
+关键认知：**sandbox 不在 K8s 集群里**。worker-service 只是调云平台 SDK 远程开一个容器，所以它和 sandbox 之间的一切都得走 HTTP + Redis，不能靠本地内存或共享磁盘。这是全篇很多设计（地址记 Redis、Dual-POST、gateway 代发）的根本前提。
+
+### 1.3 比喻词 ↔ 真实 Redis key 对照
+
+后文为了好懂用了几个比喻，这里先一次性绑定到真实的 key，看到比喻词就知道指哪个：
+
+| 比喻说法 | 真实 Redis 对象 | 类型 |
+|---|---|---|
+| 档案卡 | `sigma:wkr:agent:{id}:meta` | Hash |
+| 任务邮箱 | `sigma:wkr:agent:{id}:cmd` | Stream |
+| 事件邮箱 | `sigma:wkr:agent:{id}:events` | Stream |
+| 实时广播频道 / 喇叭 | `sigma.output.{session_id}` | Pub/Sub |
+
 ---
 
 ## 二、Redis 速通（看懂后面的命令）
@@ -155,50 +194,31 @@ XACK sigma:wkr:agent:abc123:cmd agent-dispatch 1714720000300-0
 ### 阶段 B：worker-service 创建 sandbox（只在 spawn 时）
 
 ```
-┌────────────────────────────────────────────────────────────────────┐
-│  worker-service (LB 随机选了 worker-3)                              │
-│                                                                    │
-│  ⑥ spawnAgent handler:                                              │
-│      - 生成 agent_id = "abc123"                                     │
-│      - 在 abc123 的"档案卡"上写：status = spawning（启动中）         │
-│      - 立即返回 master: {agent_id: "abc123"}                        │
-│                                                                    │
-│  ⑦ 异步 supervisor goroutine:                                       │
-│      - 调 E2B SDK 创建 sandbox    ★ sandbox 诞生时刻 ★              │
-│      - 拿到 endpoint: https://sb-xyz.e2b.app                        │
-│      - 组装 bootConfig（含 engine、gateway_url、agent_token）       │
-│      - 在档案卡上写：sandbox_endpoint = https://sb-xyz.e2b.app      │
-│      - 在档案卡上写：status = running（已就绪）                     │
-└──────────────────────────────┬─────────────────────────────────────┘
-                               │
-              ★★ 首发命令 ★★    │ 通过原子复合脚本一次性完成 5 件事:
-                               │  1. 检查命令是否重复（去重）
-                               │  2. 给命令分配一个递增编号
-                               │  3. 往 abc123 的"任务邮箱"投一封信
-                               │     （信里写：action=user_input,
-                               │              content=<instruction>）
-                               │  4. 把命令 ID 记进去重集合
-                               │  5. 写一份命令状态副本（供查询）
+┌────────────────────────────────────────────────────────┐
+│  worker-service (LB 随机选了 worker-3)                  │
+│                                                        │
+│  ⑥ 立即:  生成 agent_id="abc123"，回 master            │
+│                                                        │
+│  ⑦ 异步:  调 E2B SDK 创建 sandbox  ★ sandbox 诞生 ★    │
+│           拿到 URL: https://sb-xyz.e2b.app             │
+│           把 URL 和 status=running 写进 abc123 档案卡   │
+│                                                        │
+│     首发: 往 abc123 的任务邮箱投第一封信               │
+│           action=user_input, content=<instruction>     │
+└──────────────────────────────┬─────────────────────────┘
                                ▼
 ```
 
-**这一段在做什么（通俗解读）**：
+**三件事就够了**：
 
-1. **把 sandbox 的 URL 写进档案卡**
-   abc123 在 Redis 里有一张"档案卡"，把 sandbox 的 URL 写到 `sandbox_endpoint` 字段。后面 Dispatcher 要派命令时，就靠这个字段找 sandbox 的地址。
+1. **创建 sandbox，把它的 URL 记进档案卡**
+   abc123 在 Redis 里有张"档案卡"（一个 Hash）。worker 调 E2B 拿到 sandbox 的 URL，写进 `sandbox_endpoint` 字段——后面 Dispatcher 派命令就靠它找地址。同时把 `status` 写成 `running`，让前端/监控能查到 agent 已就绪。
 
-2. **把状态标记为"已就绪"**
-   在档案卡的 `status` 字段写 `running`。前端 UI、监控系统、其他服务能通过这个字段查到 agent 当前状态。
+2. **把第一条命令投进任务邮箱**
+   这封信只有两个关键字段：`action=user_input`（用户输入类，区别于 interrupt/cancel），`content=<instruction>`（就是 master 派活给的指令）。
 
-3. **用原子复合脚本投递首发命令**
-   把第一条命令塞进队列其实要做 5 件事（去重检查、分配序号、入队、加去重集合、写状态副本）。如果分 5 次发命令，中间可能被插队导致编号乱序。所以项目里写了一段 **Lua 脚本**，让 Redis 一口气做完这 5 件事，**原子性**保证中间没人能插嘴。
-   
-   脚本位置：`services/worker-service/internal/agentstore/lua/enqueue_cmd.lua`
-
-4. **信件内容**
-   往 abc123 的"任务邮箱"投的这封信里有两个核心字段：
-   - `action = user_input` — 这是用户输入类命令（区别于 interrupt / cancel）
-   - `content = <instruction>` — 内容就是 master 派活时给的 instruction
+3. **投信用一段 Lua 脚本一次做完**
+   投信其实附带去重、分配序号等几步杂事，项目用一段 Lua 脚本让 Redis **原子**地一口气做完，避免并发下序号乱序。细节不重要，记住"投信是原子的"即可。
 
 ### 阶段 C：Dispatcher 派命令给 sandbox（所有命令都走这里）
 
@@ -245,10 +265,10 @@ XACK sigma:wkr:agent:abc123:cmd agent-dispatch 1714720000300-0
 │         └─ cancel      → asyncio.Event.set() + state=stopped       │
 │       • 立即返回 200（handler 不阻塞等处理）                        │
 │                                                                    │
-│  ⑬ 主队列消费 goroutine 取出 user_input → 调内部 /invocations      │
+│  ⑬ 主队列消费协程 (asyncio) 取出 user_input → 调内部 /invocations  │
 │                                                                    │
 │  ⑭ /invocations handler (main.py:962):                              │
-│       engine = body.get("engine", "claude")  ★ adapter 选择时刻 ★   │
+│       engine = body.get("engine") or "claude"  ★ adapter 选择时刻 ★ │
 │                                                                    │
 │       if engine == "deepagents":                                   │
 │           adapter = DeepAdapter(...)         ← 每次新建             │
@@ -267,7 +287,7 @@ XACK sigma:wkr:agent:abc123:cmd agent-dispatch 1714720000300-0
 - master 不传 engine（请求体里没这字段）
 - worker-service handler 接受 engine（接口已开放但没人用）
 - bootConfig 透传 engine（仍是空字符串）
-- sandbox Python `body.get("engine") or "claude"` → 兜底成 `"claude"`
+- sandbox Python `body.get("engine") or "claude"` → 空字符串也兜底成 `"claude"`（注意用 `or` 而非默认参数 `body.get("engine", "claude")`——后者只在 key 缺失时生效，空串会漏网）
 - **当前生产链路所有 agent 都跑 claude**，deepagents/pi 是预留扩展点
 
 **重要事实**：一个 sandbox 整个生命周期只用一种 engine。要切 engine 得关掉 agent → spawn 新的。
@@ -526,12 +546,12 @@ POST /commands    │   • 持久适配器实例             │
 
 | Key 模式 | 类型 | 存什么 | 谁写 / 谁读 |
 |---|---|---|---|
-| `sigma:wkr:agent:abc123:meta` | Hash | agent 状态、sandbox endpoint、当前 seq | worker 写，worker / agent-service 读 |
-| `sigma:wkr:agent:abc123:cmd` | **Stream** | 待下发的命令队列 | worker handler 写，Dispatcher 读 |
+| `sigma:wkr:agent:abc123:meta` | Hash | agent 状态、sandbox endpoint、当前 seq | worker-service 写，worker-service / agent-service 读 |
+| `sigma:wkr:agent:abc123:cmd` | **Stream** | 待下发的命令队列 | worker-service handler 写，Dispatcher 读 |
 | `sigma:wkr:agent:abc123:cmd_dedup` | Set | 已 enqueue 的 command_id（去重） | enqueue_cmd.lua 维护 |
-| `sigma:wkr:agent:abc123:cmd:cmd-uuid-1` | Hash | 单条命令的状态投影（供查询） | worker 写，master 查询用 |
-| `sigma:wkr:agent:abc123:events` | **Stream** | sandbox 上行的事件流 | sandbox→worker 写，持久化用 |
-| `sigma.output.s1` | **Pub/Sub channel** | 实时事件广播（不持久化） | worker 发布，agent-service 订阅 |
+| `sigma:wkr:agent:abc123:cmd:cmd-uuid-1` | Hash | 单条命令的状态投影（供查询） | worker-service 写，master 查询用 |
+| `sigma:wkr:agent:abc123:events` | **Stream** | sandbox 上行的事件流 | sandbox 经 HTTP 上行，worker-service 写入，持久化用 |
+| `sigma.output.s1` | **Pub/Sub channel** | 实时事件广播（不持久化） | worker-service 发布，agent-service 订阅 |
 
 ---
 
@@ -619,11 +639,11 @@ def make_adapter(engine: str, *, agent_id: str):
 
 ---
 
-## 十、worker 重启时命令会丢吗？
+## 十、worker-service 重启时命令会丢吗？
 
 短答：**不会丢，但可能延迟送达或短暂重复**。
 
-| worker 死亡时机 | 命令在哪 | 结果 |
+| worker-service 死亡时机 | 命令在哪 | 结果 |
 |---|---|---|
 | handler 跑一半（极少） | 还没进 Redis | master 收 HTTP 错误，自行重试 |
 | XADD 后、Dispatcher 取出前 | Redis Stream 里 | 任何副本下次取出即可（延迟 1-2s） |

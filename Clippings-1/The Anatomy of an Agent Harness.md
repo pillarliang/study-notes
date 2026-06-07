@@ -67,18 +67,18 @@ Memory operates at multiple timescales. **Short-term memory** is conversation hi
 
 Claude Code implements a three-tier hierarchy: a lightweight index (~150 characters per entry, always loaded), detailed topic files pulled in on demand, and raw transcripts accessed via search only. A critical design principle: **the agent treats its own memory as a "hint" and verifies against actual state before acting**.
 
-## 4\. Context Management
+## 4\. 上下文管理
 
-This is where many agents fail silently. The core problem is context rot: **model performance degrades 30%+ when key content falls in mid-window positions** (Chroma research, corroborated by Stanford's "Lost in the Middle" finding). Even million-token windows suffer from instruction-following degradation as context grows.
+这是许多智能体悄然失败的地方。核心问题是上下文“腐烂”：**当关键信息落入上下文窗口中间位置时，模型性能会下降30%以上**（Chroma 的研究结果，以及斯坦福“Lost in the Middle”论文均有证明）。即便拥有百万 token 级别的上下文窗口，随着内容增多，模型的指令遵循能力同样会下降。
 
-**Production strategies include:**
+**业界的应对策略包括：**
 
-- **Compaction**: summarizing conversation history when approaching limits (Claude Code preserves architectural decisions and unresolved bugs while discarding redundant tool outputs)
-- **Observation masking**: JetBrains' Junie hides old tool outputs while keeping tool calls visible
-- **Just-in-time retrieval**: maintaining lightweight identifiers and loading data dynamically (Claude Code uses grep, glob, head, tail rather than loading full files)
-- **Sub-agent delegation**: each subagent explores extensively but returns only 1,000 to 2,000 token condensed summaries
+- **压缩（Compaction）**：在接近上下文极限时对历史对话进行摘要（例如 Claude Code 会保留架构决策和未解决的 bug，丢弃冗余的工具输出）
+- **观测屏蔽（Observation masking）**：JetBrains 的 Junie 会隐藏过时的工具输出，同时保留工具调用的可见性
+- **即时检索（Just-in-time retrieval）**：只维护轻量级的标识符，并按需动态加载数据（Claude Code 优先用 grep、glob、head、tail 等命令片段而不是一次性加载完整文件）
+- **子智能体委派（Sub-agent delegation）**：每个子智能体可以全面探索，但仅返回 1,000 至 2,000 token 的精炼摘要
 
-Anthropic's context engineering guide states the goal: find the **smallest possible set of high-signal tokens** that maximize likelihood of the desired outcome.
+Anthropic 的上下文工程指南指出最终目标：找到**最小的高信号 token 集合**，以最大化实现目标的概率。
 
 ## 5\. Prompt Construction
 

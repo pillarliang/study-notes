@@ -26,7 +26,6 @@ AI 应用 1 ──┐              ┌──→ MCP Server A (数据源 A)
 AI 应用 2 ──┘              └──→ MCP Server B (数据源 B)
 ```
 
-
 ---
 
 ## 2. 整体架构
@@ -70,7 +69,7 @@ MCP 由两层组成，类比"写信"和"寄信"：
 ```
 ┌──────────────────────────────────────┐
 │    数据层 (Data Layer) —— 消息内容     │
-│  JSON-RPC 2.0 格式                    │
+│  JSON-RPC 2.0 格式                   │
 │  • 生命周期管理（握手、能力协商）        │
 │  • 服务端原语：Tool / Resource / Prompt │
 │  • 客户端原语：Sampling / Elicitation   │
@@ -176,16 +175,29 @@ Tool 让 LLM 能够**执行操作**——查询数据库、调用 API、执行�
 
 #### 发现与调用流程
 
-```
-LLM ←→ Client ←→ Server
+> **先厘清 LLM 的位置**：LLM 不属于 MCP 的三个角色（Host / Client / Server），它是 **Host 调用的外部推理端**。下图中的 Client 是 Host 内部为某个 Server 维护的连接实例（`Client : Server = 1:1`），所有消息都经它转发——LLM 与 Server 从不直接通信，Host 才是中枢。因此消息流上 Client 居中、LLM 在外侧，而不是把 LLM 夹在 Client 与 Server 之间。
 
-1. Client → Server:  tools/list          # 发现可用工具
-2. Server → Client:  [{name, description, inputSchema}, ...]
-3. LLM 决定调用某个工具
-4. Client → Server:  tools/call          # 执行工具
-5. Server → Client:  {content: [...]}    # 返回结果
-6. Client → LLM:     处理结果
+```mermaid
+sequenceDiagram
+    participant LLM
+    participant Client
+    participant Server
+
+    Note over Client,Server: 发现阶段
+    Client->>Server: tools/list
+    Server-->>Client: [{name, description, inputSchema}, ...]
+
+    Note over LLM,Server: 调用阶段
+    Client->>LLM: 提供可用工具
+    LLM->>LLM: 决定调用某个工具
+    LLM->>Client: 请求调用工具
+    Client->>Server: tools/call
+    Server-->>Client: {content: [...]}
+    Client->>LLM: 回传结果
 ```
+
+- 实线箭头（`->>`）是请求，虚线箭头（`-->>`）是响应——`tools/list` / `tools/call` 的"去"与对应的"回"配对清晰。
+- "决定调用某个工具"是 LLM 内部决策，用自指箭头，不是发给他方的消息。
 
 #### 工具定义示例
 
@@ -722,11 +734,13 @@ SSE 不能做的：把 tool 的 result 内容拆成多块逐步返回
 
 ### 11.3 三种能力对比
 
-| 能力 | 支持？ | 机制 |
-|------|--------|------|
-| Tool 输出内容分块流式 | ❌ 不支持 | 协议层禁止拆分 result |
-| 工具运行中的进度更新 | ✅ 支持 | `notifications/progress`（通过 SSE 传输） |
-| 调用工具前后 LLM 文本流式 | ✅ 支持 | LLM API 层，与 MCP 无关 |
+
+| 能力              | 支持？   | 机制                                  |
+| --------------- | ----- | ----------------------------------- |
+| Tool 输出内容分块流式   | ❌ 不支持 | 协议层禁止拆分 result                      |
+| 工具运行中的进度更新      | ✅ 支持  | `notifications/progress`（通过 SSE 传输） |
+| 调用工具前后 LLM 文本流式 | ✅ 支持  | LLM API 层，与 MCP 无关                  |
+
 
 ### 11.4 流式发生在 Client 侧的 LLM 调用
 
@@ -847,21 +861,25 @@ async def run_with_polling():
 
 **伪代码与实际方法的对应关系：**
 
-| 笔记伪代码 | 实际 Python 方法 |
-|------------|-----------------|
-| `tools/call("deep_research")` | `session.call_tool("start_deep_research", {...})` |
-| `tasks/get({taskId})` | `session.call_tool("get_task_status", {"task_id": ...})` |
+
+| 笔记伪代码                         | 实际 Python 方法                                             |
+| ----------------------------- | -------------------------------------------------------- |
+| `tools/call("deep_research")` | `session.call_tool("start_deep_research", {...})`        |
+| `tasks/get({taskId})`         | `session.call_tool("get_task_status", {"task_id": ...})` |
+
 
 ### 11.7 总结
 
-| 环节 | 是否流式 | 原因 |
-|------|---------|------|
-| Client 侧 LLM → 用户 | ✅ 可流式 | LLM API 支持 streaming |
-| tools/call 结果内容 | ❌ 不可拆分 | JSON-RPC 协议层：result 必须完整 |
-| tools/call 运行中进度 | ✅ 可推送 | `notifications/progress` 通过 SSE 传输 |
+
+| 环节                            | 是否流式   | 原因                                             |
+| ----------------------------- | ------ | ---------------------------------------------- |
+| Client 侧 LLM → 用户             | ✅ 可流式  | LLM API 支持 streaming                           |
+| tools/call 结果内容               | ❌ 不可拆分 | JSON-RPC 协议层：result 必须完整                       |
+| tools/call 运行中进度              | ✅ 可推送  | `notifications/progress` 通过 SSE 传输             |
 | Streamable HTTP 传输 tools/call | SSE 管道 | POST → SSE stream（含 notifications + 最终 result） |
-| MCP Server 内部 LLM 调用 | 无意义 | 即使内部流式，也无法流式返回给 Client |
-| 长时间任务 | 非阻塞 | Task polling 模式替代 |
+| MCP Server 内部 LLM 调用          | 无意义    | 即使内部流式，也无法流式返回给 Client                         |
+| 长时间任务                         | 非阻塞    | Task polling 模式替代                              |
+
 
 ---
 
@@ -876,4 +894,5 @@ async def run_with_polling():
 | [MCP Inspector](https://github.com/modelcontextprotocol/inspector)       | 调试和测试工具           |
 | [MCP Servers](https://github.com/modelcontextprotocol/servers)           | 官方参考 Server 实现    |
 | [Awesome MCP Servers](https://github.com/punkpeye/awesome-mcp-servers)   | 社区 Server 合集      |
+
 

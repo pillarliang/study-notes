@@ -118,7 +118,7 @@ flowchart LR
    - 系统层（gateway、proxy、permission engine）
    - 组织层（audit、合规、human-in-the-loop）
 
-state management 安放在 L 层而不是 G 层——因为状态服务于"被读写的执行流"，紧贴 L 的语义；lifecycle hooks 和 policy enforcement 才安放在 G 层，紧贴其他约束机制。
+state management 安放在 Lifecycle 层而不是 Governance 层——因为状态服务于"被读写的执行流"，紧贴 Lifecycle 的语义；lifecycle hooks 和 policy enforcement 才安放在 Governance 层，紧贴其他约束机制。
 
 ### 3.3 七层结构图
 
@@ -142,7 +142,9 @@ flowchart TB
 
 ---
 
-## 4. 项目语料库（148+ / 170+ 开源项目映射）
+## 4. 项目语料库（开源项目映射）
+
+> 关于数量：综述原文自身就两个数并用——**摘要写 170+，Claim 3 和结论写 148+**，且两处英文都用 "map ... onto the taxonomy"，没有说明二者口径差别。这是原文的不一致，本系列笔记如实沿用，看到两个数不必困惑。
 
 ### 4.1 收集方法
 

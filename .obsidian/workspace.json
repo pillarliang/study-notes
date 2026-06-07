@@ -4,77 +4,20 @@
     "type": "split",
     "children": [
       {
-        "id": "544c0a90aac1082f",
-        "type": "split",
+        "id": "9368f3cf333a1d40",
+        "type": "tabs",
         "children": [
           {
-            "id": "7d46478e9d246d6b",
-            "type": "tabs",
-            "children": [
-              {
-                "id": "6981c3e7be85404e",
-                "type": "leaf",
-                "state": {
-                  "type": "markdown",
-                  "state": {
-                    "file": "infra/aws-credentials-配置学习笔记.md",
-                    "mode": "source",
-                    "source": false
-                  },
-                  "icon": "lucide-file",
-                  "title": "aws-credentials-配置学习笔记"
-                }
-              }
-            ]
-          },
-          {
-            "id": "5c3024169473821a",
-            "type": "tabs",
-            "children": [
-              {
-                "id": "fa2e06bd58557e4e",
-                "type": "leaf",
-                "state": {
-                  "type": "terminal:terminal",
-                  "state": {
-                    "terminal:terminal": {
-                      "cwd": "/Users/liangzhu/Library/Mobile Documents/iCloud~md~obsidian/Documents/study-notes/infra",
-                      "focus": false,
-                      "profile": {
-                        "args": [
-                          "--login"
-                        ],
-                        "executable": "/bin/zsh",
-                        "followTheme": true,
-                        "name": "",
-                        "platforms": {
-                          "darwin": true
-                        },
-                        "pythonExecutable": "python3",
-                        "restoreHistory": false,
-                        "rightClickAction": "copyPaste",
-                        "successExitCodes": [
-                          "0",
-                          "SIGINT",
-                          "SIGTERM"
-                        ],
-                        "terminalOptions": {
-                          "documentOverride": null
-                        },
-                        "type": "integrated",
-                        "useWin32Conhost": true
-                      },
-                      "serial": null
-                    }
-                  },
-                  "icon": "terminal",
-                  "title": "Terminal: claude"
-                }
-              }
-            ]
+            "id": "8f91f3f34f7d31f3",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
           }
-        ],
-        "direction": "vertical"
+        ]
       }
     ],
     "direction": "vertical"
@@ -131,8 +74,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 269.5,
-    "collapsed": true
+    "width": 249.5
   },
   "right": {
     "id": "18704fb929da8db0",
@@ -210,12 +152,13 @@
             "state": {
               "type": "outline",
               "state": {
+                "file": "AI/harness-engineering/survey-etclovg/04-L-生命周期与编排.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline"
+              "title": "Outline of 04-L-生命周期与编排"
             }
           }
         ],
@@ -238,44 +181,45 @@
       "terminal:Open terminal": false
     }
   },
-  "active": "fa2e06bd58557e4e",
+  "active": "8f91f3f34f7d31f3",
   "lastOpenFiles": [
-    "infra/aws-credentials-配置学习笔记.md",
-    "AI/harness-engineering/Pi/25-Agent-Harness-模块剖面图.md",
-    "infra/temporal_notes.md",
-    "infra/vertex-ai-provisioned-throughput-学习笔记.md",
-    "AI/harness-engineering/00-Agent-Harness-知识全景图.md",
-    "AI/harness-engineering/01-Agent-Loop-模块交互.md",
-    "AI/harness-engineering/sources/01-agent-loop-module-interaction.drawio",
-    "AI/harness-engineering/sources/01-agent-loop-flow.drawio",
-    "AI/harness-engineering/sources/00-agent-harness-reference-architecture.drawio",
-    "Clippings-1/油管大神Dan Koe： 这样用AI学东西，速度快18倍.md",
-    "AI/harness-engineering/Pi/23-Agent-架构图详解-七节点与三层.md",
-    "AI/harness-engineering/Pi/resources/teaching-agent-protocol.md",
-    "AI/llm-api-troubleshooting/error-status-codes.md",
-    "AI/harness-engineering/Pi/resources/me.md",
-    "AI/harness-engineering/Pi/07-Compaction-上下文压缩.md",
-    "AI/harness-engineering/Pi/06-Sessions-会话树.md",
-    "AI/harness-engineering/Pi/14-Custom-Providers-自定义-Provider.md",
-    "AI/harness-engineering/Pi/13-Custom-Models-自定义模型.md",
-    "AI/harness-engineering/Pi/12-Pi-Packages-分发与安装.md",
-    "AI/harness-engineering/Pi/11-Themes-主题.md",
-    "AI/harness-engineering/Pi/10-Prompt-Templates-提示模板.md",
-    "AI/harness-engineering/Pi/09-Skills-按需技能.md",
-    "AI/harness-engineering/Pi/08-Extensions-扩展编写.md",
-    "AI/harness-engineering/Pi/15-Session-文件格式.md",
-    "AI/harness-engineering/Pi/16-SDK-嵌入-Node-应用.md",
-    "AI/harness-engineering/Pi/17-RPC-模式.md",
-    "AI/harness-engineering/Pi/18-JSON-事件流.md",
-    "AI/harness-engineering/Pi/19-TUI-Components-构建终端-UI.md",
-    "AI/harness-engineering/Pi/20-平台与终端配置.md",
-    "AI/harness-engineering/Pi",
-    "AI/langchain",
-    "SE/learn_go/source/ch13.pdf",
-    "SE/learn_go/source/ch12.pdf",
-    "SE/learn_go/source/ch11.pdf",
-    "SE/learn_go/source/ch10.pdf",
-    "SE/learn_go/source/ch9.pdf",
+    "AI/harness-engineering/claude-code/Claude_Code-Harness_Engineering.md",
+    "AI/harness-engineering/claude-code",
+    "AI/harness-engineering/sigma/sigma-agent-完整数据流与架构-通俗版.md",
+    "AI/harness-engineering/sigma/sigma-agent-sandbox-逐帧时序版.md",
+    "AI/harness-engineering/sigma",
+    "AI/harness-engineering/Pi/01-Agent-Loop-模块交互.md",
+    "AI/harness-engineering/drafts/sources/main.pdf",
+    "AI/harness-engineering/drafts/sources/claude-code-harness.png",
+    "AI/harness-engineering/drafts/sources/book2-deep-dive-c9-c10-学习笔记.md",
+    "AI/harness-engineering/drafts/sources/book2-deep-dive-c7-c8-学习笔记.md",
+    "AI/harness-engineering/drafts/sources/book2-deep-dive-c5-c6-学习笔记.md",
+    "AI/harness-engineering/drafts/sources/book2-deep-dive-c3-c4-学习笔记.md",
+    "AI/harness-engineering/drafts/sources/book2-deep-dive-c1-c2-学习笔记.md",
+    "AI/harness-engineering/drafts/sources/book1-claude-code-学习笔记-final-mubu.md",
+    "AI/harness-engineering/drafts/sources/book1-claude-code-c7-c9.pdf",
+    "AI/harness-engineering/drafts/sources/book1-claude-code-c5-c6.pdf",
+    "AI/harness-engineering/drafts/sources/book1-claude-code-c3-c4.pdf",
+    "AI/harness-engineering/drafts/sources/book1-claude-code-c1-c2.pdf",
+    "AI/harness-engineering/drafts/sources/ai-agent-deep-dive-v2.1.pdf",
+    "AI/harness-engineering/drafts/sources",
+    "AI/harness-engineering/Pi/00-Agent-Harness-知识全景图.md",
+    "AI/harness-engineering/Pi/official-doc/25-Agent-Harness-模块剖面图.md",
+    "AI/harness-engineering/Pi/official-doc/24-AgentEvent-订阅模型与-Compaction-子系统.md",
+    "AI/harness-engineering/Pi/official-doc/23-Agent-架构图详解-七节点与三层.md",
+    "AI/harness-engineering/Pi/official-doc/22-从零到一搭建-Agent-完整技术文档.md",
+    "AI/harness-engineering/Pi/official-doc/21-本地开发与调试.md",
+    "AI/harness-engineering/Pi/official-doc/20-平台与终端配置.md",
+    "AI/harness-engineering/Pi/official-doc/19-TUI-Components-构建终端-UI.md",
+    "AI/harness-engineering/Pi/official-doc/18-JSON-事件流.md",
+    "AI/harness-engineering/Pi/official-doc/17-RPC-模式.md",
+    "AI/harness-engineering/Pi/official-doc/16-SDK-嵌入-Node-应用.md",
+    "AI/harness-engineering/Pi/official-doc/15-Session-文件格式.md",
+    "AI/harness-engineering/Pi/official-doc/14-Custom-Providers-自定义-Provider.md",
+    "AI/harness-engineering/Pi/official-doc/13-Custom-Models-自定义模型.md",
+    "AI/harness-engineering/Pi/official-doc/12-Pi-Packages-分发与安装.md",
+    "AI/harness-engineering/Pi/official-doc/11-Themes-主题.md",
+    "AI/harness-engineering/Pi/official-doc",
     "diagrams/plaud-skill-creator/output/figure-1-layer-stack.svg",
     "diagrams/plaud-skill-creator/output/figure-6-swimlane.svg",
     "diagrams/plaud-skill-creator/output/figure-5-tree.svg",
@@ -285,7 +229,6 @@
     "diagrams/plaud-prd-harness-skill/output/figure-7-state-machine.svg",
     "diagrams/plaud-prd-harness-skill/output/figure-6-donut-chart.svg",
     "diagrams/plaud-prd-harness-skill/output/figure-5-timeline.svg",
-    "diagrams/plaud-prd-harness-skill/output/figure-4-sequence.svg",
     "Untitled.canvas"
   ]
 }
