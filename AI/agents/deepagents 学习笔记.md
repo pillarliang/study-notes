@@ -19,15 +19,17 @@
 
 ### 1.2 Deep Agents vs LangChain vs LangGraph
 
-| 特性 | LangChain (`create_agent`) | LangGraph | Deep Agents (`create_deep_agent`) |
-| --- | --- | --- | --- |
-| **定位** | Agent 构建块 | 底层编排框架 | 高级 Agent 套件 |
-| **短期记忆** | Short-term memory | Short-term memory | StateBackend |
-| **长期记忆** | Long-term memory | Long-term memory | Long-term memory |
-| **Skills** | Multi-agent skills | - | Skills (progressive disclosure) |
-| **子 Agent** | Multi-agent subagents | Subgraphs | Subagents |
-| **HITL** | HITL middleware | Interrupts | `interrupt_on` 参数 |
-| **流式输出** | Agent Streaming | Streaming | Streaming |
+
+| 特性          | LangChain (`create_agent`) | LangGraph         | Deep Agents (`create_deep_agent`) |
+| ----------- | -------------------------- | ----------------- | --------------------------------- |
+| **定位**      | Agent 构建块                  | 底层编排框架            | 高级 Agent 套件                       |
+| **短期记忆**    | Short-term memory          | Short-term memory | StateBackend                      |
+| **长期记忆**    | Long-term memory           | Long-term memory  | Long-term memory                  |
+| **Skills**  | Multi-agent skills         | -                 | Skills (progressive disclosure)   |
+| **子 Agent** | Multi-agent subagents      | Subgraphs         | Subagents                         |
+| **HITL**    | HITL middleware            | Interrupts        | `interrupt_on` 参数                 |
+| **流式输出**    | Agent Streaming            | Streaming         | Streaming                         |
+
 
 **选择建议**：
 
@@ -37,10 +39,12 @@
 
 ### 1.3 组成
 
-| 组件 | 说明 |
-| --- | --- |
+
+| 组件                  | 说明                             |
+| ------------------- | ------------------------------ |
 | **Deep Agents SDK** | Python/JS 库，用于构建可处理任意任务的 Agent |
-| **Deep Agents CLI** | 基于 SDK 构建的终端编程 Agent |
+| **Deep Agents CLI** | 基于 SDK 构建的终端编程 Agent           |
+
 
 ---
 
@@ -144,20 +148,22 @@ create_deep_agent(
 
 ### 3.2 参数总览
 
-| 参数 | 说明 |
-| --- | --- |
-| `name` | Agent 名称，用于追踪和日志 |
-| `model` | 模型标识符或实例 |
-| `tools` | 自定义工具列表 |
-| `system_prompt` | 系统提示（会追加到内置 prompt 之后） |
-| `middleware` | 额外的自定义中间件 |
-| `subagents` | 自定义子 Agent 列表 |
-| `backend` | 文件系统后端 |
-| `interrupt_on` | Human-in-the-Loop 工具审批配置 |
-| `skills` | Skill 目录路径列表 |
-| `memory` | AGENTS.md 文件路径列表 |
-| `checkpointer` | 状态持久化（HITL 必需） |
-| `store` | 持久化 KV 存储 |
+
+| 参数              | 说明                       |
+| --------------- | ------------------------ |
+| `name`          | Agent 名称，用于追踪和日志         |
+| `model`         | 模型标识符或实例                 |
+| `tools`         | 自定义工具列表                  |
+| `system_prompt` | 系统提示（会追加到内置 prompt 之后）   |
+| `middleware`    | 额外的自定义中间件                |
+| `subagents`     | 自定义子 Agent 列表            |
+| `backend`       | 文件系统后端                   |
+| `interrupt_on`  | Human-in-the-Loop 工具审批配置 |
+| `skills`        | Skill 目录路径列表             |
+| `memory`        | AGENTS.md 文件路径列表         |
+| `checkpointer`  | 状态持久化（HITL 必需）           |
+| `store`         | 持久化 KV 存储                |
+
 
 ---
 
@@ -165,22 +171,26 @@ create_deep_agent(
 
 Deep Agent 默认包含以下中间件（无需手动配置）：
 
-| Middleware | 说明 |
-| --- | --- |
-| `TodoListMiddleware` | 任务规划和追踪 |
-| `FilesystemMiddleware` | 文件系统操作（读、写、导航） |
-| `SubAgentMiddleware` | 子 Agent 委派 |
-| `SummarizationMiddleware` | 对话历史压缩 |
+
+| Middleware                         | 说明                        |
+| ---------------------------------- | ------------------------- |
+| `TodoListMiddleware`               | 任务规划和追踪                   |
+| `FilesystemMiddleware`             | 文件系统操作（读、写、导航）            |
+| `SubAgentMiddleware`               | 子 Agent 委派                |
+| `SummarizationMiddleware`          | 对话历史压缩                    |
 | `AnthropicPromptCachingMiddleware` | Anthropic 模型的 prompt 缓存优化 |
-| `PatchToolCallsMiddleware` | 修复中断的 tool call 消息历史 |
+| `PatchToolCallsMiddleware`         | 修复中断的 tool call 消息历史      |
+
 
 **条件性加载的中间件**（使用对应功能时自动启用）：
 
-| Middleware | 触发条件 |
-| --- | --- |
-| `MemoryMiddleware` | 提供 `memory` 参数时 |
-| `SkillsMiddleware` | 提供 `skills` 参数时 |
+
+| Middleware                 | 触发条件                  |
+| -------------------------- | --------------------- |
+| `MemoryMiddleware`         | 提供 `memory` 参数时       |
+| `SkillsMiddleware`         | 提供 `skills` 参数时       |
 | `HumanInTheLoopMiddleware` | 提供 `interrupt_on` 参数时 |
+
 
 此外，LangChain 还提供额外的预构建中间件（retry、fallback、PII 检测等），以及 **Summarization Tool Middleware**（允许 Agent 在合适时机主动触发摘要，而非固定 token 阈值）。
 
@@ -188,12 +198,14 @@ Deep Agent 默认包含以下中间件（无需手动配置）：
 
 v0.4 对对话历史摘要机制做了重大改进：
 
-| 变更项 | 旧行为 | v0.4 新行为 |
-| --- | --- | --- |
-| **触发位置** | 独立步骤 | 在 model node 中通过 `wrap_model_call` 触发 |
-| **消息历史** | 摘要后丢弃原始消息 | **保留完整消息历史**在 graph state 中 |
-| **Token 计数** | 近似估算 | 更准确的 token 计数 |
-| **自动触发** | 仅基于阈值 | 当模型抛出 `ContextOverflowError` 时**自动触发** |
+
+| 变更项          | 旧行为       | v0.4 新行为                               |
+| ------------ | --------- | -------------------------------------- |
+| **触发位置**     | 独立步骤      | 在 model node 中通过 `wrap_model_call` 触发  |
+| **消息历史**     | 摘要后丢弃原始消息 | **保留完整消息历史**在 graph state 中            |
+| **Token 计数** | 近似估算      | 更准确的 token 计数                          |
+| **自动触发**     | 仅基于阈值     | 当模型抛出 `ContextOverflowError` 时**自动触发** |
+
 
 **ContextOverflowError 自动触发**：当前支持 `langchain-anthropic` 和 `langchain-openai`。
 
@@ -228,14 +240,16 @@ Deep Agent 通过虚拟文件系统管理上下文。Agent 可以读写文件来
 
 ### 5.1 可用后端
 
-| Backend | 说明 | 持久化 |
-| --- | --- | --- |
-| `StateBackend`（默认） | 存储在 LangGraph State 中的临时文件系统 | 仅单个 thread |
-| `FilesystemBackend` | 本地机器文件系统 | 本地磁盘 |
-| `StoreBackend` | LangGraph Store 持久化 | 跨 thread |
-| `LocalShellBackend` | 文件系统 + shell 执行 | 本地磁盘 |
-| `CompositeBackend` | 路由器，不同路径指向不同后端 | 混合 |
-| Sandbox | 隔离环境（Modal / Daytona / Deno / VFS） | 取决于 sandbox |
+
+| Backend             | 说明                                 | 持久化         |
+| ------------------- | ---------------------------------- | ----------- |
+| `StateBackend`（默认）  | 存储在 LangGraph State 中的临时文件系统       | 仅单个 thread  |
+| `FilesystemBackend` | 本地机器文件系统                           | 本地磁盘        |
+| `StoreBackend`      | LangGraph Store 持久化                | 跨 thread    |
+| `LocalShellBackend` | 文件系统 + shell 执行                    | 本地磁盘        |
+| `CompositeBackend`  | 路由器，不同路径指向不同后端                     | 混合          |
+| Sandbox             | 隔离环境（Modal / Daytona / Deno / VFS） | 取决于 sandbox |
+
 
 ### 5.2 使用示例
 
@@ -517,13 +531,15 @@ Memory 通过 `AGENTS.md` 文件为 Agent 提供持久化上下文，**始终加
 
 ### 9.2 Skills vs Memory
 
-| 维度 | Skills | Memory |
-| --- | --- | --- |
-| **用途** | 按需加载的专业能力 | 始终可用的持久上下文 |
-| **加载方式** | Progressive disclosure | 始终注入系统提示 |
-| **格式** | SKILL.md（命名目录） | AGENTS.md 文件 |
-| **分层** | 用户 → 项目（后者覆盖） | 用户 → 项目（合并） |
-| **适用场景** | 任务特定的大量指令 | 项目惯例、用户偏好 |
+
+| 维度       | Skills                 | Memory       |
+| -------- | ---------------------- | ------------ |
+| **用途**   | 按需加载的专业能力              | 始终可用的持久上下文   |
+| **加载方式** | Progressive disclosure | 始终注入系统提示     |
+| **格式**   | SKILL.md（命名目录）         | AGENTS.md 文件 |
+| **分层**   | 用户 → 项目（后者覆盖）          | 用户 → 项目（合并）  |
+| **适用场景** | 任务特定的大量指令              | 项目惯例、用户偏好    |
+
 
 ### 9.3 使用 Memory
 
@@ -622,3 +638,4 @@ Deep Agents 原生支持 LangSmith 追踪，用于调试和监控：
 - [Deep Agents CLI](https://docs.langchain.com/oss/python/deepagents/cli/overview)
 - [Trace Deep Agents (LangSmith)](https://docs.langchain.com/langsmith/trace-deep-agents)
 - [Frameworks, Runtimes, and Harnesses](https://docs.langchain.com/oss/python/concepts/products)
+
