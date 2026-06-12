@@ -12,7 +12,6 @@ source: Agent Harness Engineering - A Survey (TMLR 投稿, 2026)
 相关已有笔记：
 - 工程化视角入门：[[00-Agent-Harness-知识全景图]]
 - Claude Code 的 harness 实现：[[Claude_Code-Harness_Engineering]]
-- 概念辨析：[[三个-Scaling-维度的统一框架-学习笔记]]
 
 ---
 

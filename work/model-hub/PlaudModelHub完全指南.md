@@ -1182,11 +1182,11 @@ policies:
 ```
 
 
-| 字段                        | 必填  | 类型         | 默认值               | 说明                                                         |
-| ------------------------- | --- | ---------- | ----------------- | ---------------------------------------------------------- |
-| `strategy`                | 否   | str        | `WEIGHTED_RANDOM` | `WEIGHTED_RANDOM` / `ROUND_ROBIN` / `PRIORITY`（大小写均接受）     |
-| `enable_session_affinity` | 否   | bool       | `true`            | 同 `session_id` 一致性哈希到同 endpoint，多轮对话场景必开                   |
-| `fallback_model`          | 否   | str | list | —                 | 单值走 Chain 模式（含循环检测、`max_fallback_depth=3`）；列表走 List 模式逐个尝试 |
+| 字段                        | 必填  | 类型   | 默认值               | 说明                                                     |
+| ------------------------- | --- | ---- | ----------------- | ------------------------------------------------------ |
+| `strategy`                | 否   | str  | `WEIGHTED_RANDOM` | `WEIGHTED_RANDOM` / `ROUND_ROBIN` / `PRIORITY`（大小写均接受） |
+| `enable_session_affinity` | 否   | bool | `true`            | 同 `session_id` 一致性哈希到同 endpoint，多轮对话场景必开               |
+| `fallback_model`          | 否   | str  | list              | —                                                      |
 
 
 #### Plugins 完整字段
@@ -1418,7 +1418,7 @@ sequenceDiagram
 | 出参/最终响应                         | 携带信息                                                                                                                                                                                                                                                                  |
 | ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 成功 `ModelResponse`              | `logical_model / app_id / env / request_id / session_id / trace_id / latency_ms / endpoint_id（in usage）`；若有重试还携带 `retry_stats(retry_count, retried_endpoints, total_backoff_ms, status_codes)`；若走过 fallback 还含 `original_model / final_model / fallback_models_tried` |
-| L2 抛 `NoAvailableEndpointError` | `reason="all endpoints exhausted after N attempts, last error: ..."`，`__cause_`_ 指向最后一次 `ProviderError`                                                                                                                                                               |
+| L2 抛 `NoAvailableEndpointError` | `reason="all endpoints exhausted after N attempts, last error: ..."`，`__cause`__ 指向最后一次 `ProviderError`                                                                                                                                                               |
 | L1 抛 `NoAvailableEndpointError` | `reason="circular fallback detected: ..."` 或 `"max fallback depth (3) exceeded"` 或最后一个 fb_model 的失败原因                                                                                                                                                                 |
 
 
@@ -2239,7 +2239,7 @@ plugins:
 | **被动 429 标记排除**           | ✅ 完整可用   | `on_error → is_limited → get_unavailable_endpoints → engine._get_excluded_endpoints` 链路全通           |
 | **Retry-After 解析 + 引擎退避** | ✅ 完整可用   | 5 段链路：Provider → ProviderError → Parser → quota → `RetryInfoProvider` → Engine `_calculate_backoff` |
 | **令牌桶（主动控速）**             | ⚠️ 未接入引擎 | `TokenBucket` 类完整、配置可读、过滤路径已接入；但 `consume_token` 在生产代码 **0 次调用**——桶永远不被消费，"桶空 → 排除"判定无法触发           |
-| `**X-RateLimit-`* 配额头解析** | 🔍 仅观测   | 解析后存入 `quota.limit_`* / `remaining_*`，当前未参与路由决策                                                     |
+| `**X-RateLimit-`* 配额头解析** | 🔍 仅观测   | 解析后存入 `quota.limit_`* / `remaining_`*，当前未参与路由决策                                                     |
 
 
 **配置项真实影响范围**（下游决策依据）：
@@ -2374,7 +2374,7 @@ RateLimitPlugin 实现 RetryInfoProvider 接口
 - `max_backoff_seconds`（默认 60）：所有退避值的上限——即使 Retry-After 写了 600 秒也只等 60 秒
 - `backoff_factor`（默认 1.0）+ `jitter`（默认 true）：指数退避的基础与抖动开关
 
-> ⚠️ **配置位置 caveat**：`rate_limit_backoff_strategy` 字段属于 `**EngineConfig`**（`[engine.py:60-95](file:///Users/liangzhu/Documents/work/plaud-model-hub/packages/core/src/model_hub_core/engine.py#L60-L95)`），**不在限流器插件配置里**。当前**没有 yaml → EngineConfig 的反序列化路径**——仓库内所有 yaml 示例都没有 `engine:` 节，全靠在 wrapper 工厂函数里直接传 Python 对象：
+> ⚠️ **配置位置 caveat**：`rate_limit_backoff_strategy` 字段属于 `**EngineConfig`**（`[engine.py:60-95](file:///Users/liangzhu/Documents/work/plaud-model-hub/packages/core/src/model_hub_core/engine.py#L60-L95)`），不在限流器插件配置里。当前**没有 yaml → EngineConfig 的反序列化路径**——仓库内所有 yaml 示例都没有 `engine:` 节，全靠在 wrapper 工厂函数里直接传 Python 对象：
 >
 > ```python
 > from model_hub_core.engine import EngineConfig
@@ -3321,6 +3321,8 @@ v2 Passthrough 架构大幅简化了 Wrapper 实现（从 v1 的 ~7,800 行降�
 | `raw_request`      | 原生 SDK 参数（Passthrough 模式）             |
 
 
+> 💡 `temperature` / `max_tokens` 是 ModelRequest 的**独立顶层字段**，不在 `provider_params` 里——这是 Hub 屏蔽厂商差异的关键设计。YAML 里给某个模型加原生参数（`provider_params` 该写哪、为什么 temperature 单独提取、Gemini 白名单 vs OpenAI/Anthropic 整袋透传的差异、reasoning 模型的 `temperature=None` 坑）详见配套笔记 [[参数透传机制详解]]。
+
 ### ModelResponse 关键字段
 
 
@@ -3378,17 +3380,19 @@ ModelHubError                         ← 基类，所有 Hub 异常的根
 
 #### 每种错误的触发时机和处理路径
 
-| 异常 | 何时抛 | 谁抛 | Engine 怎么处理 |
-|---|---|---|---|
-| `ConfigError` | 配置 yaml 缺字段、循环 fallback、cred ref 不存在 | `ConfigParser` 解析阶段 | 直接上抛，不进 fallback |
-| `ProviderError` | 上游 API 返回 4xx/5xx | `Provider.invoke()` 内部 | 进 5.1.4 决策矩阵：retry / failover / 上抛 |
-| `TimeoutError` | 超时（>`timeout_ms`） | `Provider.invoke()` 内部 | 同 ProviderError，按 5xx 处理 |
-| `CircuitBreakerOpenError` | endpoint 处于 OPEN 状态时被选中 | `CircuitBreaker.before_request` | 当作"endpoint 不可用"，由 `EndpointFilterProvider` 在路由前排除，**不会真的抛到业务方** |
-| `NoAvailableEndpointError` | Router 找不到候选 endpoint，或 L2 重试耗尽 | `Router.choose()` / `_invoke_internal` | 上抛到 L1，进 fallback_model 链 |
+
+| 异常                         | 何时抛                                  | 谁抛                                     | Engine 怎么处理                                                      |
+| -------------------------- | ------------------------------------ | -------------------------------------- | ---------------------------------------------------------------- |
+| `ConfigError`              | 配置 yaml 缺字段、循环 fallback、cred ref 不存在 | `ConfigParser` 解析阶段                    | 直接上抛，不进 fallback                                                 |
+| `ProviderError`            | 上游 API 返回 4xx/5xx                    | `Provider.invoke()` 内部                 | 进 5.1.4 决策矩阵：retry / failover / 上抛                               |
+| `TimeoutError`             | 超时（>`timeout_ms`）                    | `Provider.invoke()` 内部                 | 同 ProviderError，按 5xx 处理                                         |
+| `CircuitBreakerOpenError`  | endpoint 处于 OPEN 状态时被选中              | `CircuitBreaker.before_request`        | 当作"endpoint 不可用"，由 `EndpointFilterProvider` 在路由前排除，**不会真的抛到业务方** |
+| `NoAvailableEndpointError` | Router 找不到候选 endpoint，或 L2 重试耗尽      | `Router.choose()` / `_invoke_internal` | 上抛到 L1，进 fallback_model 链                                        |
+
 
 #### ProviderError 的可重试性是怎么判定的
 
-[`EngineConfig.retry_on_status_codes`](../../../../Documents/work/plaud-model-hub/packages/core/src/model_hub_core/engine.py) 默认 `[408, 409, 429, 500, 502, 503, 504, 529]`。Engine 拿到 `ProviderError` 后：
+`[EngineConfig.retry_on_status_codes](../../../../Documents/work/plaud-model-hub/packages/core/src/model_hub_core/engine.py)` 默认 `[408, 409, 429, 500, 502, 503, 504, 529]`。Engine 拿到 `ProviderError` 后：
 
 ```
 status_code ∈ retry_on_status_codes  →  is_retryable=True
@@ -3405,24 +3409,28 @@ status_code ∉ retry_on_status_codes  →  is_retryable=False
 
 📍 触发点见 `core/engine.py:273/278/505/569/575` 和 `core/router.py:70/81`
 
-| 场景 | 何时发生 | reason 字段 |
-|---|---|---|
-| **A. 路由直接抛**（router.py:70） | `_route()` 第一次就找不到 endpoint（全部 `enabled=false` / 熔断 / 被 excluded） | `"all endpoints are disabled or circuit-broken"` |
-| **B. L2 retry 耗尽**（engine.py:505/569） | 跑了 1 个或多个 endpoint 都失败、且 attempt 用完 | `"all endpoints exhausted after N attempts, last error: ..."` |
-| **C. L1 fallback 防护**（engine.py:273/278） | fallback 链出现循环 / 超过 `max_fallback_depth` | `"circular fallback detected: ..."` / `"max fallback depth exceeded"` |
+
+| 场景                                       | 何时发生                                                              | reason 字段                                                             |
+| ---------------------------------------- | ----------------------------------------------------------------- | --------------------------------------------------------------------- |
+| **A. 路由直接抛**（router.py:70）               | `_route()` 第一次就找不到 endpoint（全部 `enabled=false` / 熔断 / 被 excluded） | `"all endpoints are disabled or circuit-broken"`                      |
+| **B. L2 retry 耗尽**（engine.py:505/569）    | 跑了 1 个或多个 endpoint 都失败、且 attempt 用完                               | `"all endpoints exhausted after N attempts, last error: ..."`         |
+| **C. L1 fallback 防护**（engine.py:273/278） | fallback 链出现循环 / 超过 `max_fallback_depth`                          | `"circular fallback detected: ..."` / `"max fallback depth exceeded"` |
+
 
 **A 和 B 的区别决定了 hub_metrics 里 `endpoint_id` 标签为什么有时为空、有时有值** ——
 
-| 场景 | hub_metrics on_error 拿到的 `context.endpoint_id` | 标签结果 |
-|---|---|---|
-| A | 路由阶段就抛了，`context.endpoint_id` **从未被赋值** | **空** |
-| B | engine 先成功路由过、调用过 endpoint，`context.endpoint_id` 还停在最后一次尝试的值 | 有值（**最后一次尝试**的 endpoint，不是真正的报错主体） |
+
+| 场景  | hub_metrics on_error 拿到的 `context.endpoint_id`               | 标签结果                               |
+| --- | ------------------------------------------------------------ | ---------------------------------- |
+| A   | 路由阶段就抛了，`context.endpoint_id` **从未被赋值**                      | **空**                              |
+| B   | engine 先成功路由过、调用过 endpoint，`context.endpoint_id` 还停在最后一次尝试的值 | 有值（**最后一次尝试**的 endpoint，不是真正的报错主体） |
+
 
 > 看 panel 时：「空 endpoint + NoAvailableEndpointError」≈ 「整条 endpoint 链同时被熔断/降权到 0」；「带 endpoint + NoAvailableEndpointError」≈ 「依次跑过几个 endpoint，最后一个失败时正好剩余 endpoint 也都被排除了」。
 
 #### error.last_error 链：定位真正的底层错误
 
-`NoAvailableEndpointError` 几乎永远不是「真正的报错」，它只是个聚合标志。真正的根因在 `__cause__` / `last_error` 里：
+`NoAvailableEndpointError` 几乎永远不是「真正的报错」，它只是个聚合标志。真正的根因在 `__cause_`_ / `last_error` 里：
 
 ```python
 try:
@@ -3441,6 +3449,7 @@ except NoAvailableEndpointError as e:
 #### CircuitBreakerOpenError 为什么业务方几乎看不到
 
 熔断器同时实现两个接口：
+
 - `EndpointFilterProvider.get_unavailable_endpoints()` — Router 路由**前**就把 OPEN endpoint 排除掉
 - `before_request(endpoint_id)` — 万一漏过（如未实现 filter 的旧版），在调用前抛 `CircuitBreakerOpenError`
 

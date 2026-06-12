@@ -65,7 +65,15 @@
       "mcp__drawio__open_drawio_xml",
       "Skill(ai-learning)",
       "Skill(ai-learning:*)",
-      "Bash(awk '/```mermaid/,/```$/' \"/Users/liangzhu/Library/Mobile Documents/iCloud~md~obsidian/Documents/study-notes/AI/harness-engineering/00-Agent-Harness-知识全景图.md\")"
+      "Bash(awk '/```mermaid/,/```$/' \"/Users/liangzhu/Library/Mobile Documents/iCloud~md~obsidian/Documents/study-notes/AI/harness-engineering/00-Agent-Harness-知识全景图.md\")",
+      "Read(//Users/liangzhu/.agents/skills/kami/**)",
+      "Bash(ls -la assets/templates/)",
+      "Bash(ls -la assets/diagrams/)",
+      "Bash(ls -la references/)",
+      "Bash(ls -la scripts/)",
+      "Bash(awk '/^## 8/,/^## 9/' references/design.md)",
+      "Bash(cd /Users/liangzhu/Documents/work/plaud-summary && grep -rn \"ChatModelHub\\\\|ModelHubClient\\\\|create_plugins_from_config\\\\|model_hub\" --include=\"*.py\" plaud_summary | head -50)",
+      "Read(//Users/liangzhu/Documents/work/plaud-summary/**)"
     ]
   }
 }
