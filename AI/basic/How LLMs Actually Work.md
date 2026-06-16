@@ -27,7 +27,7 @@ tags:
 8. 预测下一个 token：模型的输出形式及文本生成循环
 9. 架构与训练权重的区别：现代大模型的共性与差异
 
-![Transformer pipeline from tokenization to next-token prediction|500](https://www.0xkato.xyz/assets/transformer-pipeline.png)
+![Transformer pipeline from tokenization to next-token prediction|324](https://www.0xkato.xyz/assets/transformer-pipeline.png)
 
 文中穿插有"小知识卡"，便于各种背景的读者理解。
 
@@ -49,7 +49,7 @@ token 通常不是完整单词，而是"子词片段"。比如"tokenization"可�
 
 这种设计有时会产生出乎意料的问题。经典例子：问 LLM "strawberry" 这个词里有几个 R。早期 LLM 经常答错——不是模型不会数数，而是它操作的不是字母，只是 token ID。分词方式可能把多个字母合并进同一个 token，根本不是按字母粒度处理的。
 
-![Tokenization turns text into token IDs|243](https://www.0xkato.xyz/assets/transformer-tokenization.png)
+![Tokenization turns text into token IDs|177](https://www.0xkato.xyz/assets/transformer-tokenization.png)
 
 不同模型家族使用不同的分词器。GPT 系列使用 BPE（字节对编码）变体；LLaMA 系列用 SentencePiece。选择会影响推理效率（token 数越少越快）以及多语言覆盖等，但基本流程相同：文本进，整数出。
 
@@ -75,7 +75,7 @@ token ID（比如 1024）本身只是一个索引，没有任何含义。赋予�
 
 甚至可以在嵌入空间里做"算术"，比如著名的 `king − man + woman ≈ queen`。嵌入空间的几何结构确实承载了语义关系，尽管没有人明确要求模型这样组织。
 
-![Embedding space analogy with semantic relationships|500](https://www.0xkato.xyz/assets/transformer-embedding-analogy.png)
+![Embedding space analogy with semantic relationships|331](https://www.0xkato.xyz/assets/transformer-embedding-analogy.png)
 
 需要注意：此时每个 token 已被替换为其 embedding 向量，但该向量并不包含 token 在序列中的位置信息。无论"dog"出现在序列的第一位还是第五位，对应的向量完全相同——序列顺序的信息仍然缺失。
 
@@ -105,7 +105,7 @@ token ID（比如 1024）本身只是一个索引，没有任何含义。赋予�
 > **小知识：RoPE**
 > RoPE 即旋转位置编码。不叠加位置向量，而是对 Query 和 Key 做带有位置信息的旋转，使相对距离在 attention 计算中自然呈现。
 
-![Rotary position embeddings rotate vectors by position|500](https://www.0xkato.xyz/assets/transformer-rope.png)
+![Rotary position embeddings rotate vectors by position|330](https://www.0xkato.xyz/assets/transformer-rope.png)
 
 RoPE 有几个实际优势：自然编码相对位置（这正是 attention 所需要的）、更好地泛化到更长文本，且不需要额外的模型参数。
 
@@ -149,7 +149,7 @@ GPT 类语言模型从左到右逐 token 生成文本，位置 5 的 token 只�
 > **小知识：因果遮罩**
 > 因果遮罩屏蔽未来位置的 token，使 decoder-only 语言模型在预测下一个 token 时无法"提前看"。
 
-![Attention heatmap showing causal masking and high attention to cat|500](https://www.0xkato.xyz/assets/transformer-attention-heatmap.png)
+![Attention heatmap showing causal masking and high attention to cat|356](https://www.0xkato.xyz/assets/transformer-attention-heatmap.png)
 
 可解释性研究中最有趣的发现之一是"归纳头"（induction head，Anthropic，2022）：某些 attention head 专门学会识别序列中形如 "A B … A" 的模式，在第二次遇到 A 时，会回头查找第一次 A 后面跟的是什么，并将其延续出来。这是 LLM "上下文学习"能力目前最清晰的已知机制之一。
 
@@ -173,7 +173,7 @@ GPT 类语言模型从左到右逐 token 生成文本，位置 5 的 token 只�
 
 每个 head 独立完成注意力运算，所有 head 的输出拼接在一起，再经过一个线性变换混合回完整尺寸的向量。这个混合层也是训练得到的。
 
-![Multi-head attention combines specialized attention heads|500](https://www.0xkato.xyz/assets/transformer-multi-head-attention.png)
+![Multi-head attention combines specialized attention heads|298](https://www.0xkato.xyz/assets/transformer-multi-head-attention.png)
 
 有趣的是，不同 head 在训练后往往呈现出部分功能分化，尽管没有人为规定各 head 的职责。研究者发现了负责语法配对（动词-宾语、冠词-名词）的 head、处理代词指代的 head、追踪位置模式的 head，以及归纳头等更多类型。一个 Transformer 层可能有 32 个 head，几十层叠加后一个典型 LLM 共有数千个 attention head，每个都贡献一个独立学习到的视角。
 
@@ -201,7 +201,7 @@ FFN 的处理流程分三步：
 2. 施加一个非线性变换
 3. 压缩回原始维度
 
-![Feed-forward network expands, transforms, and compresses each token vector|348](https://www.0xkato.xyz/assets/transformer-ffn.png)
+![Feed-forward network expands, transforms, and compresses each token vector|371](https://www.0xkato.xyz/assets/transformer-ffn.png)
 
 中间的非线性步骤值得专门理解。非线性函数会对输入进行"弯曲"处理。最简单的 ReLU 对负数输出零，对正数原样通过。
 

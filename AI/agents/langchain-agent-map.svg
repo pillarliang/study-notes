@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 600" font-family="-apple-system,Helvetica,Arial,sans-serif">
+<defs>
+<marker id="dn" markerWidth="12" markerHeight="9" refX="6" refY="8" orient="auto"><path d="M1,1 L6,8 L11,1" fill="none" stroke="#94a3b8" stroke-width="2"/></marker>
+<filter id="sh" x="-5%" y="-5%" width="110%" height="115%"><feDropShadow dx="0" dy="1.5" stdDeviation="2" flood-color="#000000" flood-opacity="0.10"/></filter>
+</defs>
+<rect x="0" y="0" width="980" height="600" fill="#ffffff"/>
+<text x="490" y="42" text-anchor="middle" font-size="23" font-weight="700" fill="#1e293b">LangChain Agent 体系全景 · 从积木到成品</text>
+<text x="490" y="68" text-anchor="middle" font-size="13.5" fill="#64748b">create_deep_agent = create_agent + 预配置　｜　上层复用下层全部能力</text>
+<rect x="140" y="92" width="800" height="150" rx="12" fill="#f5f3ff" stroke="#ddd6fe" stroke-width="1.5"/>
+<path d="M152,92 h160 v150 h-160 a12,12 0 0 1 -12,-12 v-126 a12,12 0 0 1 12,-12 z" fill="#7c3aed"/>
+<text x="226.0" y="153.0" text-anchor="middle" font-size="16.5" font-weight="700" fill="#ffffff">Deep Agents</text>
+<text x="226.0" y="174.0" text-anchor="middle" font-size="11.5" fill="#ffffff" opacity="0.92">成品层 · §8</text>
+<text x="226.0" y="192.0" text-anchor="middle" font-size="11" fill="#ffffff" opacity="0.82" font-family="ui-monospace,Menlo,monospace">create_deep_agent</text>
+<rect x="330" y="114.0" width="188" height="46" rx="9" fill="#ffffff" stroke="#c4b5fd" stroke-width="1.4" filter="url(#sh)"/>
+<text x="424.0" y="134.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#5b21b6">预装 Middleware 栈</text>
+<text x="424.0" y="152.0" text-anchor="middle" font-size="11" fill="#94a3b8">§8.3</text>
+<rect x="531" y="114.0" width="188" height="46" rx="9" fill="#ffffff" stroke="#c4b5fd" stroke-width="1.4" filter="url(#sh)"/>
+<text x="625.0" y="134.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#5b21b6">Backends 文件系统</text>
+<text x="625.0" y="152.0" text-anchor="middle" font-size="11" fill="#94a3b8">§8.4</text>
+<rect x="732" y="114.0" width="188" height="46" rx="9" fill="#ffffff" stroke="#c4b5fd" stroke-width="1.4" filter="url(#sh)"/>
+<text x="826.0" y="134.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#5b21b6">Skills 渐进加载</text>
+<text x="826.0" y="152.0" text-anchor="middle" font-size="11" fill="#94a3b8">§8.5</text>
+<rect x="330" y="174.0" width="188" height="46" rx="9" fill="#ffffff" stroke="#c4b5fd" stroke-width="1.4" filter="url(#sh)"/>
+<text x="424.0" y="194.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#5b21b6">Memory 持久上下文</text>
+<text x="424.0" y="212.0" text-anchor="middle" font-size="11" fill="#94a3b8">§8.6</text>
+<rect x="531" y="174.0" width="188" height="46" rx="9" fill="#ffffff" stroke="#c4b5fd" stroke-width="1.4" filter="url(#sh)"/>
+<text x="625.0" y="194.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#5b21b6">CLI · ACP · 追踪</text>
+<text x="625.0" y="212.0" text-anchor="middle" font-size="11" fill="#94a3b8">§8.7</text>
+<rect x="140" y="272" width="800" height="166" rx="12" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1.5"/>
+<path d="M152,272 h160 v166 h-160 a12,12 0 0 1 -12,-12 v-142 a12,12 0 0 1 12,-12 z" fill="#2563eb"/>
+<text x="226.0" y="341.0" text-anchor="middle" font-size="16.5" font-weight="700" fill="#ffffff">create_agent</text>
+<text x="226.0" y="362.0" text-anchor="middle" font-size="11.5" fill="#ffffff" opacity="0.92">积木层 · §2–7</text>
+<text x="226.0" y="380.0" text-anchor="middle" font-size="11" fill="#ffffff" opacity="0.82" font-family="ui-monospace,Menlo,monospace">langchain.agents</text>
+<rect x="330" y="302.0" width="188" height="46" rx="9" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.4" filter="url(#sh)"/>
+<text x="424.0" y="322.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#92400e">Middleware〔核心〕</text>
+<text x="424.0" y="340.0" text-anchor="middle" font-size="11" fill="#94a3b8">§2</text>
+<rect x="531" y="302.0" width="188" height="46" rx="9" fill="#ffffff" stroke="#93c5fd" stroke-width="1.4" filter="url(#sh)"/>
+<text x="625.0" y="322.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1e40af">State 状态</text>
+<text x="625.0" y="340.0" text-anchor="middle" font-size="11" fill="#94a3b8">§3</text>
+<rect x="732" y="302.0" width="188" height="46" rx="9" fill="#ffffff" stroke="#93c5fd" stroke-width="1.4" filter="url(#sh)"/>
+<text x="826.0" y="322.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1e40af">Tool 工具</text>
+<text x="826.0" y="340.0" text-anchor="middle" font-size="11" fill="#94a3b8">§4</text>
+<rect x="330" y="362.0" width="188" height="46" rx="9" fill="#ffffff" stroke="#93c5fd" stroke-width="1.4" filter="url(#sh)"/>
+<text x="424.0" y="382.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1e40af">循环控制与稳定</text>
+<text x="424.0" y="400.0" text-anchor="middle" font-size="11" fill="#94a3b8">§5</text>
+<rect x="531" y="362.0" width="188" height="46" rx="9" fill="#ffffff" stroke="#93c5fd" stroke-width="1.4" filter="url(#sh)"/>
+<text x="625.0" y="382.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1e40af">结构化输出</text>
+<text x="625.0" y="400.0" text-anchor="middle" font-size="11" fill="#94a3b8">§6</text>
+<rect x="732" y="362.0" width="188" height="46" rx="9" fill="#ffffff" stroke="#93c5fd" stroke-width="1.4" filter="url(#sh)"/>
+<text x="826.0" y="382.0" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1e40af">Runtime Context</text>
+<text x="826.0" y="400.0" text-anchor="middle" font-size="11" fill="#94a3b8">§7</text>
+<rect x="140" y="472" width="800" height="92" rx="12" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.5"/>
+<path d="M152,472 h160 v92 h-160 a12,12 0 0 1 -12,-12 v-68 a12,12 0 0 1 12,-12 z" fill="#475569"/>
+<text x="226.0" y="504.0" text-anchor="middle" font-size="16.5" font-weight="700" fill="#ffffff">LangGraph</text>
+<text x="226.0" y="525.0" text-anchor="middle" font-size="11.5" fill="#ffffff" opacity="0.92">底座层 · §1.1</text>
+<text x="226.0" y="543.0" text-anchor="middle" font-size="11" fill="#ffffff" opacity="0.82" font-family="ui-monospace,Menlo,monospace">Runtime</text>
+<rect x="330" y="495.0" width="188" height="46" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.4" filter="url(#sh)"/>
+<text x="424.0" y="523.0" text-anchor="middle" font-size="14" font-weight="600" fill="#334155">持久化执行</text>
+<rect x="531" y="495.0" width="188" height="46" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.4" filter="url(#sh)"/>
+<text x="625.0" y="523.0" text-anchor="middle" font-size="14" font-weight="600" fill="#334155">流式输出</text>
+<rect x="732" y="495.0" width="188" height="46" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.4" filter="url(#sh)"/>
+<text x="826.0" y="523.0" text-anchor="middle" font-size="14" font-weight="600" fill="#334155">Graph 循环</text>
+<line x1="112" y1="244" x2="112" y2="270" stroke="#94a3b8" stroke-width="2" marker-end="url(#dn)"/>
+<line x1="112" y1="440" x2="112" y2="470" stroke="#94a3b8" stroke-width="2" marker-end="url(#dn)"/>
+<text x="490" y="261" text-anchor="middle" font-size="11.5" fill="#7c3aed" font-weight="600">▲ 预装一整套 Middleware / 文件系统 / 默认提示</text>
+<text x="490" y="461" text-anchor="middle" font-size="11.5" fill="#2563eb" font-weight="600">▲ 基于 Graph 循环与持久化执行构建</text>
+</svg>
