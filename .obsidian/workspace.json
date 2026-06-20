@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "SE/algorithm/tree.md",
+                "file": "SE/algorithm/1a-two-pointers.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "tree"
+              "title": "1a-two-pointers"
             }
           }
         ]
@@ -78,7 +78,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 439.5
+    "width": 335.5
   },
   "right": {
     "id": "18704fb929da8db0",
@@ -187,6 +187,29 @@
   },
   "active": "9049822077e8f266",
   "lastOpenFiles": [
+    "SE/algorithm/1b-sliding-window.md",
+    "SE/algorithm/1a-two-pointers.md.tmp.30042.d1dc6a942624",
+    "SE/algorithm/00-算法范式分类总纲.md",
+    "SE/algorithm/1a-two-pointers.md",
+    "Plaud-Summary-项目介绍（面试）.md",
+    "work/ask/single_file_ask_flow.md",
+    "work/model-hub/summary 模型调度与容错-技术方案.md",
+    "resume-CN-2026-05.md",
+    "Plaud-Summary-项目介绍（面试）.md.tmp.2337.ded7801412e9",
+    "plaud-project-summary-面试介绍.md",
+    "~$plaud_project_summary.pptx",
+    "plaud_project_summary.pptx",
+    "plaud_project_slides.py",
+    "SE/algorithm/1a-two-pointers.md.tmp.2759.714a3fdd72a5",
+    "SE/algorithm/1a-two-pointers.md.tmp.2759.44d77d5d912b",
+    "SE/algorithm/1a-two-pointers.md.tmp.2759.ec6461996ebb",
+    "SE/algorithm/0-tree.md",
+    "SE/algorithm/two-pointers.md",
+    "infra/vertex-ai-provisioned-throughput-学习笔记.md",
+    "infra/temporal_notes.md",
+    "infra/observability/opentelemetry-guide.md",
+    "infra/aws-credentials-配置学习笔记.md",
+    "SE/algorithm/tree.md",
     "AI/basic/How LLMs Actually Work.md",
     "AI/harness-engineering/harness-survey-etclovg/03-C-上下文与记忆管理/上下文压缩方案研究.md",
     "AI/agents/deepagents 学习笔记.md",
@@ -204,28 +227,6 @@
     "AI/harness-engineering/harness-survey-etclovg/03-C-上下文与记忆管理/Agent上下文压缩综述-方法失败模式与评估.md",
     "AI/harness-engineering/harness-survey-etclovg/03-C-上下文与记忆管理/preprints202605.2065.v1.pdf",
     "AI/harness-engineering/harness-survey-etclovg/Untitled",
-    "AI/harness-engineering/harness-survey-etclovg/03-C-上下文与记忆管理.md",
-    "AI/harness-engineering/harness-survey-etclovg/03-C-上下文与记忆管理/sigma-context-compact-上下文压缩完整技术方案.md",
-    "AI/harness-engineering/harness-survey-etclovg/03-C-上下文与记忆管理",
-    "AI/harness-engineering/sigma/sigma-context-compact-上下文压缩完整技术方案.md",
-    "AI/basic/03-注意力机制与Transformer-学习笔记.md",
-    "AI/00-从一个问题的旅程看AI全貌.md",
-    "SE/algorithm/tree.md",
-    "AI/harness-engineering/harness-survey-etclovg/00-Survey总览-ETCLOVG七层框架.md",
-    "SE/algorithm",
-    "AI/tools/解剖小龍蝦 — 以 OpenClaw 為例介紹 AI Agent 的運作原理-transcript-clean.md",
-    "AI/tools/Claude_Code_使用文档.md",
-    "AI/tools",
-    "AI/harness-engineering/claude-code/Claude_Code-Harness_Engineering.md",
-    "三个-Scaling-维度的统一框架-学习笔记.md",
-    "AI/harness-engineering/harness-survey-etclovg/02-T-工具接口与协议.md",
-    "AI/basic/02-CNN与RNN-学习笔记.md",
-    "AI/basic/01-深度学习基础-学习笔记.md",
-    "work/model-hub/~$PlaudModelHub技术分享.pptx",
-    "work/model-hub/PlaudModelHub技术分享.pptx",
-    "work/model-hub/gen_plaud_hub_ppt.py",
-    "web-ai",
-    "AI/harness-engineering/claude-code",
     "AI/harness-engineering/drafts/sources/claude-code-harness.png",
     "diagrams/plaud-skill-creator/output/figure-1-layer-stack.svg",
     "diagrams/plaud-skill-creator/output/figure-6-swimlane.svg",

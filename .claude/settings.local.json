@@ -73,7 +73,10 @@
       "Bash(ls -la scripts/)",
       "Bash(awk '/^## 8/,/^## 9/' references/design.md)",
       "Bash(cd /Users/liangzhu/Documents/work/plaud-summary && grep -rn \"ChatModelHub\\\\|ModelHubClient\\\\|create_plugins_from_config\\\\|model_hub\" --include=\"*.py\" plaud_summary | head -50)",
-      "Read(//Users/liangzhu/Documents/work/plaud-summary/**)"
+      "Read(//Users/liangzhu/Documents/work/plaud-summary/**)",
+      "Bash(git log *)",
+      "Bash(find ~/Documents/work -type d -name \"*plaud*summary*\" -o -name \"*project*summary*\" 2>/dev/null | head -20)",
+      "Read(//Users/liangzhu/Documents/work/**)"
     ]
   }
 }
