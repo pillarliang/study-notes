@@ -1,0 +1,132 @@
+<svg viewBox="0 0 960 500" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse">
+      <circle cx="1" cy="1" r="0.9" fill="rgba(20,20,19,0.08)"/>
+    </pattern>
+    <marker id="arr" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#504e49"/>
+    </marker>
+    <marker id="arr-b" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#1B365D"/>
+    </marker>
+  </defs>
+
+  <rect width="100%" height="100%" fill="#f5f4ed"/>
+  <rect x="68" y="64" width="892" height="360" fill="url(#dots)" opacity="0.45"/>
+
+  <!-- Lane backgrounds -->
+  <rect x="68" y="64"  width="892" height="120" fill="rgba(20,20,19,0.02)"/>
+  <rect x="68" y="184" width="892" height="120" fill="#EEF2F7" opacity="0.28"/>
+  <rect x="68" y="304" width="892" height="120" fill="rgba(20,20,19,0.02)"/>
+
+  <!-- Lane dividers -->
+  <line x1="68" y1="64"  x2="960" y2="64"  stroke="#e8e6dc" stroke-width="1"/>
+  <line x1="68" y1="184" x2="960" y2="184" stroke="#1B365D" stroke-width="0.8" stroke-dasharray="4,3"/>
+  <line x1="68" y1="304" x2="960" y2="304" stroke="#e8e6dc" stroke-width="0.8" stroke-dasharray="4,3"/>
+  <line x1="68" y1="424" x2="960" y2="424" stroke="#e8e6dc" stroke-width="1"/>
+
+  <!-- Lane label column -->
+  <rect x="0" y="64" width="68" height="360" fill="#f5f4ed" stroke="#e8e6dc" stroke-width="0.8"/>
+  <text x="34" y="124" fill="#6b6a64" font-size="8"
+        font-family="'JetBrains Mono','SF Mono',Consolas,monospace"
+        text-anchor="middle" letter-spacing="0.15em" transform="rotate(-90,34,124)">TEMPORAL</text>
+  <text x="34" y="244" fill="#1B365D" font-size="8"
+        font-family="'JetBrains Mono','SF Mono',Consolas,monospace"
+        text-anchor="middle" letter-spacing="0.15em" transform="rotate(-90,34,244)">API 层</text>
+  <text x="34" y="364" fill="#6b6a64" font-size="8"
+        font-family="'JetBrains Mono','SF Mono',Consolas,monospace"
+        text-anchor="middle" letter-spacing="0.15em" transform="rotate(-90,34,364)">后台异步</text>
+
+  <!-- ① HTTP POST: N1 bottom → right → N2 top -->
+  <polyline points="164,148 320,148 320,220"
+            fill="none" stroke="#1B365D" stroke-width="1.4" marker-end="url(#arr-b)"/>
+  <rect x="204" y="136" width="84" height="14" rx="2" fill="#f5f4ed"/>
+  <text x="246" y="147" fill="#1B365D" font-size="8"
+        font-family="'JetBrains Mono','SF Mono',Consolas,monospace"
+        text-anchor="middle" letter-spacing="0.1em">① HTTP POST</text>
+
+  <!-- ② 202 & dispatch: N2 right → N3 left -->
+  <line x1="392" y1="244" x2="468" y2="244"
+        stroke="#504e49" stroke-width="1.2" marker-end="url(#arr)"/>
+  <rect x="392" y="232" width="80" height="14" rx="2" fill="#f5f4ed"/>
+  <text x="432" y="243" fill="#504e49" font-size="8"
+        font-family="'JetBrains Mono','SF Mono',Consolas,monospace"
+        text-anchor="middle" letter-spacing="0.1em">② 202 &amp; 分发</text>
+
+  <!-- ③ async exec: N3 bottom → N4 top -->
+  <line x1="540" y1="268" x2="540" y2="340"
+        stroke="#504e49" stroke-width="1.2" marker-end="url(#arr)"/>
+  <rect x="544" y="284" width="64" height="14" rx="2" fill="#f5f4ed"/>
+  <text x="576" y="295" fill="#504e49" font-size="8"
+        font-family="'JetBrains Mono','SF Mono',Consolas,monospace"
+        text-anchor="middle" letter-spacing="0.1em">后台执行</text>
+
+  <!-- ④ Temporal Signal: N4 right → wrap → N5 right -->
+  <polyline points="612,364 884,364 884,124 864,124"
+            fill="none" stroke="#1B365D" stroke-width="1.4" marker-end="url(#arr-b)"/>
+  <rect x="700" y="352" width="100" height="14" rx="2" fill="#f5f4ed"/>
+  <text x="750" y="363" fill="#1B365D" font-size="8"
+        font-family="'JetBrains Mono','SF Mono',Consolas,monospace"
+        text-anchor="middle" letter-spacing="0.1em">③ Signal 回传</text>
+
+  <!-- N1: Temporal 触发 (external) -->
+  <rect x="92" y="100" width="144" height="48" rx="6" fill="#f5f4ed"/>
+  <rect x="92" y="100" width="144" height="48" rx="6"
+        fill="rgba(94,93,89,0.08)" stroke="#6b6a64" stroke-width="1"/>
+  <text x="108" y="116" fill="#6b6a64" font-size="7"
+        font-family="'JetBrains Mono','SF Mono',Consolas,monospace" letter-spacing="0.15em">UPSTREAM</text>
+  <text x="164" y="132" fill="#141413" font-size="12" font-weight="600"
+        font-family="Charter,Georgia,'Source Han Serif SC',serif" text-anchor="middle">Temporal 触发</text>
+
+  <!-- N2: API 接收 (FOCAL) -->
+  <rect x="248" y="220" width="144" height="48" rx="6" fill="#f5f4ed"/>
+  <rect x="248" y="220" width="144" height="48" rx="6"
+        fill="#EEF2F7" stroke="#1B365D" stroke-width="1.4"/>
+  <text x="264" y="236" fill="#1B365D" font-size="7"
+        font-family="'JetBrains Mono','SF Mono',Consolas,monospace" letter-spacing="0.15em">API 层 · FOCAL</text>
+  <text x="320" y="252" fill="#141413" font-size="12" font-weight="600"
+        font-family="Charter,Georgia,'Source Han Serif SC',serif" text-anchor="middle">接收 &amp; 202</text>
+
+  <!-- N3: asyncio 后台 (cloud) -->
+  <rect x="468" y="220" width="144" height="48" rx="6" fill="#f5f4ed"/>
+  <rect x="468" y="220" width="144" height="48" rx="6"
+        fill="rgba(20,20,19,0.03)" stroke="rgba(20,20,19,0.30)" stroke-width="1"/>
+  <text x="484" y="236" fill="#6b6a64" font-size="7"
+        font-family="'JetBrains Mono','SF Mono',Consolas,monospace" letter-spacing="0.15em">TASK</text>
+  <text x="540" y="252" fill="#141413" font-size="12" font-weight="600"
+        font-family="Charter,Georgia,'Source Han Serif SC',serif" text-anchor="middle">asyncio 后台</text>
+
+  <!-- N4: Agent + S3 (store) -->
+  <rect x="468" y="340" width="144" height="48" rx="6" fill="#f5f4ed"/>
+  <rect x="468" y="340" width="144" height="48" rx="6"
+        fill="rgba(20,20,19,0.05)" stroke="#504e49" stroke-width="1"/>
+  <text x="484" y="356" fill="#504e49" font-size="7"
+        font-family="'JetBrains Mono','SF Mono',Consolas,monospace" letter-spacing="0.15em">STORE</text>
+  <text x="540" y="372" fill="#141413" font-size="12" font-weight="600"
+        font-family="Charter,Georgia,'Source Han Serif SC',serif" text-anchor="middle">Agent + S3</text>
+
+  <!-- N5: 接收 Signal (external) -->
+  <rect x="720" y="100" width="144" height="48" rx="6" fill="#f5f4ed"/>
+  <rect x="720" y="100" width="144" height="48" rx="6"
+        fill="rgba(94,93,89,0.08)" stroke="#6b6a64" stroke-width="1"/>
+  <text x="736" y="116" fill="#6b6a64" font-size="7"
+        font-family="'JetBrains Mono','SF Mono',Consolas,monospace" letter-spacing="0.15em">UPSTREAM</text>
+  <text x="792" y="132" fill="#141413" font-size="12" font-weight="600"
+        font-family="Charter,Georgia,'Source Han Serif SC',serif" text-anchor="middle">接收 Signal</text>
+
+  <!-- Legend -->
+  <text x="84" y="444" fill="#504e49" font-size="8"
+        font-family="'JetBrains Mono','SF Mono',Consolas,monospace" letter-spacing="0.22em">LEGEND</text>
+  <rect x="172" y="436" width="14" height="10" rx="2" fill="#EEF2F7" stroke="#1B365D" stroke-width="1"/>
+  <text x="192" y="444" fill="#504e49" font-size="8.5"
+        font-family="Charter,Georgia,'Source Han Serif SC',serif">API 层（关键节点）</text>
+  <rect x="360" y="436" width="14" height="10" rx="2" fill="rgba(20,20,19,0.05)" stroke="#504e49" stroke-width="1"/>
+  <text x="380" y="444" fill="#504e49" font-size="8.5"
+        font-family="Charter,Georgia,'Source Han Serif SC',serif">Store / 后台</text>
+  <rect x="480" y="436" width="14" height="10" rx="2" fill="rgba(94,93,89,0.08)" stroke="#6b6a64" stroke-width="1"/>
+  <text x="500" y="444" fill="#504e49" font-size="8.5"
+        font-family="Charter,Georgia,'Source Han Serif SC',serif">上游 Temporal</text>
+  <line x1="668" y1="441" x2="700" y2="441" stroke="#1B365D" stroke-width="1.4" marker-end="url(#arr-b)"/>
+  <text x="708" y="445" fill="#504e49" font-size="8.5"
+        font-family="Charter,Georgia,'Source Han Serif SC',serif">关键路径</text>
+</svg>

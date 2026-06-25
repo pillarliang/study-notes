@@ -76,7 +76,13 @@
       "Read(//Users/liangzhu/Documents/work/plaud-summary/**)",
       "Bash(git log *)",
       "Bash(find ~/Documents/work -type d -name \"*plaud*summary*\" -o -name \"*project*summary*\" 2>/dev/null | head -20)",
-      "Read(//Users/liangzhu/Documents/work/**)"
+      "Read(//Users/liangzhu/Documents/work/**)",
+      "Bash(rsvg-convert -z 2 assets/rl-train-step.svg -o assets/rl-train-step.png)",
+      "Bash(rsvg-convert -z 2 assets/agentic-loop.svg -o assets/agentic-loop.png)",
+      "Bash(grep -nE '```text|┌|└|├|▶|◀|▼' \"Alibaba-ROLL-与-ROCK-学习指南.md\")",
+      "Bash(brew search *)",
+      "Read(//opt/homebrew/opt/**)",
+      "Read(//usr/local/bin/**)"
     ]
   }
 }

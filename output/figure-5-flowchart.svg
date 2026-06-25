@@ -1,0 +1,146 @@
+<svg viewBox="0 0 900 380" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arr" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#504e49"/>
+    </marker>
+    <marker id="arr-b" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#1B365D"/>
+    </marker>
+  </defs>
+
+  <rect width="100%" height="100%" fill="#f5f4ed"/>
+
+  <!-- Input → Diamond 1 -->
+  <line x1="168" y1="180" x2="220" y2="180"
+        stroke="#504e49" stroke-width="1.2" marker-end="url(#arr)"/>
+
+  <!-- Diamond 1 → Diamond 2 (无唯一命中) -->
+  <line x1="308" y1="180" x2="376" y2="180"
+        stroke="#504e49" stroke-width="1.2" marker-end="url(#arr)"/>
+  <rect x="312" y="168" width="60" height="14" rx="2" fill="#f5f4ed"/>
+  <text x="342" y="179" fill="#504e49" font-size="8"
+        font-family="'JetBrains Mono','SF Mono',Consolas,monospace"
+        text-anchor="middle" letter-spacing="0.08em">无唯一命中</text>
+
+  <!-- Diamond 2 → Diamond 3 -->
+  <line x1="528" y1="180" x2="576" y2="180"
+        stroke="#504e49" stroke-width="1.2" marker-end="url(#arr)"/>
+  <rect x="532" y="168" width="60" height="14" rx="2" fill="#f5f4ed"/>
+  <text x="562" y="179" fill="#504e49" font-size="8"
+        font-family="'JetBrains Mono','SF Mono',Consolas,monospace"
+        text-anchor="middle" letter-spacing="0.08em">无唯一命中</text>
+
+  <!-- Diamond 3 → Keep (零/多命中) -->
+  <line x1="728" y1="180" x2="760" y2="180"
+        stroke="#504e49" stroke-width="1.2" marker-end="url(#arr)"/>
+  <rect x="724" y="168" width="44" height="14" rx="2" fill="#f5f4ed"/>
+  <text x="746" y="179" fill="#504e49" font-size="8"
+        font-family="'JetBrains Mono','SF Mono',Consolas,monospace"
+        text-anchor="middle" letter-spacing="0.08em">歧义</text>
+
+  <!-- Diamond 1 → Replace A (唯一命中, downward) -->
+  <line x1="264" y1="212" x2="264" y2="264"
+        stroke="#1B365D" stroke-width="1.4" marker-end="url(#arr-b)"/>
+  <rect x="220" y="222" width="52" height="14" rx="2" fill="#f5f4ed"/>
+  <text x="246" y="233" fill="#1B365D" font-size="8"
+        font-family="'JetBrains Mono','SF Mono',Consolas,monospace"
+        text-anchor="middle" letter-spacing="0.08em">唯一命中</text>
+
+  <!-- Diamond 2 → Replace B -->
+  <line x1="452" y1="212" x2="452" y2="264"
+        stroke="#1B365D" stroke-width="1.4" marker-end="url(#arr-b)"/>
+  <rect x="408" y="222" width="52" height="14" rx="2" fill="#f5f4ed"/>
+  <text x="434" y="233" fill="#1B365D" font-size="8"
+        font-family="'JetBrains Mono','SF Mono',Consolas,monospace"
+        text-anchor="middle" letter-spacing="0.08em">唯一命中</text>
+
+  <!-- Diamond 3 → Replace C -->
+  <line x1="652" y1="212" x2="652" y2="264"
+        stroke="#1B365D" stroke-width="1.4" marker-end="url(#arr-b)"/>
+  <rect x="608" y="222" width="52" height="14" rx="2" fill="#f5f4ed"/>
+  <text x="634" y="233" fill="#1B365D" font-size="8"
+        font-family="'JetBrains Mono','SF Mono',Consolas,monospace"
+        text-anchor="middle" letter-spacing="0.08em">唯一命中</text>
+
+  <!-- Input node (external) -->
+  <rect x="24" y="156" width="144" height="48" rx="6" fill="#f5f4ed"/>
+  <rect x="24" y="156" width="144" height="48" rx="6"
+        fill="rgba(94,93,89,0.08)" stroke="#6b6a64" stroke-width="1"/>
+  <text x="40" y="172" fill="#6b6a64" font-size="7"
+        font-family="'JetBrains Mono','SF Mono',Consolas,monospace" letter-spacing="0.15em">INPUT</text>
+  <text x="96" y="188" fill="#141413" font-size="11" font-weight="600"
+        font-family="Charter,Georgia,'Source Han Serif SC',serif" text-anchor="middle">LLM 输出</text>
+  <text x="96" y="200" fill="#504e49" font-size="9"
+        font-family="Charter,Georgia,'Source Han Serif SC',serif" text-anchor="middle">&lt;&lt;cite:X&gt;&gt; 检测</text>
+
+  <!-- Diamond 1: 精确匹配 (FOCAL) -->
+  <polygon points="264,148 308,180 264,212 220,180"
+           fill="#EEF2F7" stroke="#1B365D" stroke-width="1.4"/>
+  <text x="264" y="176" fill="#141413" font-size="10" font-weight="600"
+        font-family="Charter,Georgia,'Source Han Serif SC',serif" text-anchor="middle">精确匹配</text>
+  <text x="264" y="192" fill="#1B365D" font-size="7"
+        font-family="'JetBrains Mono','SF Mono',Consolas,monospace"
+        text-anchor="middle" letter-spacing="0.1em">EXACT</text>
+
+  <!-- Diamond 2: 后缀匹配 -->
+  <polygon points="452,148 528,180 452,212 376,180"
+           fill="#f5f4ed" stroke="#141413" stroke-width="1"/>
+  <text x="452" y="176" fill="#141413" font-size="10" font-weight="600"
+        font-family="Charter,Georgia,'Source Han Serif SC',serif" text-anchor="middle">后缀匹配</text>
+  <text x="452" y="192" fill="#504e49" font-size="7"
+        font-family="'JetBrains Mono','SF Mono',Consolas,monospace"
+        text-anchor="middle" letter-spacing="0.1em">ENDSWITH</text>
+
+  <!-- Diamond 3: 子串匹配 -->
+  <polygon points="652,148 728,180 652,212 576,180"
+           fill="#f5f4ed" stroke="#141413" stroke-width="1"/>
+  <text x="652" y="176" fill="#141413" font-size="10" font-weight="600"
+        font-family="Charter,Georgia,'Source Han Serif SC',serif" text-anchor="middle">子串匹配</text>
+  <text x="652" y="192" fill="#504e49" font-size="7"
+        font-family="'JetBrains Mono','SF Mono',Consolas,monospace"
+        text-anchor="middle" letter-spacing="0.1em">CONTAINS</text>
+
+  <!-- Keep (零/多命中) -->
+  <rect x="760" y="156" width="116" height="48" rx="6" fill="#f5f4ed"/>
+  <rect x="760" y="156" width="116" height="48" rx="6"
+        fill="rgba(20,20,19,0.03)" stroke="rgba(20,20,19,0.30)" stroke-width="1"/>
+  <text x="776" y="172" fill="#6b6a64" font-size="7"
+        font-family="'JetBrains Mono','SF Mono',Consolas,monospace" letter-spacing="0.15em">FALLBACK</text>
+  <text x="818" y="188" fill="#141413" font-size="11" font-weight="600"
+        font-family="Charter,Georgia,'Source Han Serif SC',serif" text-anchor="middle">保留原值</text>
+
+  <!-- Replace boxes (bottom row) -->
+  <!-- Replace A -->
+  <rect x="192" y="264" width="144" height="40" rx="6" fill="#ffffff" stroke="#141413" stroke-width="1"/>
+  <text x="264" y="290" fill="#141413" font-size="11" font-weight="600"
+        font-family="Charter,Georgia,'Source Han Serif SC',serif" text-anchor="middle">替换引用</text>
+
+  <!-- Replace B -->
+  <rect x="380" y="264" width="144" height="40" rx="6" fill="#ffffff" stroke="#141413" stroke-width="1"/>
+  <text x="452" y="290" fill="#141413" font-size="11" font-weight="600"
+        font-family="Charter,Georgia,'Source Han Serif SC',serif" text-anchor="middle">替换引用</text>
+
+  <!-- Replace C -->
+  <rect x="580" y="264" width="144" height="40" rx="6" fill="#ffffff" stroke="#141413" stroke-width="1"/>
+  <text x="652" y="290" fill="#141413" font-size="11" font-weight="600"
+        font-family="Charter,Georgia,'Source Han Serif SC',serif" text-anchor="middle">替换引用</text>
+
+  <!-- Bottom annotation -->
+  <text x="450" y="328" fill="#504e49" font-size="9"
+        font-family="'JetBrains Mono','SF Mono',Consolas,monospace"
+        text-anchor="middle" letter-spacing="0.08em">→ 结构化引用块（歧义 / 零命中时保留原值，不乱填）</text>
+
+  <!-- Legend -->
+  <line x1="24" y1="348" x2="876" y2="348" stroke="rgba(20,20,19,0.10)" stroke-width="0.8"/>
+  <text x="24" y="364" fill="#504e49" font-size="8"
+        font-family="'JetBrains Mono','SF Mono',Consolas,monospace" letter-spacing="0.22em">LEGEND</text>
+  <polygon points="156,354 168,362 156,370 144,362" fill="#EEF2F7" stroke="#1B365D" stroke-width="1"/>
+  <text x="178" y="366" fill="#504e49" font-size="8.5"
+        font-family="Charter,Georgia,'Source Han Serif SC',serif">精确匹配（首要尝试）</text>
+  <polygon points="404,354 412,362 404,370 396,362" fill="#f5f4ed" stroke="#141413" stroke-width="1"/>
+  <text x="422" y="366" fill="#504e49" font-size="8.5"
+        font-family="Charter,Georgia,'Source Han Serif SC',serif">降级匹配</text>
+  <rect x="560" y="356" width="12" height="10" rx="2" fill="#ffffff" stroke="#141413" stroke-width="1"/>
+  <text x="578" y="364" fill="#504e49" font-size="8.5"
+        font-family="Charter,Georgia,'Source Han Serif SC',serif">唯一命中则替换</text>
+</svg>
