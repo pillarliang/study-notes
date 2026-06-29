@@ -82,7 +82,13 @@
       "Bash(grep -nE '```text|┌|└|├|▶|◀|▼' \"Alibaba-ROLL-与-ROCK-学习指南.md\")",
       "Bash(brew search *)",
       "Read(//opt/homebrew/opt/**)",
-      "Read(//usr/local/bin/**)"
+      "Read(//usr/local/bin/**)",
+      "Bash(grep -n \"[0-9]\\\\{1,4\\\\}\\\\.\" 1a-two-pointers.md)",
+      "Bash(grep -nE \"L[0-9]{1,4}|LC[0-9]{1,4}|力扣|leetcode\" 1a-two-pointers.md)",
+      "WebSearch",
+      "Read(//Users/liangzhu/.claude/skills/**)",
+      "Read(//Users/liangzhu/.claude/plugins/**)",
+      "Read(//Users/liangzhu/.claude/**)"
     ]
   }
 }

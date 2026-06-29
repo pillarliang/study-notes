@@ -181,7 +181,7 @@ def check_inclusion(s1, s2):
 
 #### 例题
 
-> [!example] 例 1 · L3 无重复字符的最长子串（中）｜求最长母题
+> [!example] 例 1 · L3 无重复字符的最长子串（中）｜求最长母题｜HOT 100
 > 这道题维护字符计数表，违规：某字符计数 > 1（窗口里出现了重复字符）。固定结构（`left=0`、`for right`、`while 违规: 收缩`、`while 之后更新最长`）所有求最长题都一样，换题只改「何为违规」。
 
 ```python
@@ -266,7 +266,7 @@ def min_subarray_len(target, nums):
     return ans if ans <= len(nums) else 0
 ```
 
-> [!example] 例 2 · L76 最小覆盖子串（难）｜“覆盖全部”型
+> [!example] 例 2 · L76 最小覆盖子串（难）｜“覆盖全部”型｜HOT 100
 > “合法”从“和达标”换成“窗口已包含目标串的所有字符（按出现次数）”。用一个 `need` 计数表 + 变量 `missing` 记录还差几个字符，`missing == 0` 即合法。这是求最短里最经典的难题。
 
 ```python
