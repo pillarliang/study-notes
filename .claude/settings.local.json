@@ -88,7 +88,13 @@
       "WebSearch",
       "Read(//Users/liangzhu/.claude/skills/**)",
       "Read(//Users/liangzhu/.claude/plugins/**)",
-      "Read(//Users/liangzhu/.claude/**)"
+      "Read(//Users/liangzhu/.claude/**)",
+      "Skill(weekly-report)",
+      "Skill(weekly-report:*)",
+      "Read(//opt/homebrew/Caskroom/miniconda/base/envs/dev/lib/python3.12/site-packages/claude_agent_sdk/**)",
+      "Skill(claude-api)",
+      "Skill(claude-api:*)",
+      "Bash(python3 -c ' *)"
     ]
   }
 }

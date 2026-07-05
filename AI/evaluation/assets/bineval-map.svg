@@ -1,0 +1,141 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1040" height="1240" viewBox="0 0 1040 1240" font-family="Heiti SC, PingFang SC, sans-serif">
+  <defs>
+    <marker id="arr" markerWidth="11" markerHeight="11" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L9,5 L0,10 z" fill="#3a4a63"/>
+    </marker>
+    <marker id="arrw" markerWidth="11" markerHeight="11" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L9,5 L0,10 z" fill="#b08400"/>
+    </marker>
+    <style>
+      .t  { font-size:15px; fill:#1f2733; }
+      .tb { font-size:17px; fill:#16202e; font-weight:700; }
+      .ts { font-size:12.5px; fill:#46566b; }
+      .en { font-family:Charter, serif; }
+      .lab{ font-size:13px; fill:#5a6a80; font-weight:700; letter-spacing:1px; }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1040" height="1240" fill="#fbfaf7"/>
+
+  <!-- Title -->
+  <text x="520" y="44" text-anchor="middle" class="tb" font-size="24" fill="#13202f">BinEval：把“打一个分”换成“问一串是非题”</text>
+  <text x="520" y="70" text-anchor="middle" class="ts en" font-size="14" fill="#7a8290">Ask, Don't Judge — Binary Questions for Interpretable LLM Evaluation</text>
+
+  <!-- ===== 1. 问题 ===== -->
+  <text x="60" y="108" class="lab" fill="#b5392f">① 出发点</text>
+  <rect x="60" y="118" width="920" height="86" rx="12" fill="#fcefec" stroke="#e0a89f"/>
+  <text x="84" y="150" class="tb" fill="#a8362c">整体打分的盲点：表面合理 = 满分</text>
+  <text x="84" y="176" class="t">让评判模型对“连贯性 / 事实一致性”一次性打一个整体分，错漏会被流畅、贴题的外表掩盖；</text>
+  <text x="84" y="196" class="t">一个分还无法解释——分低了也说不清是事实错、不相关、还是不流畅。</text>
+
+  <line x1="520" y1="204" x2="520" y2="236" stroke="#3a4a63" stroke-width="2" marker-end="url(#arr)"/>
+
+  <!-- ===== 2. 范式 ===== -->
+  <text x="60" y="262" class="lab" fill="#1f5fa8">② 核心范式</text>
+  <rect x="60" y="272" width="920" height="70" rx="12" fill="#e9f0fa" stroke="#9cbbe2"/>
+  <text x="520" y="304" text-anchor="middle" class="tb" font-size="19" fill="#184a86">不要问“几分”，要问一组“是 / 否”小问题，再把答案聚合成分数</text>
+  <text x="520" y="328" text-anchor="middle" class="ts">每个问题只盯一个可独立核验的点 · 答“是”=满足，答“否”=违反</text>
+
+  <line x1="520" y1="342" x2="520" y2="374" stroke="#3a4a63" stroke-width="2" marker-end="url(#arr)"/>
+
+  <!-- ===== 3. pipeline ===== -->
+  <text x="60" y="400" class="lab">③ 评估流水线</text>
+  <g>
+    <rect x="60" y="412" width="165" height="96" rx="10" fill="#ffffff" stroke="#c4ccd6"/>
+    <text x="142" y="446" text-anchor="middle" class="tb" font-size="15">任务要求</text>
+    <text x="142" y="470" text-anchor="middle" class="ts">摘要 / 对话 /</text>
+    <text x="142" y="488" text-anchor="middle" class="ts">指令规范</text>
+
+    <rect x="255" y="412" width="180" height="96" rx="10" fill="#ffffff" stroke="#c4ccd6"/>
+    <text x="345" y="442" text-anchor="middle" class="tb" font-size="15">两步分解</text>
+    <text x="345" y="465" text-anchor="middle" class="ts">先列出全部要求，</text>
+    <text x="345" y="483" text-anchor="middle" class="ts">再逐条拆成是非题</text>
+
+    <rect x="465" y="412" width="180" height="96" rx="10" fill="#ffffff" stroke="#c4ccd6"/>
+    <text x="555" y="442" text-anchor="middle" class="tb" font-size="15">是非题清单</text>
+    <text x="555" y="465" text-anchor="middle" class="ts">按维度分组</text>
+    <text x="555" y="483" text-anchor="middle" class="ts">（一致性 / 连贯…）</text>
+
+    <rect x="675" y="412" width="150" height="96" rx="10" fill="#ffffff" stroke="#c4ccd6"/>
+    <text x="750" y="446" text-anchor="middle" class="tb" font-size="15">逐题独立判</text>
+    <text x="750" y="470" text-anchor="middle" class="ts">每题给 0/1</text>
+    <text x="750" y="488" text-anchor="middle" class="ts">+ 一句理由</text>
+
+    <rect x="855" y="412" width="125" height="96" rx="10" fill="#eef6ee" stroke="#9ec79e"/>
+    <text x="917" y="446" text-anchor="middle" class="tb" font-size="15" fill="#2f7a34">聚合打分</text>
+    <text x="917" y="470" text-anchor="middle" class="ts">分维度比例</text>
+    <text x="917" y="488" text-anchor="middle" class="ts">+ 总分</text>
+
+    <line x1="225" y1="460" x2="251" y2="460" stroke="#3a4a63" stroke-width="2" marker-end="url(#arr)"/>
+    <line x1="435" y1="460" x2="461" y2="460" stroke="#3a4a63" stroke-width="2" marker-end="url(#arr)"/>
+    <line x1="645" y1="460" x2="671" y2="460" stroke="#3a4a63" stroke-width="2" marker-end="url(#arr)"/>
+    <line x1="825" y1="460" x2="851" y2="460" stroke="#3a4a63" stroke-width="2" marker-end="url(#arr)"/>
+  </g>
+
+  <line x1="520" y1="510" x2="520" y2="542" stroke="#3a4a63" stroke-width="2" marker-end="url(#arr)"/>
+
+  <!-- ===== 4. 三机制 ===== -->
+  <text x="60" y="568" class="lab" fill="#2f7a34">④ 为什么“分解 + 聚合”能赢</text>
+  <g>
+    <rect x="60" y="580" width="296" height="118" rx="10" fill="#f0f7f0" stroke="#9ec79e"/>
+    <text x="208" y="610" text-anchor="middle" class="tb" fill="#2f7a34">复杂度降低</text>
+    <text x="208" y="636" text-anchor="middle" class="ts">一道多因素综合判断，</text>
+    <text x="208" y="656" text-anchor="middle" class="ts">换成多道单点可核验问题，</text>
+    <text x="208" y="676" text-anchor="middle" class="ts">每道都更容易答对</text>
+
+    <rect x="372" y="580" width="296" height="118" rx="10" fill="#f0f7f0" stroke="#9ec79e"/>
+    <text x="520" y="610" text-anchor="middle" class="tb" fill="#2f7a34">聚合降方差</text>
+    <text x="520" y="636" text-anchor="middle" class="ts">多个弱相关的是非判断求平均，</text>
+    <text x="520" y="660" text-anchor="middle" class="ts">噪声按 <tspan class="en">~1/N</tspan> 抵消，</text>
+    <text x="520" y="680" text-anchor="middle" class="ts">分数更稳</text>
+
+    <rect x="684" y="580" width="296" height="118" rx="10" fill="#f0f7f0" stroke="#9ec79e"/>
+    <text x="832" y="610" text-anchor="middle" class="tb" fill="#2f7a34">覆盖更全</text>
+    <text x="832" y="636" text-anchor="middle" class="ts">显式列出每条标准，</text>
+    <text x="832" y="656" text-anchor="middle" class="ts">逼着把易漏的失败点摆出来，</text>
+    <text x="832" y="676" text-anchor="middle" class="ts">召回率高于一句整体判断</text>
+  </g>
+
+  <line x1="520" y1="700" x2="520" y2="732" stroke="#3a4a63" stroke-width="2" marker-end="url(#arr)"/>
+
+  <!-- ===== 5. 自改进 ===== -->
+  <text x="60" y="758" class="lab" fill="#6a4ba0">⑤ 自改进：用分歧 / 失败驱动 prompt 迭代</text>
+  <rect x="60" y="770" width="920" height="150" rx="12" fill="#f3eefa" stroke="#bda6e0"/>
+  <g>
+    <rect x="84" y="800" width="180" height="92" rx="10" fill="#ffffff" stroke="#c3b0e2"/>
+    <text x="174" y="832" text-anchor="middle" class="tb" font-size="15" fill="#5a3e92">找差异</text>
+    <text x="174" y="856" text-anchor="middle" class="ts">逐题比对：哪道</text>
+    <text x="174" y="874" text-anchor="middle" class="ts">题判得不一样</text>
+
+    <rect x="300" y="800" width="180" height="92" rx="10" fill="#ffffff" stroke="#c3b0e2"/>
+    <text x="390" y="832" text-anchor="middle" class="tb" font-size="15" fill="#5a3e92">提炼教训</text>
+    <text x="390" y="856" text-anchor="middle" class="ts">把分歧归纳成</text>
+    <text x="390" y="874" text-anchor="middle" class="ts">通用规则 + 去重</text>
+
+    <rect x="516" y="800" width="180" height="92" rx="10" fill="#ffffff" stroke="#c3b0e2"/>
+    <text x="606" y="832" text-anchor="middle" class="tb" font-size="15" fill="#5a3e92">重写 prompt</text>
+    <text x="606" y="856" text-anchor="middle" class="ts">把规则改进到</text>
+    <text x="606" y="874" text-anchor="middle" class="ts">评判 / 生成 prompt</text>
+
+    <rect x="732" y="800" width="224" height="92" rx="10" fill="#faf4ff" stroke="#c3b0e2"/>
+    <text x="844" y="826" text-anchor="middle" class="ts" fill="#5a3e92">两种用法</text>
+    <text x="844" y="850" text-anchor="middle" class="ts"><tspan class="en">cross-model</tspan>：对齐弱模型到强模型</text>
+    <text x="844" y="872" text-anchor="middle" class="ts"><tspan class="en">self-update</tspan>：模型改进自己输出</text>
+
+    <line x1="264" y1="846" x2="296" y2="846" stroke="#6a4ba0" stroke-width="2" marker-end="url(#arr)"/>
+    <line x1="480" y1="846" x2="512" y2="846" stroke="#6a4ba0" stroke-width="2" marker-end="url(#arr)"/>
+    <line x1="696" y1="846" x2="728" y2="846" stroke="#6a4ba0" stroke-width="2" marker-end="url(#arr)"/>
+  </g>
+
+  <line x1="520" y1="920" x2="520" y2="952" stroke="#b08400" stroke-width="2" marker-end="url(#arrw)"/>
+
+  <!-- ===== 6. 边界 ===== -->
+  <text x="60" y="978" class="lab" fill="#b08400">⑥ 共同边界：分解 / prompt 优化在哪里失效</text>
+  <rect x="60" y="990" width="920" height="120" rx="12" fill="#fdf6e3" stroke="#e3c878"/>
+  <text x="84" y="1022" class="tb" fill="#9a7400">只有两个条件都满足，分解才帮得上忙</text>
+  <text x="84" y="1052" class="t">· <tspan font-weight="700">能拆成原子核验点</tspan>：事实一致性可拆（赢最多）；相关性本质是整体判断，硬拆过细反而比人更严苛、相关性下降。</text>
+  <text x="84" y="1078" class="t">· <tspan font-weight="700">模型本就具备能力</tspan>：格式 / 句式靠提示点拨就能改好；数数 / 比例需要执行能力，再多指令也无效，只会撑大 prompt 拖垮全局。</text>
+
+  <!-- footer -->
+  <text x="520" y="1140" text-anchor="middle" class="ts" fill="#8a93a0">免训练 · 任务无关 · 每个分数都能追溯到具体是非题 → 可调试、可优化</text>
+</svg>
