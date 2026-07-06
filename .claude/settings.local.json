@@ -94,7 +94,8 @@
       "Read(//opt/homebrew/Caskroom/miniconda/base/envs/dev/lib/python3.12/site-packages/claude_agent_sdk/**)",
       "Skill(claude-api)",
       "Skill(claude-api:*)",
-      "Bash(python3 -c ' *)"
+      "Bash(python3 -c ' *)",
+      "Bash(curl -sL https://code.claude.com/docs/en/agent-sdk/custom-tools.md)"
     ]
   }
 }
