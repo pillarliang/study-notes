@@ -33,6 +33,8 @@
 
 ---
 
+
+
 ## 二、整体架构（一张图理解）
 
 > 详细图请打开 [model-hub-arch.drawio](file:///Users/liangzhu/Documents/docs/diagram/model-hub-arch.drawio)。
@@ -104,7 +106,11 @@ flowchart TB
 
 ---
 
+
+
 ## 三、九个核心组件（按数据流顺序）
+
+
 
 ### 1. 业务入口层 · 三种形态
 
@@ -149,8 +155,10 @@ class ModelRequest:
 - 统一客户端（ChatModelHub / ModelHubClient）的参数来源有两条通道，入口层（`_build_request`）负责分拣：
   - `temperature` / `max_tokens` → 被 pop 成 ModelRequest **顶层统一字段**（Hub 认识并接管翻译的参数）
   - 其余所有 kwargs → 原样装进 `provider_params`（Hub 不认识、不校验、不改名的**透传袋**）
-- 构造器 `ChatModelHub(...)` 只接受固定的 pydantic 白名单字段（约 13 个），**未声明的参数被 `extra='ignore'` 静默丢弃**。厂商原生参数必须通过调用时 kwargs（`.invoke()` / `.bind()`）传入，不能写在构造器里。
+- 构造器 `ChatModelHub(...)` 只接受固定的 pydantic 白名单字段（约 13 个），**未声明的参数被** `extra='ignore'` **静默丢弃**。厂商原生参数必须通过调用时 kwargs（`.invoke()` / `.bind()`）传入，不能写在构造器里。
 - 透传模式（WrappedOpenAI / Anthropic / GenAI）不走这套分拣——所有参数原封不动打包进 `raw_request`，没有白名单，没有校验，Hub 全程不拆包。
+
+
 
 ### 3. Transport · 调用解耦层
 
@@ -215,9 +223,9 @@ def invoke(self, request, decision) -> ModelResponse:
 | `_invoke_adapted`     | Wrapped 路由到异家 endpoint            | 2 次（adapter 内部） | 经 adapter 翻译 | 基类默认实现     |
 
 
-**为什么 `_invoke_unified` 必须子类实现**：统一模式下业务方填的是 Hub 自定义的抽象字段（`messages: list[Message]`、`temperature`、`max_tokens`），而各家 SDK 的参数格式不同——Anthropic 的 `max_tokens` 是必填项、Gemini 的 `temperature` 要塞进 `GenerateContentConfig` 对象而非顶层参数、`max_tokens` 在 Gemini 叫 `max_output_tokens`。每个 Provider 子类各自实现翻译逻辑，这是"2 次转换"中 request 方向的那一次；响应回来后再反向翻译成 `ModelResponse` 标准字段，是第 2 次。另外两个方法不需要子类操心：`_invoke_passthrough` 原样喂 SDK，`_invoke_adapted` 委托给 Adapter 做翻译，流程通用。新接一个 Provider 只需写 `_invoke_unified`，透传和跨风格适配继承基类即可。
+**为什么** `_invoke_unified` **必须子类实现**：统一模式下业务方填的是 Hub 自定义的抽象字段（`messages: list[Message]`、`temperature`、`max_tokens`），而各家 SDK 的参数格式不同——Anthropic 的 `max_tokens` 是必填项、Gemini 的 `temperature` 要塞进 `GenerateContentConfig` 对象而非顶层参数、`max_tokens` 在 Gemini 叫 `max_output_tokens`。每个 Provider 子类各自实现翻译逻辑，这是"2 次转换"中 request 方向的那一次；响应回来后再反向翻译成 `ModelResponse` 标准字段，是第 2 次。另外两个方法不需要子类操心：`_invoke_passthrough` 原样喂 SDK，`_invoke_adapted` 委托给 Adapter 做翻译，流程通用。新接一个 Provider 只需写 `_invoke_unified`，透传和跨风格适配继承基类即可。
 
-**统一模式下 `provider_params` 的处理差异**
+**统一模式下** `provider_params` **的处理差异**
 
 Engine 合并完参数后，`provider_params` 交给 Provider——但各 Provider 拆包方式不同：
 
@@ -226,7 +234,7 @@ Engine 合并完参数后，`provider_params` 交给 Provider——但各 Provid
 | -------------- | ------------------------------------------------------ | ------------------ |
 | OpenAI / Azure | **整袋透传** `**provider_params` 解包进 SDK                   | key 写错 → 服务端返回 400 |
 | Anthropic      | **整袋透传 + 显式 pop**（`max_tokens` / `temperature` 从袋中优先取） | 同上，服务端返回 400       |
-| Gemini（genai）  | **白名单逐项 `.get`**，只认识显式列出的 key                          | **静默丢弃，不报错**       |
+| Gemini（genai）  | **白名单逐项** `.get`，只认识显式列出的 key                          | **静默丢弃，不报错**       |
 
 
 Hub 入口层不校验 `provider_params` 的内容——参数名是否正确由最终的厂商 SDK / API 守门。同一份 `provider_params` 配置搬到不同 Provider 的 endpoint 上，行为可能完全不同。详见 [[参数透传机制详解]]。
@@ -349,6 +357,8 @@ RuntimeConfig
 
 ---
 
+
+
 ## 四、能力复用矩阵（核心保证）
 
 > `arch-v2.md` §10.1。**三种模式共享同一套基础设施**——业务方拿不同入口、走不同模式，但任何模式都享受完整能力栈。
@@ -369,6 +379,8 @@ RuntimeConfig
 
 
 ---
+
+
 
 ## 五、一次完整调用的旅程（讲解时按这条线讲）
 
@@ -395,13 +407,17 @@ RuntimeConfig
   - `after_response` 回写统计
 8. **Wrapper 拆包** → 还给业务方一个 OpenAI 格式的 `ChatCompletion` 对象（业务方完全无感）
 
-**全程业务方只写了一行 `wrap_openai(...)`**。
+**全程业务方只写了一行** `wrap_openai(...)`。
 
 > 📂 这条旅程的可视化版本见 [model-hub-arch.drawio · 页 2](file:///Users/liangzhu/Documents/docs/diagram/model-hub-arch.drawio)（UML 时序图）。
 
 ---
 
+
+
 ## 六、关键设计原则（讲解时重点强调）
+
+
 
 ### 1. 单一入口
 
@@ -421,6 +437,8 @@ transport = DirectProviderTransport(engine)    # Transport 持有 Engine
 response = transport.invoke(request, context)  # 内部只一句 self._engine.invoke(...)
 ```
 
+
+
 ### 3. 翻译永远是 provider 内政
 
 CROSS_STYLE 翻译完全在 provider 内做。Engine 不知道 adapter 存在，不关心 source_style ≠ api_style 这件事。这让 adapter 可以独立扩展，不污染 engine 逻辑。
@@ -430,6 +448,8 @@ CROSS_STYLE 翻译完全在 provider 内做。Engine 不知道 adapter 存在，
 Model Hub 选择"扩 ModelRequest 字段"而不是"加新方法"。代价：每个 provider 加 3 个内部方法 `_invoke_unified / _invoke_passthrough / _invoke_adapted`。收益：CoreEngine 单入口不变，插件不需要双写。
 
 ---
+
+
 
 ## 七、向他人介绍时的讲解顺序（10 分钟脚本）
 
@@ -450,6 +470,8 @@ Model Hub 选择"扩 ModelRequest 字段"而不是"加新方法"。代价：每�
 
 ---
 
+
+
 ## 八、关键术语对照
 
 
@@ -466,6 +488,8 @@ Model Hub 选择"扩 ModelRequest 字段"而不是"加新方法"。代价：每�
 
 
 ---
+
+
 
 ## 九、扩展资料
 

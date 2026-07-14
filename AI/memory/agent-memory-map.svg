@@ -1,0 +1,140 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1120">
+  <defs>
+    <marker id="aGray" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><path d="M0,0 L10,3.5 L0,7 z" fill="#6b7280"/></marker>
+    <marker id="aBlue" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><path d="M0,0 L10,3.5 L0,7 z" fill="#2563eb"/></marker>
+    <marker id="aBlueS" markerWidth="10" markerHeight="7" refX="1" refY="3.5" orient="auto"><path d="M10,0 L0,3.5 L10,7 z" fill="#2563eb"/></marker>
+    <marker id="aOrange" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><path d="M0,0 L10,3.5 L0,7 z" fill="#ea580c"/></marker>
+  </defs>
+  <style>text{font-family:"PingFang SC","Hiragino Sans GB","Noto Sans CJK SC",sans-serif;}</style>
+  <rect x="0" y="0" width="1200" height="1120" fill="#ffffff"/>
+  <text x="600" y="34" font-size="19" font-weight="700" fill="#111827" text-anchor="middle">Agent Memory 全局地图</text>
+
+  <text x="40" y="64" font-size="12" font-weight="600" fill="#9ca3af">① 问题与公理（§1）</text>
+  <rect x="40" y="74" width="250" height="92" rx="10" fill="#fff7ed" stroke="#ea580c" stroke-width="1.5"/>
+  <text x="165" y="102" font-size="14.5" font-weight="700" fill="#9a3412" text-anchor="middle">跨 session 失忆</text>
+  <text x="165" y="124" font-size="11.5" fill="#7c2d12" text-anchor="middle">context window 是唯一工作记忆</text>
+  <text x="165" y="143" font-size="11.5" fill="#7c2d12" text-anchor="middle">session 一结束全部清零</text>
+  <line x1="292" y1="120" x2="332" y2="120" stroke="#ea580c" stroke-width="2" marker-end="url(#aOrange)"/>
+  <rect x="336" y="74" width="190" height="92" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="431" y="112" font-size="14.5" font-weight="700" fill="#1e40af" text-anchor="middle">记忆系统</text>
+  <text x="431" y="134" font-size="11.5" fill="#1e3a8a" text-anchor="middle">跨 session 的信息传递</text>
+  <rect x="570" y="74" width="196" height="92" rx="8" fill="#fefce8" stroke="#ca8a04" stroke-width="1.2"/>
+  <text x="668" y="98" font-size="12" font-weight="600" fill="#713f12" text-anchor="middle">公理一 错误记忆会放大</text>
+  <text x="668" y="117" font-size="11" fill="#854d0e" text-anchor="middle">污染之后每个 session</text>
+  <text x="668" y="146" font-size="12" font-weight="700" fill="#b45309" text-anchor="middle">→ 不记什么</text>
+  <rect x="778" y="74" width="196" height="92" rx="8" fill="#fefce8" stroke="#ca8a04" stroke-width="1.2"/>
+  <text x="876" y="98" font-size="12" font-weight="600" fill="#713f12" text-anchor="middle">公理二 记忆是历史快照</text>
+  <text x="876" y="117" font-size="11" fill="#854d0e" text-anchor="middle">写时为真 ≠ 现在为真</text>
+  <text x="876" y="146" font-size="12" font-weight="700" fill="#b45309" text-anchor="middle">→ 不信什么</text>
+  <rect x="986" y="74" width="174" height="92" rx="8" fill="#fefce8" stroke="#ca8a04" stroke-width="1.2"/>
+  <text x="1073" y="98" font-size="12" font-weight="600" fill="#713f12" text-anchor="middle">公理三 深整理必耗时</text>
+  <text x="1073" y="117" font-size="11" fill="#854d0e" text-anchor="middle">交互路径延迟敏感</text>
+  <text x="1073" y="146" font-size="12" font-weight="700" fill="#b45309" text-anchor="middle">→ 重活移出主链路</text>
+
+  <line x1="431" y1="166" x2="431" y2="206" stroke="#6b7280" stroke-width="1.5" marker-end="url(#aGray)"/>
+  <text x="40" y="202" font-size="12" font-weight="600" fill="#9ca3af">② 统一模型与决策结构（§2）：场景是根变量——对存/读做选型（三选一），对记/写做实例化</text>
+  <rect x="40" y="214" width="1120" height="118" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.2"/>
+  <rect x="64" y="238" width="248" height="70" rx="8" fill="#fff7ed" stroke="#ea580c" stroke-width="1.4"/>
+  <text x="188" y="262" font-size="13" font-weight="700" fill="#9a3412" text-anchor="middle">场景特征</text>
+  <text x="188" y="282" font-size="11" fill="#7c2d12" text-anchor="middle">记忆量 · 同质性 · 召回精度要求</text>
+  <text x="188" y="298" font-size="11" fill="#7c2d12" text-anchor="middle">要不要关系与时间维度</text>
+  <line x1="314" y1="273" x2="376" y2="273" stroke="#2563eb" stroke-width="2" marker-end="url(#aBlue)"/>
+  <text x="345" y="263" font-size="11" font-weight="600" fill="#2563eb" text-anchor="middle">决定</text>
+  <rect x="380" y="238" width="200" height="70" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.4"/>
+  <text x="480" y="266" font-size="13" font-weight="700" fill="#1e40af" text-anchor="middle">存哪里</text>
+  <text x="480" y="290" font-size="11" fill="#1e3a8a" text-anchor="middle">三种存储范式</text>
+  <line x1="582" y1="273" x2="654" y2="273" stroke="#2563eb" stroke-width="2" marker-start="url(#aBlueS)" marker-end="url(#aBlue)"/>
+  <text x="618" y="263" font-size="11" font-weight="600" fill="#2563eb" text-anchor="middle">绑定</text>
+  <rect x="658" y="238" width="200" height="70" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.4"/>
+  <text x="758" y="266" font-size="13" font-weight="700" fill="#1e40af" text-anchor="middle">怎么读</text>
+  <text x="758" y="290" font-size="11" fill="#1e3a8a" text-anchor="middle">召回方式随范式定，一体两面</text>
+  <rect x="892" y="238" width="244" height="70" rx="8" fill="#ffffff" stroke="#059669" stroke-width="1.4" stroke-dasharray="6,3"/>
+  <text x="1014" y="262" font-size="13" font-weight="700" fill="#065f46" text-anchor="middle">记什么 · 怎么写：通用轴</text>
+  <text x="1014" y="282" font-size="11" fill="#047857" text-anchor="middle">准则与时机全集通用，只讲一遍（§3–§4）</text>
+  <text x="1014" y="298" font-size="11" fill="#047857" text-anchor="middle">实例化看场景：清单条目 · 时机组合</text>
+
+  <line x1="600" y1="332" x2="600" y2="372" stroke="#6b7280" stroke-width="1.5" marker-end="url(#aGray)"/>
+  <text x="40" y="368" font-size="12" font-weight="600" fill="#9ca3af">③ 通用纪律层（§3–§4）：所有范式共用，只讲一遍</text>
+  <rect x="40" y="380" width="548" height="128" rx="10" fill="#ffffff" stroke="#d1d5db" stroke-width="1.2"/>
+  <rect x="40" y="380" width="548" height="8" rx="4" fill="#7c3aed"/>
+  <text x="314" y="410" font-size="13.5" font-weight="700" fill="#111827" text-anchor="middle">§3 记什么 · 写入门控</text>
+  <text x="60" y="436" font-size="11.5" fill="#374151">· 事实 / 经历 / 做法 三分法，照设计看缺口</text>
+  <text x="60" y="458" font-size="11.5" fill="#374151">· 类型化（Claude Code）vs 信号分桶（Codex）</text>
+  <text x="60" y="480" font-size="11.5" fill="#374151">· 负面清单：可推导的、git 可查的、临时的、敏感的不记</text>
+  <text x="60" y="500" font-size="11.5" fill="#374151">· no-op 门控："未来 agent 会因此更好吗"，答不上不写</text>
+  <rect x="612" y="380" width="548" height="128" rx="10" fill="#ffffff" stroke="#d1d5db" stroke-width="1.2"/>
+  <rect x="612" y="380" width="548" height="8" rx="4" fill="#ea580c"/>
+  <text x="886" y="410" font-size="13.5" font-weight="700" fill="#111827" text-anchor="middle">§4 何时写 · 三种写入时机</text>
+  <text x="632" y="436" font-size="11.5" fill="#374151">· 会话内实时（快，质量最不稳，靠门控硬挡）</text>
+  <text x="632" y="458" font-size="11.5" fill="#374151">· 会话尾部抽取（不占主链路，素材新鲜）</text>
+  <text x="632" y="480" font-size="11.5" fill="#374151">· 离线批量整合（全库级融合 / 解冲突 / 淘汰）</text>
+  <text x="632" y="500" font-size="11.5" fill="#374151">· 共识：快慢双通道并用；启用组合看场景（§4.3）</text>
+
+  <line x1="600" y1="508" x2="600" y2="548" stroke="#6b7280" stroke-width="1.5" marker-end="url(#aGray)"/>
+  <text x="40" y="544" font-size="12" font-weight="600" fill="#9ca3af">④ 三条场景线（§5–§7）：每线完整闭环 存 → 写 → 读</text>
+
+  <rect x="40" y="556" width="356" height="316" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
+  <rect x="40" y="556" width="356" height="46" rx="10" fill="#eff6ff"/>
+  <text x="218" y="576" font-size="13.5" font-weight="700" fill="#1e40af" text-anchor="middle">§5 coding agent</text>
+  <text x="218" y="594" font-size="12" font-weight="600" fill="#1e40af" text-anchor="middle">文件 + 索引（共识默认）</text>
+  <text x="58" y="626" font-size="11.5" font-weight="700" fill="#111827">特征</text>
+  <text x="58" y="644" font-size="11" fill="#374151">量小 · 异质 · 召回要接近确定</text>
+  <text x="58" y="676" font-size="11.5" font-weight="700" fill="#2563eb">存</text>
+  <text x="58" y="694" font-size="11" fill="#374151">索引常驻 + 条目按需（渐进披露）</text>
+  <text x="58" y="712" font-size="11" fill="#374151">拒绝向量 RAG：装得下 · 不同质 · 更珍贵</text>
+  <text x="58" y="744" font-size="11.5" font-weight="700" fill="#059669">写</text>
+  <text x="58" y="762" font-size="11" fill="#374151">三通道齐备，离线整理最重</text>
+  <text x="58" y="780" font-size="11" fill="#374151">Dream 四阶段 · git diff 遗忘 · 尾部 fork</text>
+  <text x="58" y="812" font-size="11.5" font-weight="700" fill="#ea580c">读</text>
+  <text x="58" y="830" font-size="11" fill="#374151">LLM 沿索引导航（设预算封顶）</text>
+  <text x="58" y="848" font-size="11" fill="#374151">相关性=结构性条件；读端验证纪律</text>
+
+  <rect x="422" y="556" width="356" height="316" rx="10" fill="#ffffff" stroke="#059669" stroke-width="1.5"/>
+  <rect x="422" y="556" width="356" height="46" rx="10" fill="#ecfdf5"/>
+  <text x="600" y="576" font-size="13.5" font-weight="700" fill="#065f46" text-anchor="middle">§6 对话与平台型</text>
+  <text x="600" y="594" font-size="12" font-weight="600" fill="#065f46" text-anchor="middle">抽取式事实库 + 向量检索</text>
+  <text x="440" y="626" font-size="11.5" font-weight="700" fill="#111827">特征</text>
+  <text x="440" y="644" font-size="11" fill="#374151">用户海量 · 条目同质 · 容忍模糊召回</text>
+  <text x="440" y="676" font-size="11.5" font-weight="700" fill="#2563eb">存</text>
+  <text x="440" y="694" font-size="11" fill="#374151">LLM 抽取原子事实 → embedding 入库</text>
+  <text x="440" y="712" font-size="11" fill="#374151">user_id / agent_id 多租户隔离</text>
+  <text x="440" y="744" font-size="11.5" font-weight="700" fill="#059669">写</text>
+  <text x="440" y="762" font-size="11" fill="#374151">每轮尾部抽取（异步，不占回复延迟）</text>
+  <text x="440" y="780" font-size="11" fill="#374151">融合被砍：Mem0 纯追加，排序兜底</text>
+  <text x="440" y="812" font-size="11.5" font-weight="700" fill="#ea580c">读</text>
+  <text x="440" y="830" font-size="11" fill="#374151">相似度 top-k 被动注入，不调 LLM</text>
+  <text x="440" y="848" font-size="11" fill="#374151">规模亚线性；召回错了无从察觉</text>
+
+  <rect x="804" y="556" width="356" height="316" rx="10" fill="#ffffff" stroke="#7c3aed" stroke-width="1.5"/>
+  <rect x="804" y="556" width="356" height="46" rx="10" fill="#f5f3ff"/>
+  <text x="982" y="576" font-size="13.5" font-weight="700" fill="#5b21b6" text-anchor="middle">§7 关系密集型</text>
+  <text x="982" y="594" font-size="12" font-weight="600" fill="#5b21b6" text-anchor="middle">时序知识图谱</text>
+  <text x="822" y="626" font-size="11.5" font-weight="700" fill="#111827">特征</text>
+  <text x="822" y="644" font-size="11" fill="#374151">事实互相关联 · 要回答"何时为真"</text>
+  <text x="822" y="676" font-size="11.5" font-weight="700" fill="#2563eb">存</text>
+  <text x="822" y="694" font-size="11" fill="#374151">episodes 证据层 → 实体节点 + 事实边</text>
+  <text x="822" y="712" font-size="11" fill="#374151">每条边挂双时态（现实轴 + 系统轴）</text>
+  <text x="822" y="744" font-size="11.5" font-weight="700" fill="#059669">写</text>
+  <text x="822" y="762" font-size="11" fill="#374151">重活前移进写入期（抽取 + 冲突处理）</text>
+  <text x="822" y="780" font-size="11" fill="#374151">矛盾不删除，关闭旧事实有效期</text>
+  <text x="822" y="812" font-size="11.5" font-weight="700" fill="#ea580c">读</text>
+  <text x="822" y="830" font-size="11" fill="#374151">语义 + 关键词 + 图遍历，亚秒返回</text>
+  <text x="822" y="848" font-size="11" fill="#374151">存储层免验证（时效刻进数据）</text>
+
+  <line x1="600" y1="872" x2="600" y2="912" stroke="#6b7280" stroke-width="1.5" marker-end="url(#aGray)"/>
+  <text x="40" y="908" font-size="12" font-weight="600" fill="#9ca3af">⑤ 横向对比与收敛趋势（§8）</text>
+  <rect x="40" y="920" width="1120" height="104" rx="10" fill="#f9fafb" stroke="#9ca3af" stroke-width="1.2"/>
+  <line x1="415" y1="936" x2="415" y2="1008" stroke="#e5e7eb" stroke-width="1"/>
+  <line x1="790" y1="936" x2="790" y2="1008" stroke="#e5e7eb" stroke-width="1"/>
+  <text x="228" y="962" font-size="13" font-weight="700" fill="#111827" text-anchor="middle">文件 + 索引 + 离线整合</text>
+  <text x="228" y="988" font-size="11.5" fill="#4b5563" text-anchor="middle">coding harness 与专用框架</text>
+  <text x="228" y="1006" font-size="11.5" fill="#4b5563" text-anchor="middle">正在合流的共识默认</text>
+  <text x="602" y="962" font-size="13" font-weight="700" fill="#111827" text-anchor="middle">向量检索</text>
+  <text x="602" y="988" font-size="11.5" fill="#4b5563" text-anchor="middle">退居对话型平台</text>
+  <text x="602" y="1006" font-size="11.5" fill="#4b5563" text-anchor="middle">与大规模多租户场景</text>
+  <text x="975" y="962" font-size="13" font-weight="700" fill="#111827" text-anchor="middle">时序知识图谱</text>
+  <text x="975" y="988" font-size="11.5" fill="#4b5563" text-anchor="middle">守住事实关系密集</text>
+  <text x="975" y="1006" font-size="11.5" fill="#4b5563" text-anchor="middle">且需要时间维度的场景</text>
+
+  <text x="600" y="1064" font-size="11" fill="#9ca3af" text-anchor="middle">通用层立准则与时机全集（§1–§4）→ 场景线各讲闭环（§5–§7）→ 横向对比收束（§8–§9）</text>
+</svg>

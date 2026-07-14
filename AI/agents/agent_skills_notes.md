@@ -24,7 +24,11 @@
 
 ---
 
+
+
 ## 二、ADK Skill 的技术基础
+
+
 
 ### 2.1 SKILL.md 文件
 
@@ -37,6 +41,8 @@ my-skill/
 ├── assets/           # 静态资源（模板、图片、数据文件）
 └── scripts/          # 可执行脚本（Python/Bash/JS）
 ```
+
+
 
 #### SKILL.md 的 Frontmatter 字段（基于 agentskills.io 规范）
 
@@ -61,6 +67,8 @@ allowed-tools: Bash(git:*) Read Write  # 可选（实验性），空格分隔的
 ```
 
 > `**name` 命名规则**：仅允许小写字母、数字和连字符；不能以连字符开头/结尾；不能有连续连字符（`--`）；**必须与父目录名一致**。
+
+
 
 #### 三个可选目录的区别（基于 agentskills.io 官方规范）
 
@@ -101,6 +109,7 @@ allowed-tools: Bash(git:*) Read Write  # 可选（实验性），空格分隔的
 ```
 
 > **注意**：保持文件引用在一层深度，避免深度嵌套的引用链。主 SKILL.md 建议控制在 500 行以内，详细材料拆分到这三个目录中。
+
 
 
 ### 2.2 内部架构：元工具与双消息机制
@@ -148,7 +157,9 @@ allowed-tools: Bash(git:*) Read Write  # 可选（实验性），空格分隔的
 > **关键洞察**：传统工具是为了**"执行动作"**（如读文件），而 Skill 是为了**"改变大脑"**（赋予 Agent 新的思维方式和流程知识）。Skill 激活后，Agent 相当于临时变身为一个"专用 Agent"。
 
 
+
 ### 2.3 Skill 解决的四个核心问题
+
 
 | 问题                                                 | Skill 的解决方案                                  |
 | -------------------------------------------------- | -------------------------------------------- |
@@ -156,6 +167,8 @@ allowed-tools: Bash(git:*) Read Write  # 可选（实验性），空格分隔的
 | **复杂工作流引导** — 单一工具无法指导多步骤业务逻辑                      | Skill 不直接执行动作，而是为 Agent **注入步骤说明**，指导其调度基础工具 |
 | **上下文窗口效率** — 所有指令塞进 System Prompt 会浪费 token 且导致混淆 | **渐进式披露**机制，按需加载                             |
 | **用户体验 vs 底层复杂性** — Agent 需要大量 prompt 但用户不想看刷屏     | **双消息机制**，一条可见（状态），一条隐藏（完整指令）                |
+
+
 
 
 ### 2.4 渐进式披露（Progressive Disclosure）
@@ -190,6 +203,7 @@ L1 全量列出策略在 Skill 数量适中时（几十个）够用，但当 Ski
 > **Claude Code 当前的处理方式不是 RAG，而是截断**：listing 预算约为上下文窗口的 1%，每个 Skill 描述上限 `MAX_LISTING_DESC_CHARS = 250` 字符，超出预算时内置 Skill 保留完整描述、非内置 Skill 被截断（详见 [Claude Code Harness Engineering 8.3 节](../harness-engineering/Claude_Code-Harness_Engineering.md)）。这套策略在百级 Skill 之内仍可用，但本质是工程权衡而非根本解；一旦进入千级生态，召回式架构几乎不可避免。
 
 
+
 ### 2.5 SkillToolset 加载方式
 
 在 ADK Python 代码中通过 `SkillToolset` 注册 Skill：
@@ -201,6 +215,7 @@ skill_toolset = SkillToolset(
     ],
 )
 ```
+
 
 
 ### 2.6 Description 字段的重要性
@@ -216,6 +231,7 @@ Description 字段相当于 Skill 的**搜索索引**。Agent 根据用户输入
 
 存储位置因 Agent 实现而异：
 
+
 | 范围             | agentskills.io 标准路径         | Claude Code 路径              |
 | -------------- | --------------------------- | --------------------------- |
 | **项目级**（团队共享）  | `<project>/.agents/skills/` | `<project>/.claude/skills/` |
@@ -223,8 +239,6 @@ Description 字段相当于 Skill 的**搜索索引**。Agent 根据用户输入
 
 
 Skills 遵循 [agentskills.io](https://agentskills.io) 开放规范（由 Anthropic 发起），已被 **30+ Agent 产品**采用，包括：Claude Code、Gemini CLI、Cursor、GitHub Copilot、VS Code、OpenAI Codex、Roo Code、Kiro、JetBrains Junie、Databricks 等。
-
-
 
 ### 2.8 Skill 的安装与管理
 
@@ -290,6 +304,7 @@ npx skills init my-skill     # 创建 my-skill/SKILL.md
 > **安装原理**：`npx skills add` 会从 GitHub 仓库拉取 Skill 文件，按照目标 Agent 的约定路径（如 Claude Code 的 `.claude/skills/`、VS Code 的 `.agents/skills/`）放置文件，默认使用**符号链接**（symlink）方式。
 
 
+
 #### 方式二：Claude Code Plugin 系统
 
 Claude Code 自身有一套 Plugin 机制（Plugin 是比 Skill 更大的概念，可以包含 Skill、MCP Server 等），提供了三种安装方式：
@@ -311,7 +326,7 @@ Claude Code 自身有一套 Plugin 机制（Plugin 是比 Skill 更大的概念�
 /plugin install python-code-style
 ```
 
-**方式 2b：通过 `settings.json` 配置**
+**方式 2b：通过** `settings.json` **配置**
 
 在 `~/.claude/settings.json` 中声明 marketplace 和启用的插件：
 
@@ -350,6 +365,8 @@ cp -r python-code-style ~/.claude/plugins/python-code-style
 # 自动更新：运行 /plugin → Marketplaces 标签页 → 选择 marketplace → Enable auto-update
 ```
 
+
+
 #### 方式三：手动放置文件
 
 最朴素的方式——直接把 Skill 目录复制到对应路径：
@@ -364,6 +381,8 @@ cp -r my-skill/ ~/.claude/skills/my-skill/            # Claude Code
 cp -r my-skill/ ~/.agents/skills/my-skill/            # 其他 Agent
 ```
 
+
+
 #### 项目级 vs 用户级：如何选择？
 
 
@@ -376,11 +395,13 @@ cp -r my-skill/ ~/.agents/skills/my-skill/            # 其他 Agent
 | **CLI 参数**    | 默认（无 `-g`）                  | `-g` / `--global`   |
 
 
+
+
 #### Skill 的删除
 
 删除方式与安装方式一一对应，本质上是"装哪儿就在哪儿删"。
 
-**方式一：`npx skills remove`（对应 `npx skills add` 安装的）**
+**方式一：**`npx skills remove`**（对应** `npx skills add` **安装的）**
 
 ```bash
 # 交互式选择删除
@@ -397,7 +418,7 @@ npx skills rm -g <skill-name>
 npx skills remove -a claude-code
 ```
 
-**方式二：Claude Code Plugin 卸载（对应 `/plugin install` 安装的）**
+**方式二：Claude Code Plugin 卸载（对应** `/plugin install` **安装的）**
 
 ```bash
 # 交互式管理界面
@@ -437,6 +458,8 @@ ls ~/.claude/plugins/       # Plugin 装的在这里
 
 > **判断技巧**：`npx skills list` 输出里如果是符号链接（symlink），说明是 `npx skills add` 装的；如果是普通目录，可能是手动复制的。Plugin 装的 Skill 通常会出现在 `~/.claude/plugins/<plugin-name>/skills/` 之下，而非 `~/.claude/skills/`。
 
+
+
 #### npx skills 安装机制与运维细节
 
 前面讲了 `npx skills` 的基本命令,但日常使用会遇到几个让人困惑的现象:为什么有的 skill 装在 `~/.agents/skills/`、有的在 `~/.claude/skills/`?为什么 `npx skills rm` 有时报"找不到"?为什么 Claude Code 能用 agentskills.io 标准路径下的 skill?这些都源于 npx skills 的**双路径 + symlink + 注册表**三件套机制。
@@ -445,10 +468,12 @@ ls ~/.claude/plugins/       # Plugin 装的在这里
 
 agentskills.io 规范定义的标准路径是 `~/.agents/skills/`,30+ Agent 都按这个路径找 skill。但 Claude Code 用的是它私有的历史路径 `~/.claude/skills/`,Anthropic 不愿意改。
 
-| Agent | 用户级 skill 路径 |
-|---|---|
-| **Claude Code**(私有) | `~/.claude/skills/` |
+
+| Agent                                                         | 用户级 skill 路径        |
+| ------------------------------------------------------------- | ------------------- |
+| **Claude Code**(私有)                                           | `~/.claude/skills/` |
 | **Cursor / VS Code Copilot / Gemini CLI / Codex 等 30+ Agent** | `~/.agents/skills/` |
+
 
 `npx skills` 是跨 Agent 工具,要同时支持这两套路径。具体写到哪里由 `-a/--agent` 参数决定:
 
@@ -458,7 +483,9 @@ npx skills add foo/bar -a cursor -g         # → ~/.agents/skills/
 npx skills add foo/bar -a '*' -g            # → 同时多处(见下文 symlink 机制)
 ```
 
-> 不指定 `-a` 时,npx skills 会检测当前机器装了哪些 Agent,弹交互式列表让用户勾选。**建议总是显式写 `-a` 让行为可预测。**
+> 不指定 `-a` 时,npx skills 会检测当前机器装了哪些 Agent,弹交互式列表让用户勾选。**建议总是显式写** `-a` **让行为可预测。**
+
+
 
 ##### 2. symlink 双写策略:一份真实文件服务多个 Agent
 
@@ -476,19 +503,23 @@ npx skills add foo/bar -a '*' -g            # → 同时多处(见下文 symlink
 
 > 默认行为是 symlink,加 `--copy` 参数才会改用复制。symlink 的好处是 `npx skills update foo` 一次更新所有 Agent 的 foo,因为它们都指向同一份真实文件。
 
+
+
 ##### 3. Claude Code 与 ~/.agents/skills/ 的关系
 
-> **关键认知:Claude Code 不直接扫 `~/.agents/skills/`**
+> **关键认知:Claude Code 不直接扫** `~/.agents/skills/`
 
 Claude Code 只在以下路径找 skill:
 
-| 范围 | 路径 |
-|---|---|
-| 用户级 | `~/.claude/skills/<name>/SKILL.md` |
-| 项目级 | `<project>/.claude/skills/<name>/SKILL.md` |
-| Plugin 带的 | `~/.claude/plugins/<plugin>/skills/...` |
 
-`~/.agents/skills/` 不在扫描列表。**那 npx 装的 skill 为何能在 Claude Code 用?靠 `~/.claude/skills/` 下的 symlink 指过去**。
+| 范围        | 路径                                         |
+| --------- | ------------------------------------------ |
+| 用户级       | `~/.claude/skills/<name>/SKILL.md`         |
+| 项目级       | `<project>/.claude/skills/<name>/SKILL.md` |
+| Plugin 带的 | `~/.claude/plugins/<plugin>/skills/...`    |
+
+
+`~/.agents/skills/` 不在扫描列表。**那 npx 装的 skill 为何能在 Claude Code 用?靠** `~/.claude/skills/` **下的 symlink 指过去**。
 
 `npx skills list` 输出里 "Agents: ..., Claude Code, ..." 这一行的含义:**安装时被选中作为目标的 Agent 列表**(每个 Agent 都已通过约定路径下的 symlink 访问到这个 skill),不是说 Claude Code 直接读了 `~/.agents/skills/`。
 
@@ -500,18 +531,22 @@ ls -la ~/.claude/skills/<skill-name>
 # lrwxr-xr-x  ...  ~/.claude/skills/lark-okr -> /Users/.../.agents/skills/lark-okr
 ```
 
+
+
 ##### 4. npx skills 的注册表:list/rm 为何"看不见"或"删不掉"
 
 `npx skills list` 和 `npx skills rm` **不是直接扫描文件系统**,而是查 npx skills 自己维护的**安装注册表**(记录"我装过哪些 skill")。
 
-| 安装方式 | 在 npx 注册表里? | `npx skills list` 看得到? | `npx skills rm` 能删? |
-|---|---|---|---|
-| `npx skills add` | ✅ | ✅ | ✅ |
-| 手动 `git clone` 或 `cp` | ❌ | ❌ | ❌ "No matching skills found" |
-| `/plugin install` 装的 | ❌ | ❌ | ❌ 同上 |
-| Claude Code 内置 skill | ❌ | ❌ | ❌ 同上 |
 
-**`npx skills list` 只是 npx 自己的视角,不是文件系统全景**。想看真相,直接用 `ls`:
+| 安装方式                  | 在 npx 注册表里? | `npx skills list` 看得到? | `npx skills rm` 能删?          |
+| --------------------- | ----------- | ---------------------- | ---------------------------- |
+| `npx skills add`      | ✅           | ✅                      | ✅                            |
+| 手动 `git clone` 或 `cp` | ❌           | ❌                      | ❌ "No matching skills found" |
+| `/plugin install` 装的  | ❌           | ❌                      | ❌ 同上                         |
+| Claude Code 内置 skill  | ❌           | ❌                      | ❌ 同上                         |
+
+
+`npx skills list` **只是 npx 自己的视角,不是文件系统全景**。想看真相,直接用 `ls`:
 
 ```bash
 ls ~/.claude/skills/                              # Claude Code 私有路径
@@ -519,15 +554,19 @@ ls ~/.agents/skills/                              # agentskills.io 标准路径
 ls -d ~/.claude/plugins/*/skills/*/ 2>/dev/null   # Plugin 带的
 ```
 
+
+
 ##### 5. pull 模型:无自动更新通知
 
 不像 Claude Code Plugin 在启动时自动检查 marketplace,**npx skills 完全是 pull 模型 — 用户主动跑 update 才会拉新版本**:
 
-| 行为 | npx skills | Claude Code Plugin auto-update |
-|---|---|---|
-| 作者 push 新版本 → 用户被通知 | ❌ 无任何提示 | ✅ 启动时通知 |
-| 装上的 skill 一直停在初始版本 | ✅ 是,直到手动 update | ❌ 自动滚动到最新 |
-| 触发更新方式 | `npx skills update`(用户主动) | 启动时自动 |
+
+| 行为                  | npx skills                | Claude Code Plugin auto-update |
+| ------------------- | ------------------------- | ------------------------------ |
+| 作者 push 新版本 → 用户被通知 | ❌ 无任何提示                   | ✅ 启动时通知                        |
+| 装上的 skill 一直停在初始版本  | ✅ 是,直到手动 update           | ❌ 自动滚动到最新                      |
+| 触发更新方式              | `npx skills update`(用户主动) | 启动时自动                          |
+
 
 应对策略:
 
@@ -539,6 +578,8 @@ npx skills update -g -y
 0 9 * * 1 npx skills update -g -y >> ~/.skills-update.log 2>&1   # 每周一早 9 点
 ```
 
+
+
 ##### 6. 卸载排查:三种来源,三种删法
 
 当 `npx skills rm` 报 "No matching skills found" 时,说明这个 skill 不是 npx 装的。先查路径类型:
@@ -549,13 +590,17 @@ ls -la ~/.claude/skills/<skill-name>
 
 根据输出第一字符选删法:
 
-| 第一字符 | 含义 | 删法 |
-|---|---|---|
-| `l` | symlink → npx skills 装的 | `npx skills rm -g <注册名>`(注册名可能与目录名不同,先 `npx skills list -g --json` 查) |
-| `d` | 普通目录 → 手动 `git clone` / `cp` 装的 | `rm -rf ~/.claude/skills/<name>` |
-| 不存在 | 已删除或是 plugin 带的 | 查 `ls ~/.claude/plugins/` 找对应 plugin → `/plugin uninstall <plugin-name>` |
 
-> ⚠️ 注意:手动 `rm -rf ~/.claude/skills/foo` 只删了 symlink(如果是 npx 装的),真实文件还在 `~/.agents/skills/foo`,其他 Agent 仍能用。**完全卸载要用 `npx skills rm` 让它清理所有 symlink + 真实文件 + 注册表条目**。
+| 第一字符 | 含义                              | 删法                                                                       |
+| ---- | ------------------------------- | ------------------------------------------------------------------------ |
+| `l`  | symlink → npx skills 装的         | `npx skills rm -g <注册名>`(注册名可能与目录名不同,先 `npx skills list -g --json` 查)    |
+| `d`  | 普通目录 → 手动 `git clone` / `cp` 装的 | `rm -rf ~/.claude/skills/<name>`                                         |
+| 不存在  | 已删除或是 plugin 带的                 | 查 `ls ~/.claude/plugins/` 找对应 plugin → `/plugin uninstall <plugin-name>` |
+
+
+> ⚠️ 注意:手动 `rm -rf ~/.claude/skills/foo` 只删了 symlink(如果是 npx 装的),真实文件还在 `~/.agents/skills/foo`,其他 Agent 仍能用。**完全卸载要用** `npx skills rm` **让它清理所有 symlink + 真实文件 + 注册表条目**。
+
+
 
 #### 实例分析：双格式兼容的 Skill 仓库
 
@@ -599,6 +644,8 @@ pillarliang/python-code-style/
 - Skill 的核心内容（`SKILL.md` + `references/`）只维护一份，两种安装方式共享
 
 > **给 Skill 作者的建议**：如果你的 Skill 希望跨平台使用，建议采用双格式结构。`skills/<name>/SKILL.md` 是通用入口，`.claude-plugin/` 是 Claude Code 的增强入口。两者可以指向同一份 Skill 内容。
+
+
 
 #### 实例分析：Skill 集合仓库（一仓多 Skill）
 
@@ -661,12 +708,13 @@ npx skills add markdown-viewer/skills --all
 
 本质上这是把 Skill 当成"npm 包里的命令"来组织——一个包可以导出多个命令，一个仓库也可以提供多个 Skill。
 
-
 ### 2.9 Claude Code Plugin 与 Marketplace 深度解析
 
 前面 2.7 节提到 agentskills.io 规范定义了 Skill 的格式和路径，2.8 节介绍了三种安装方式。但 Claude Code 在 agentskills.io 规范之上额外构建了一套 **Plugin 与 Marketplace 系统**——这套系统**不属于 agentskills.io 规范**，是 Claude Code 私有的扩展机制，仅在 Claude Code 内可用。理解这两层对设计可分发的 Skill 仓库至关重要。
 
 #### 一、整体架构与概念辨析
+
+
 
 ##### 1.1 三层架构总览
 
@@ -682,11 +730,15 @@ Marketplace (分发层 — Claude 私有)   "怎么让人找到、信任、自�
 
 每加一层,都解决了上一层留下的问题:
 
-| 层级 | 解决的问题 | 适用场景 |
-|---|---|---|
-| **bare Skill** | 单一能力如何编写、加载、跨 Agent 兼容 | 个人零散 skill、跨平台分发 |
-| **Plugin** | 多个相关能力(skill + MCP + hook + command)如何捆绑发布 | 完整工具套件,例如 "Python 开发包" |
-| **Marketplace** | 多个 plugin 如何集中发现、版本管理、企业管控 | 团队/公司规模化分发 |
+
+| 层级              | 解决的问题                                      | 适用场景                   |
+| --------------- | ------------------------------------------ | ---------------------- |
+| **bare Skill**  | 单一能力如何编写、加载、跨 Agent 兼容                     | 个人零散 skill、跨平台分发       |
+| **Plugin**      | 多个相关能力(skill + MCP + hook + command)如何捆绑发布 | 完整工具套件,例如 "Python 开发包" |
+| **Marketplace** | 多个 plugin 如何集中发现、版本管理、企业管控                 | 团队/公司规模化分发             |
+
+
+
 
 ##### 1.2 Skill vs Plugin:最常见的混淆
 
@@ -709,32 +761,40 @@ Marketplace (应用商店)
 
 核心差异:
 
-| 维度 | Plugin | Skill |
-|---|---|---|
-| **角色** | 容器/包,`/plugin install` 的对象 | 一种能力类型,plugin 内的 content |
-| **安装粒度** | 整体安装/禁用 | 不能单独装,随所在 plugin 一起 |
-| **加载时机** | 安装后常驻可用 | metadata 常驻,匹配后才注入 SKILL.md |
-| **声明文件** | `.claude-plugin/plugin.json` | 各 skill 目录下的 `SKILL.md` |
-| **跨 Agent** | Claude Code 私有 | agentskills.io 规范,30+ Agent 通用 |
+
+| 维度          | Plugin                       | Skill                          |
+| ----------- | ---------------------------- | ------------------------------ |
+| **角色**      | 容器/包,`/plugin install` 的对象   | 一种能力类型,plugin 内的 content       |
+| **安装粒度**    | 整体安装/禁用                      | 不能单独装,随所在 plugin 一起            |
+| **加载时机**    | 安装后常驻可用                      | metadata 常驻,匹配后才注入 SKILL.md    |
+| **声明文件**    | `.claude-plugin/plugin.json` | 各 skill 目录下的 `SKILL.md`        |
+| **跨 Agent** | Claude Code 私有               | agentskills.io 规范,30+ Agent 通用 |
+
 
 > ⚠️ **Plugin 不一定包含 Skill**。一个 plugin 可以只装 skills、只装 commands、只装 hooks,或任意组合(如 [pillarliang/python-code-style](https://github.com/pillarliang/python-code-style) 就只有 skills)。把 Plugin 简单理解成 "Skill 的集合" 是常见误解。
+
+
 
 ##### 1.3 心智模型:类比 npm 体系
 
 把整套体系类比 npm,概念关系立刻清晰:
 
-| Claude 概念 | npm 类比 |
-|---|---|
-| `plugin.json` | `package.json`(包自身元数据,作者控制) |
-| `marketplace.json` | npm registry index(列出多个包及其下载位置) |
-| `source` 字段 | `"dist": { "tarball": "..." }`(去哪下载) |
-| `category` / `tags` | npm 搜索分类(展示用,不影响包行为) |
-| 自动发现机制 | npm `bin/` `man/` 约定路径(无需在 package.json 列出) |
-| `strict` 模式 | 类似 lockfile 优先级:谁是 source of truth |
+
+| Claude 概念           | npm 类比                                      |
+| ------------------- | ------------------------------------------- |
+| `plugin.json`       | `package.json`(包自身元数据,作者控制)                 |
+| `marketplace.json`  | npm registry index(列出多个包及其下载位置)             |
+| `source` 字段         | `"dist": { "tarball": "..." }`(去哪下载)        |
+| `category` / `tags` | npm 搜索分类(展示用,不影响包行为)                        |
+| 自动发现机制              | npm `bin/` `man/` 约定路径(无需在 package.json 列出) |
+| `strict` 模式         | 类似 lockfile 优先级:谁是 source of truth          |
+
 
 **护照 vs 时刻表的比喻:** plugin.json 是包的"护照"(写"我是谁、有什么能力"),marketplace.json 是机场的"航班时刻表"(写"这趟航班从哪起飞、属于哪家航司")。两者各管各的,信息少有重叠。
 
 #### 二、Plugin:能力打包层
+
+
 
 ##### 2.1 为什么需要 Plugin 打包
 
@@ -749,17 +809,21 @@ Marketplace (应用商店)
 
 ##### 2.2 Plugin 能装哪些组件
 
-| 组件 | 默认路径 | 作用 |
-|---|---|---|
-| **Skills** | `skills/<name>/SKILL.md` | 模型自主调用(等同 agentskills.io 规范) |
-| **Subagents** | `agents/<name>.md` | 自定义子 agent(系统提示 + 工具限制) |
-| **Hooks** | `hooks/hooks.json` | 事件钩子(PostToolUse、SessionStart 等) |
-| **MCP servers** | `.mcp.json` | 外部工具集成(GitHub、Notion 等) |
-| **LSP servers** | `.lsp.json` | 语言服务器(实时诊断) |
-| **Slash commands** | `commands/` | 用户主动调用的命令 |
-| **Default settings** | `settings.json` | 预配置的环境变量等 |
-| **Executables** | `bin/` | 加入 PATH 的可执行脚本 |
-| **Monitors** | `monitors/monitors.json` | 后台守护进程(日志监听等) |
+
+| 组件                   | 默认路径                     | 作用                               |
+| -------------------- | ------------------------ | -------------------------------- |
+| **Skills**           | `skills/<name>/SKILL.md` | 模型自主调用(等同 agentskills.io 规范)     |
+| **Subagents**        | `agents/<name>.md`       | 自定义子 agent(系统提示 + 工具限制)          |
+| **Hooks**            | `hooks/hooks.json`       | 事件钩子(PostToolUse、SessionStart 等) |
+| **MCP servers**      | `.mcp.json`              | 外部工具集成(GitHub、Notion 等)          |
+| **LSP servers**      | `.lsp.json`              | 语言服务器(实时诊断)                      |
+| **Slash commands**   | `commands/`              | 用户主动调用的命令                        |
+| **Default settings** | `settings.json`          | 预配置的环境变量等                        |
+| **Executables**      | `bin/`                   | 加入 PATH 的可执行脚本                   |
+| **Monitors**         | `monitors/monitors.json` | 后台守护进程(日志监听等)                    |
+
+
+
 
 ##### 2.3 自动发现机制:组件不需要在 plugin.json 中声明
 
@@ -783,94 +847,116 @@ my-plugin/
 { "name": "my-plugin" }
 ```
 
+
+
 ##### 2.4 plugin.json 字段完整参考
 
-放在 `<plugin>/.claude-plugin/plugin.json`。**唯一必填字段是 `name`**,其他全可选。按用途分三类:
+放在 `<plugin>/.claude-plugin/plugin.json`。**唯一必填字段是** `name`,其他全可选。按用途分三类:
 
 **A. 元数据类**(描述 plugin 是什么)
 
-| 字段 | 类型 | 作用 | 示例 |
-|---|---|---|---|
-| `name` ✅ | string | plugin 唯一 ID,kebab-case。会作为 skill 命名空间 `/name:skill` | `"code-formatter"` |
-| `description` | string | UI 中展示的简短说明 | `"Automatic code formatting"` |
-| `version` | string | 语义化版本。**写了** → bump 才更新;**省略** → 用 git commit SHA | `"2.1.0"` |
-| `$schema` | string | 编辑器校验用的 JSON Schema URL,运行时忽略 | `"https://..."` |
-| `author` | object | `{ "name": "...", "email": "...", "url": "..." }` | `{ "name": "Dev Team" }` |
-| `homepage` | string | 文档 URL | `"https://docs.example.com"` |
-| `repository` | string | 源码仓库 URL | `"https://github.com/..."` |
-| `license` | string | SPDX 许可证标识 | `"MIT"`、`"Apache-2.0"` |
-| `keywords` | array | 发现/搜索标签 | `["formatting", "lint"]` |
+
+| 字段            | 类型     | 作用                                                   | 示例                            |
+| ------------- | ------ | ---------------------------------------------------- | ----------------------------- |
+| `name` ✅      | string | plugin 唯一 ID,kebab-case。会作为 skill 命名空间 `/name:skill` | `"code-formatter"`            |
+| `description` | string | UI 中展示的简短说明                                          | `"Automatic code formatting"` |
+| `version`     | string | 语义化版本。**写了** → bump 才更新;**省略** → 用 git commit SHA    | `"2.1.0"`                     |
+| `$schema`     | string | 编辑器校验用的 JSON Schema URL,运行时忽略                        | `"https://..."`               |
+| `author`      | object | `{ "name": "...", "email": "...", "url": "..." }`    | `{ "name": "Dev Team" }`      |
+| `homepage`    | string | 文档 URL                                               | `"https://docs.example.com"`  |
+| `repository`  | string | 源码仓库 URL                                             | `"https://github.com/..."`    |
+| `license`     | string | SPDX 许可证标识                                           | `"MIT"`、`"Apache-2.0"`        |
+| `keywords`    | array  | 发现/搜索标签                                              | `["formatting", "lint"]`      |
+
 
 **B. 组件路径覆盖类**(可选,只在不用默认路径时才需要)
 
-| 字段 | 类型 | 默认路径 |
-|---|---|---|
-| `skills` | string \| array | `skills/` |
-| `commands` | string \| array | `commands/` |
-| `agents` | string \| array | `agents/` |
-| `hooks` | string \| object | `hooks/hooks.json` |
-| `mcpServers` | string \| object | `.mcp.json` |
-| `lspServers` | string \| object | `.lsp.json` |
-| `monitors` | string \| array | `monitors/monitors.json` |
-| `outputStyles` | string \| array | `output-styles/` |
-| `themes` | string \| array | `themes/` |
+
+| 字段             | 类型              | 默认路径                     |
+| -------------- | --------------- | ------------------------ |
+| `skills`       | string | array  | `skills/`                |
+| `commands`     | string | array  | `commands/`              |
+| `agents`       | string | array  | `agents/`                |
+| `hooks`        | string | object | `hooks/hooks.json`       |
+| `mcpServers`   | string | object | `.mcp.json`              |
+| `lspServers`   | string | object | `.lsp.json`              |
+| `monitors`     | string | array  | `monitors/monitors.json` |
+| `outputStyles` | string | array  | `output-styles/`         |
+| `themes`       | string | array  | `themes/`                |
+
 
 **C. 高级类**
 
-| 字段 | 类型 | 作用 |
-|---|---|---|
-| `userConfig` | object | 启用 plugin 时向用户询问的配置项(API key、偏好等),支持 `sensitive`、`required` 等 |
-| `dependencies` | array | 依赖的其他 plugin,支持 semver 范围 |
-| `channels` | array | 消息通道声明(每个 channel 绑定一个 MCP server) |
+
+| 字段             | 类型     | 作用                                                            |
+| -------------- | ------ | ------------------------------------------------------------- |
+| `userConfig`   | object | 启用 plugin 时向用户询问的配置项(API key、偏好等),支持 `sensitive`、`required` 等 |
+| `dependencies` | array  | 依赖的其他 plugin,支持 semver 范围                                     |
+| `channels`     | array  | 消息通道声明(每个 channel 绑定一个 MCP server)                            |
+
+
+
 
 #### 三、Marketplace:分发与管控层
+
+
 
 ##### 3.1 Marketplace 独有能力
 
 Plugin 解决了"装一个东西包含多个组件",Marketplace 解决了"**一组 plugin 如何集中发布、发现、信任、批量管理**":
 
-| 能力 | 价值 |
-|---|---|
-| **集中目录** | 一个 marketplace 可列多个 plugin,用户 `/plugin` 一处浏览 |
-| **多种 source** | 同一 marketplace 可混用 GitHub / GitLab / npm / git URL / 本地路径 / monorepo 子目录 |
-| **版本控制** | `version` 字段控制更新节奏 |
-| **Release channels** | 同一份代码可做 `stable-` / `latest-` 两个 marketplace 指向不同 git ref |
-| **团队分发** | `.claude/settings.json` 中 `extraKnownMarketplaces`,团队成员自动收到提示 |
-| **企业管控** | `strictKnownMarketplaces` 锁定允许的 marketplace 白名单 |
+
+| 能力                   | 价值                                                                       |
+| -------------------- | ------------------------------------------------------------------------ |
+| **集中目录**             | 一个 marketplace 可列多个 plugin,用户 `/plugin` 一处浏览                             |
+| **多种 source**        | 同一 marketplace 可混用 GitHub / GitLab / npm / git URL / 本地路径 / monorepo 子目录 |
+| **版本控制**             | `version` 字段控制更新节奏                                                       |
+| **Release channels** | 同一份代码可做 `stable-` / `latest-` 两个 marketplace 指向不同 git ref                |
+| **团队分发**             | `.claude/settings.json` 中 `extraKnownMarketplaces`,团队成员自动收到提示            |
+| **企业管控**             | `strictKnownMarketplaces` 锁定允许的 marketplace 白名单                          |
+
 
 > 这些能力的根本来源是 marketplace.json 作为**中间注册表**的存在。bare Skill 的分发是用户直连 GitHub repo,没有中间层,做不了版本指向、白名单、灰度发布这些事。
 
+
+
 ##### 3.2 marketplace.json 顶层字段
 
-放在 `<marketplace-repo>/.claude-plugin/marketplace.json`。**必填字段:`name`、`owner`、`plugins`**。
+放在 `<marketplace-repo>/.claude-plugin/marketplace.json`。**必填字段:**`name`**、**`owner`**、**`plugins`。
 
-| 字段                                    | 类型       | 必填 | 作用                                                                             |
-| ------------------------------------- | -------- | -- | ------------------------------------------------------------------------------ |
-| `name`                                | string   | ✅  | marketplace 标识,公开可见(`/plugin install xxx@<name>`)。**保留名**:不能用 `claude-code-plugins`、`anthropic-plugins`、`agent-skills` 等 |
-| `owner`                               | object   | ✅  | `{ "name": "...", "email": "..." }`,只 name 必填                                   |
-| `plugins`                             | array    | ✅  | plugin 条目数组                                                                    |
-| `description`                         | string   |    | marketplace 描述                                                                 |
-| `version`                             | string   |    | manifest 版本(信息性,不影响行为)                                                       |
-| `$schema`                             | string   |    | JSON Schema URL,运行时忽略                                                          |
-| `metadata.pluginRoot`                 | string   |    | 公共前缀,简化 source 路径写法。设了之后可写 `"source": "foo"` 而不是 `"source": "./plugins/foo"`   |
-| `allowCrossMarketplaceDependenciesOn` | array    |    | 允许 plugin 依赖其他哪些 marketplace 的 plugin                                          |
+
+| 字段                                    | 类型     | 必填  | 作用                                                                                                                       |
+| ------------------------------------- | ------ | --- | ------------------------------------------------------------------------------------------------------------------------ |
+| `name`                                | string | ✅   | marketplace 标识,公开可见(`/plugin install xxx@<name>`)。**保留名**:不能用 `claude-code-plugins`、`anthropic-plugins`、`agent-skills` 等 |
+| `owner`                               | object | ✅   | `{ "name": "...", "email": "..." }`,只 name 必填                                                                            |
+| `plugins`                             | array  | ✅   | plugin 条目数组                                                                                                              |
+| `description`                         | string |     | marketplace 描述                                                                                                           |
+| `version`                             | string |     | manifest 版本(信息性,不影响行为)                                                                                                   |
+| `$schema`                             | string |     | JSON Schema URL,运行时忽略                                                                                                    |
+| `metadata.pluginRoot`                 | string |     | 公共前缀,简化 source 路径写法。设了之后可写 `"source": "foo"` 而不是 `"source": "./plugins/foo"`                                             |
+| `allowCrossMarketplaceDependenciesOn` | array  |     | 允许 plugin 依赖其他哪些 marketplace 的 plugin                                                                                    |
+
+
 
 
 ##### 3.3 plugins[] 条目字段
 
-**必填只有 `name` 和 `source`**。其他字段全可选;**没填的会从 plugin.json 继承**。
+**必填只有** `name` **和** `source`。其他字段全可选;**没填的会从 plugin.json 继承**。
 
-| 字段            | 类型              | 必填 | 作用                                                                       |
-| ------------- | --------------- | -- | ------------------------------------------------------------------------ |
-| `name`        | string          | ✅  | plugin ID(对应 plugin.json 的 name)                                         |
-| `source`      | string\|object  | ✅  | **去哪取 plugin**(本地路径 / GitHub / git URL / monorepo / npm)                  |
-| `description` | string          |    | 不写则继承 plugin.json 的                                                      |
-| `version`     | string          |    | 不写则继承(冲突时 plugin.json 优先,见下文 strict 模式)                                  |
-| `category`    | string          |    | 分类标签,用于 UI 浏览(如 `"productivity"`、`"code-quality"`)                         |
-| `tags`        | array           |    | 搜索标签                                                                     |
-| `author`      | object          |    | 同 plugin.json 的 author                                                   |
-| `homepage` / `repository` / `license` / `keywords` | — |    | 同 plugin.json,不写则继承                                                      |
-| `strict`      | boolean         |    | **冲突仲裁模式**(默认 `true`)。详见下文                                                |
+
+| 字段                                                 | 类型            | 必填  | 作用                                                       |
+| -------------------------------------------------- | ------------- | --- | -------------------------------------------------------- |
+| `name`                                             | string        | ✅   | plugin ID(对应 plugin.json 的 name)                         |
+| `source`                                           | string|object | ✅   | **去哪取 plugin**(本地路径 / GitHub / git URL / monorepo / npm) |
+| `description`                                      | string        |     | 不写则继承 plugin.json 的                                      |
+| `version`                                          | string        |     | 不写则继承(冲突时 plugin.json 优先,见下文 strict 模式)                  |
+| `category`                                         | string        |     | 分类标签,用于 UI 浏览(如 `"productivity"`、`"code-quality"`)       |
+| `tags`                                             | array         |     | 搜索标签                                                     |
+| `author`                                           | object        |     | 同 plugin.json 的 author                                   |
+| `homepage` / `repository` / `license` / `keywords` | —             |     | 同 plugin.json,不写则继承                                      |
+| `strict`                                           | boolean       |     | **冲突仲裁模式**(默认 `true`)。详见下文                               |
+
+
 
 
 ##### 3.4 source 字段:5 种 plugin 来源
@@ -923,18 +1009,24 @@ Plugin 解决了"装一个东西包含多个组件",Marketplace 解决了"**一�
 }
 ```
 
+
+
 ##### 3.5 strict 模式:字段冲突时谁赢
 
 当 plugin.json 和 marketplace.json 的 plugins[] 条目里**同一字段填了不同值**时,由 `strict` 字段决定谁是权威:
 
-| `strict` 值 | 行为 |
-|---|---|
-| `true`(默认) | **plugin.json 为权威**,marketplace 条目只起补充作用。两边都写时取 plugin.json 的值 |
-| `false` | **marketplace 条目为权威**,plugin.json 中冲突字段会报错。适用于由 marketplace 维护的远程 plugin |
+
+| `strict` 值 | 行为                                                                       |
+| ---------- | ------------------------------------------------------------------------ |
+| `true`(默认) | **plugin.json 为权威**,marketplace 条目只起补充作用。两边都写时取 plugin.json 的值           |
+| `false`    | **marketplace 条目为权威**,plugin.json 中冲突字段会报错。适用于由 marketplace 维护的远程 plugin |
+
 
 **实践建议:** 永远使用默认 `strict: true`,保持单一数据源 — 信息只在 plugin.json 写一次,marketplace 条目只填 `name` + `source` + 必要展示字段(`category`、`tags`)。
 
 #### 四、两个文件如何配合(实战)
+
+
 
 ##### 4.1 完整实例:code-formatter
 
@@ -998,25 +1090,31 @@ code-tools/                            # ← marketplace 仓库
 
 ##### 4.2 字段归属原则:谁写在哪
 
-| 信息 | 写在哪里 | 原因 |
-|---|---|---|
-| `name` | 两边都写 | marketplace 用它匹配对应的 plugin |
-| `description` | 只在 plugin.json | marketplace 不写则继承 |
-| `version` | 只在 plugin.json | plugin 自己最了解版本号 |
-| `author` / `license` | 只在 plugin.json | plugin 元数据 |
-| `category` / `tags` | 只在 marketplace.json | "货架展示信息",plugin 自身不关心 |
-| `source` | 只在 marketplace.json | plugin 不需要知道"自己被怎么取" |
-| `userConfig` / `dependencies` | 只在 plugin.json | plugin 内部行为定义 |
+
+| 信息                            | 写在哪里                | 原因                         |
+| ----------------------------- | ------------------- | -------------------------- |
+| `name`                        | 两边都写                | marketplace 用它匹配对应的 plugin |
+| `description`                 | 只在 plugin.json      | marketplace 不写则继承          |
+| `version`                     | 只在 plugin.json      | plugin 自己最了解版本号            |
+| `author` / `license`          | 只在 plugin.json      | plugin 元数据                 |
+| `category` / `tags`           | 只在 marketplace.json | "货架展示信息",plugin 自身不关心      |
+| `source`                      | 只在 marketplace.json | plugin 不需要知道"自己被怎么取"       |
+| `userConfig` / `dependencies` | 只在 plugin.json      | plugin 内部行为定义              |
+
+
+
 
 ##### 4.3 version 字段:权威来源与三种处理方式
 
 `version` 是字段归属的特殊情况,值得单独讲清楚。**plugin.json 是 version 的权威来源**,marketplace 条目中的 version 仅作可选补充。三种处理方式对应三种发版风格:
 
-| 方式 | 配置 | 行为 | 适用场景 |
-|---|---|---|---|
-| **1. 显式版本(推荐)** | plugin.json 写 `"version": "2.1.0"` | 用户只在 bump 版本号时收到更新 | 正常发版,语义化版本管理 |
-| **2. 隐式版本(SHA)** | plugin.json 省略 version | 每个 commit 都视为新版本 | 早期高频迭代(注意:容易把半成品推给用户) |
-| **3. 两边都写(strict:true)** | plugin.json 与 marketplace 条目都写 | plugin.json 胜出,marketplace 的被忽略 | 一般避免,保持单一来源 |
+
+| 方式                       | 配置                                 | 行为                              | 适用场景                  |
+| ------------------------ | ---------------------------------- | ------------------------------- | --------------------- |
+| **1. 显式版本(推荐)**          | plugin.json 写 `"version": "2.1.0"` | 用户只在 bump 版本号时收到更新              | 正常发版,语义化版本管理          |
+| **2. 隐式版本(SHA)**         | plugin.json 省略 version             | 每个 commit 都视为新版本                | 早期高频迭代(注意:容易把半成品推给用户) |
+| **3. 两边都写(strict:true)** | plugin.json 与 marketplace 条目都写     | plugin.json 胜出,marketplace 的被忽略 | 一般避免,保持单一来源           |
+
 
 **实践建议:**
 
@@ -1025,9 +1123,13 @@ code-tools/                            # ← marketplace 仓库
 - 小改动不 bump → push 默认分支不会推给用户;真要发版时再改 version
 - 破坏性变更 bump major(`2.x.x → 3.0.0`),用户从版本号能感知风险
 
+
+
 #### 五、Auto-update 机制
 
 > 版本策略已在 4.3 节讲过(显式版本 vs SHA),本节聚焦更新行为本身:何时触发、用户如何感知、有哪些开关。
+
+
 
 ##### 5.1 更新触发流程
 
@@ -1048,14 +1150,17 @@ code-tools/                            # ← marketplace 仓库
 用户必须主动执行 /reload-plugins（或重启）──→ 新版本才真正生效
 ```
 
+
+
 ##### 5.2 UX 关键特点
 
-| 环节         | 是否需要用户操作                            |
-| ---------- | ----------------------------------- |
-| **检测更新**   | ❌ 启动时自动                              |
-| **下载新版本**  | ❌ 自动，不询问                            |
-| **加载生效**   | ✅ 必须 `/reload-plugins` 或重启          |
-| **权限变更**   | ❌ 不重新弹 permission 提示，新权限随更新一起生效     |
+
+| 环节        | 是否需要用户操作                        |
+| --------- | ------------------------------- |
+| **检测更新**  | ❌ 启动时自动                         |
+| **下载新版本** | ❌ 自动，不询问                        |
+| **加载生效**  | ✅ 必须 `/reload-plugins` 或重启      |
+| **权限变更**  | ❌ 不重新弹 permission 提示，新权限随更新一起生效 |
 
 
 三个值得注意的细节：
@@ -1064,17 +1169,24 @@ code-tools/                            # ← marketplace 仓库
 2. **代码改动 / 权限改动 / version bump 三者 UX 完全一致** — 都是"自动下载 → 提示 reload"。
 3. **会话中不会被打断** — 更新检查只在启动时跑，正在跑的会话不受影响。
 
+
+
 ##### 5.3 配置开关
 
-| 操作                                       | 命令/路径                                                                            |
-| ---------------------------------------- | -------------------------------------------------------------------------------- |
-| 启用某个 marketplace 的 auto-update           | `/plugin` → Marketplaces 标签页 → 选中 → Enable auto-update                            |
-| 默认行为                                     | Anthropic 官方 marketplace 默认开启，第三方默认关闭                                            |
-| 全局禁用 auto-update                          | 环境变量 `DISABLE_AUTOUPDATER=1`                                                     |
-| 仅禁用 Claude Code 自更新但保留 plugin 更新         | `FORCE_AUTOUPDATE_PLUGINS=1`                                                     |
+
+| 操作                               | 命令/路径                                                  |
+| -------------------------------- | ------------------------------------------------------ |
+| 启用某个 marketplace 的 auto-update   | `/plugin` → Marketplaces 标签页 → 选中 → Enable auto-update |
+| 默认行为                             | Anthropic 官方 marketplace 默认开启，第三方默认关闭                  |
+| 全局禁用 auto-update                 | 环境变量 `DISABLE_AUTOUPDATER=1`                           |
+| 仅禁用 Claude Code 自更新但保留 plugin 更新 | `FORCE_AUTOUPDATE_PLUGINS=1`                           |
+
+
 
 
 #### 六、高级特性:多通道与企业管控
+
+
 
 ##### 6.1 Release Channels:同源不同通道
 
@@ -1148,17 +1260,19 @@ code-tools/                            # ← marketplace 仓库
 
 #### 七、选型与边界
 
+
+
 ##### 7.1 场景到方案的决策表
 
 
-| 场景                                         | 推荐方案                                              |
-| ------------------------------------------ | ------------------------------------------------- |
-| 个人零散 skill，偶尔分享                            | bare Skill + `npx skills`                         |
-| 几个 skill 围绕同一主题，需要语义化版本                    | Plugin                                            |
-| 要捆绑 skill + MCP + hook + 命令成一套工具           | **必须 Plugin**（bare Skill 无打包能力）                   |
-| 多个相关 plugin，需要集中发现                         | Marketplace                                       |
-| 公司内部分发，要管控来源/版本                            | **必须 Marketplace**（企业控制是其独有能力）                    |
-| 要发布到非 Claude Code 用户（Cursor、VS Code 等）     | **必须 bare Skill 格式**（Plugin/Marketplace 跨 Agent 不通用） |
+| 场景                                     | 推荐方案                                                 |
+| -------------------------------------- | ---------------------------------------------------- |
+| 个人零散 skill，偶尔分享                        | bare Skill + `npx skills`                            |
+| 几个 skill 围绕同一主题，需要语义化版本                | Plugin                                               |
+| 要捆绑 skill + MCP + hook + 命令成一套工具       | **必须 Plugin**（bare Skill 无打包能力）                      |
+| 多个相关 plugin，需要集中发现                     | Marketplace                                          |
+| 公司内部分发，要管控来源/版本                        | **必须 Marketplace**（企业控制是其独有能力）                       |
+| 要发布到非 Claude Code 用户（Cursor、VS Code 等） | **必须 bare Skill 格式**（Plugin/Marketplace 跨 Agent 不通用） |
 
 
 **双格式兼容仓库的实践:** 如果希望同一份 Skill 既能在 Claude Code 享受 marketplace 体验,又能被其他 Agent 用 `npx skills` 安装,采用双格式结构(详见 2.8 节"实例分析:双格式兼容的 Skill 仓库"):
@@ -1167,36 +1281,42 @@ code-tools/                            # ← marketplace 仓库
 - `.claude-plugin/` 是 Claude Code 的增强入口
 - 两者指向同一份 Skill 内容,只维护一份
 
+
+
 ##### 7.2 与 agentskills.io 规范的边界划分
 
 明确哪些属于跨 Agent 通用规范，哪些是 Claude Code 私有扩展：
 
 
-| 类别                                    | agentskills.io 规范 | Claude Code 私有 |
-| ------------------------------------- | ----------------- | -------------- |
-| **SKILL.md 格式**                       | ✅                 | —              |
-| **Frontmatter 字段**                    | ✅                 | —              |
-| **`references/` `assets/` `scripts/`** | ✅                 | —              |
-| **渐进式披露（L1/L2/L3）**                  | ✅                 | —              |
-| **存储路径约定**（`.agents/skills/` 等）        | ✅                 | —              |
-| **`plugin.json`**                     | —                 | ✅              |
-| **`marketplace.json`**                | —                 | ✅              |
-| **`/plugin` 命令族**                     | —                 | ✅              |
-| **Auto-update 机制**                    | —                 | ✅              |
-| **Release channels**                  | —                 | ✅              |
-| **`strictKnownMarketplaces`**         | —                 | ✅              |
-| **MCP / Hook / LSP 集成**               | —                 | ✅              |
+| 类别                                         | agentskills.io 规范 | Claude Code 私有 |
+| ------------------------------------------ | ----------------- | -------------- |
+| **SKILL.md 格式**                            | ✅                 | —              |
+| **Frontmatter 字段**                         | ✅                 | —              |
+| `references/` ****`assets/` ****`scripts/` | ✅                 | —              |
+| **渐进式披露（L1/L2/L3）**                        | ✅                 | —              |
+| **存储路径约定**（`.agents/skills/` 等）            | ✅                 | —              |
+| `plugin.json`                              | —                 | ✅              |
+| `marketplace.json`                         | —                 | ✅              |
+| `/plugin` **命令族**                          | —                 | ✅              |
+| **Auto-update 机制**                         | —                 | ✅              |
+| **Release channels**                       | —                 | ✅              |
+| `strictKnownMarketplaces`                  | —                 | ✅              |
+| **MCP / Hook / LSP 集成**                    | —                 | ✅              |
 
 
 > **对作者的启示：** SKILL.md 内容遵守 agentskills.io 规范确保跨平台兼容，但若希望在 Claude Code 中获得自动更新、捆绑分发、企业管控等高级特性，需要额外加 `.claude-plugin/` 目录。两者不冲突，可在同一仓库共存。
 
 ---
 
+
+
 ## 三、五大设计模式详解
 
 文章的核心内容。这五种模式解决的是同一个问题：**SKILL.md 内部的内容该怎么组织？** Agent Skills 规范定义了文件格式，但没有规定内容的结构化方式，这五种模式就是对这个空白的填补。
 
 ### 模式一：Tool Wrapper（工具包装器）— 教 Agent 学会一个库
+
+
 
 #### 核心思想
 
@@ -1223,6 +1343,8 @@ fastapi-skill/
 - 安全策略（如内部认证库的使用方式）
 - 内部工具的 API 使用约定
 
+
+
 #### 真实案例
 
 - **Vercel** 的 `react-best-practices` Skill
@@ -1231,7 +1353,11 @@ fastapi-skill/
 
 ---
 
+
+
 ### 模式二：Generator（生成器）— 生成结构化输出
+
+
 
 #### 核心思想
 
@@ -1252,6 +1378,8 @@ report-generator/
     └── style-guide.md         # 质量标准（语言风格、格式要求）
 ```
 
+
+
 #### 关键设计洞察
 
 > "Swap either file to change the output without touching the instructions."
@@ -1263,6 +1391,8 @@ report-generator/
 - 换一个 `style-guide.md`，可以从"正式风格"切换到"对话风格"
 - 指令本身保持稳定不变
 
+
+
 #### 适用场景
 
 - 包含 Executive Summary、Methodology、Findings 等固定章节的技术报告
@@ -1272,7 +1402,11 @@ report-generator/
 
 ---
 
+
+
 ### 模式三：Reviewer（评审器）— 按标准评估
+
+
 
 #### 核心思想
 
@@ -1291,6 +1425,8 @@ code-reviewer/
     └── review-checklist.md       # 按类别组织的检查项
 ```
 
+
+
 #### 严重程度分级
 
 
@@ -1301,6 +1437,8 @@ code-reviewer/
 | **info**    | 建议考虑 | 可以进一步优化的地方         |
 
 
+
+
 #### Checklist 的编写要求
 
 检查项必须**具体且可检查**，例如：
@@ -1308,6 +1446,8 @@ code-reviewer/
 - "No mutable default arguments"（不使用可变默认参数）
 - "Functions under 30 lines"（函数不超过 30 行）
 - 而不是"代码质量要好"这种模糊描述
+
+
 
 #### 实际效果
 
@@ -1322,7 +1462,11 @@ Giorgio Crivellari 的实践报告：使用 Reviewer Skill 对照治理标准检
 
 ---
 
+
+
 ### 模式四：Inversion（反转）— Skill 来面试你
+
+
 
 #### 核心思想
 
@@ -1349,6 +1493,8 @@ Phase 3: 综合（Synthesis）
   → 用前两阶段的答案填充输出模板
 ```
 
+
+
 #### 关键设计要素：显式门控
 
 在 SKILL.md 中必须写明：
@@ -1368,7 +1514,11 @@ DO NOT start building until all phases complete.
 
 ---
 
+
+
 ### 模式五：Pipeline（流水线）— 强制多步骤工作流
+
+
 
 #### 核心思想
 
@@ -1411,6 +1561,8 @@ Step 4: Quality Check
   → 对照 quality-checklist.md 验证完整性
 ```
 
+
+
 #### 门控机制（Gate）
 
 门控是 Pipeline 模式的灵魂。**门控就是 SKILL.md 中的一段强约束 prompt**，没有任何框架层面的强制执行——纯粹靠指令措辞的强硬程度约束 LLM 行为。
@@ -1441,6 +1593,8 @@ Step 4: Quality Check
 - Agent 不会跳过验证阶段
 - 每一步的输出质量得到保障
 
+
+
 #### 适用场景
 
 - 带审批门控的文档生成
@@ -1449,6 +1603,8 @@ Step 4: Quality Check
 - 任何跳过步骤会导致错误输出的多步任务
 
 ---
+
+
 
 ## 四、模式组合 — 实际生产中的用法
 
@@ -1463,6 +1619,8 @@ Step 4: Quality Check
 
 
 ---
+
+
 
 ## 五、决策框架 — 如何选择合适的模式
 
@@ -1480,7 +1638,11 @@ Step 4: Quality Check
 
 ---
 
+
+
 ## 六、ADK Skills 生态系统
+
+
 
 ### 社区市场
 
@@ -1491,6 +1653,8 @@ Step 4: Quality Check
 | Vercel Labs                    | React/Next.js skills, 22K stars   |
 | Anthropic Skills               | Document generation, 86,500 stars |
 | Supabase                       | Postgres 优化指南                     |
+
+
 
 
 ### Google 官方 ADK Core Skills
@@ -1512,6 +1676,8 @@ npx skills add google/adk-docs -y -g
 
 ---
 
+
+
 ## 七、关键要点总结
 
 1. **Skill ≠ Tool**：Tool 是执行能力，Skill 是编排智慧
@@ -1525,6 +1691,8 @@ npx skills add google/adk-docs -y -g
 
 ---
 
+
+
 ## 附录 A：实战案例 — 周报生成 Skill
 
 这个案例来自 Notion 笔记，综合运用了 **Generator 模式**（模板 + 指令分离）。它利用 Bash 工具抓取 Git 提交记录，结合模板生成结构化周报。
@@ -1537,6 +1705,8 @@ weekly-report/
 └── assets/
     └── template.md       # 周报输出模板
 ```
+
+
 
 ### assets/template.md
 
@@ -1561,7 +1731,9 @@ weekly-report/
 - [ ] ...
 ```
 
-### SKILL.md
+
+
+### [SKILL.md](http://SKILL.md)
 
 ```markdown
 ---
@@ -1595,6 +1767,8 @@ allowed-tools: Bash(git) Read Write
 - 重点突出成果（Outcome），而不仅仅是列出动作（Activity）。
 ```
 
+
+
 ### 案例要点分析
 
 
@@ -1608,7 +1782,11 @@ allowed-tools: Bash(git) Read Write
 
 ---
 
+
+
 ## 附录 B：Skill 验证与测试
+
+
 
 ### 格式验证
 
@@ -1617,6 +1795,8 @@ allowed-tools: Bash(git) Read Write
 ```bash
 skills-ref validate ./my-skill
 ```
+
+
 
 ### 效果测试
 

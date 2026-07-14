@@ -1,9 +1,9 @@
 ---
-title: 多 Agent 通信 - 交互协议与信息流
+
+## title: 多 Agent 通信 - 交互协议与信息流
 tags: [agent, harness-engineering, multi-agent, protocol, a2a, orchestration, event-driven]
 created: 2026-06-16
 source: 综述 - 融合 Claude Code Harness、ETCLOVG Survey、Pi Harness 三套来源
----
 
 # 多 Agent 通信：交互协议与信息流
 
@@ -12,6 +12,8 @@ source: 综述 - 融合 Claude Code Harness、ETCLOVG Survey、Pi Harness 三套
 > 相关已有笔记：[[Claude_Code-Harness_Engineering]]（父子 fork 与协调者模式）· [[04-L-生命周期与编排]]（编排模式与共享状态）· [[02-T-工具接口与协议]]（A2A/MCP 协议边界）· [[08-跨层综合与开放问题]]（handoff 开放问题）· [[24-AgentEvent-订阅模型与-Compaction-子系统]]（事件总线）· [[17-RPC-模式]]（headless 驱动）
 
 ---
+
+
 
 ## 全局地图
 
@@ -44,7 +46,11 @@ flowchart TB
     style H fill:#fce4ec
 ```
 
+
+
 ---
+
+
 
 ## 1. 核心原理：隔离是默认，通信是凿出来的定向通道
 
@@ -65,6 +71,8 @@ flowchart TB
 
 ---
 
+
+
 ## 2. 把"通信"拆成两个正交问题：拓扑与通道
 
 "多 agent 怎么通信"其实纠缠着两个独立的问题，先拆开才不混：
@@ -76,18 +84,22 @@ flowchart TB
 
 ETCLOVG Survey 把拓扑归纳为五种主要编排模式（[[04-L-生命周期与编排]] §5.1）：
 
-| 拓扑模式 | 组织方式 | 典型场景 |
-| --- | --- | --- |
-| **分层（Hierarchical）** | 上层 controller 拆活给下层，再整合回来 | controller 接到"重构模块"，拆给 A 改数据层、B 改接口层，自己合并 |
-| **团队（Team）** | 一组**命名角色**平级协调 | 产品 + 工程 + 测试 agent 像小团队互相推进 |
-| **工作流（Workflow）** | agent 与 tool 编进**写死的阶段** | 写代码 → 固定调 lint → 修 → 流程固定 |
-| **扇出（Fan-out）** | 多 agent **并行**探索多样解 | 同一 bug，5 个 agent 各试一种修法，挑最好的 |
-| **图组合（Graph）** | agent/tool/state 都当图节点，多模式共存 | 用 LangGraph 把分层、团队、扇出混搭进一张图 |
+
+| 拓扑模式                 | 组织方式                         | 典型场景                                      |
+| -------------------- | ---------------------------- | ----------------------------------------- |
+| **分层（Hierarchical）** | 上层 controller 拆活给下层，再整合回来    | controller 接到"重构模块"，拆给 A 改数据层、B 改接口层，自己合并 |
+| **团队（Team）**         | 一组**命名角色**平级协调               | 产品 + 工程 + 测试 agent 像小团队互相推进               |
+| **工作流（Workflow）**    | agent 与 tool 编进**写死的阶段**     | 写代码 → 固定调 lint → 修 → 流程固定                 |
+| **扇出（Fan-out）**      | 多 agent **并行**探索多样解          | 同一 bug，5 个 agent 各试一种修法，挑最好的              |
+| **图组合（Graph）**       | agent/tool/state 都当图节点，多模式共存 | 用 LangGraph 把分层、团队、扇出混搭进一张图               |
+
 
 > [!NOTE] 拓扑不是本篇重点
 > 拓扑回答"组织成什么形状"，本篇的焦点是它下面那层——形状定了之后，节点之间靠什么把信息真正搬过去。后文五条通道，才是"协议/如何通信"这个问题的正面回答。
 
 ---
+
+
 
 ## 3. 通道 A · 父子委派：指令下行、结果上行（同进程）
 
@@ -147,15 +159,19 @@ worker 结果以 **user-role message** 回到协调者，包在固定的 XML 标
 
 父子虽然 context 隔离，但有一类东西**必须父子一致**——cache-safe params（system prompt、user/system context、工具定义等）。原因是 API 按前缀缓存：子代理若这些字段和父代理一字不差，就能命中缓存、价格降到 1/10；只要差一行，从差异点往后的缓存全失效，子代理付全价重算整个前缀。
 
-| 维度 | 必须共享 | 必须隔离 |
-| --- | --- | --- |
-| 目的 | 命中 prompt cache | 防止互相污染 |
-| 内容 | cache-safe params、内容替换决策 | 文件读取缓存、abort、memory、skill 列表、状态回写 |
-| 例外 | —— | 后台 Bash 任务的清理回调**始终穿透到父**，否则变僵尸进程 |
+
+| 维度  | 必须共享                     | 必须隔离                              |
+| --- | ------------------------ | --------------------------------- |
+| 目的  | 命中 prompt cache          | 防止互相污染                            |
+| 内容  | cache-safe params、内容替换决策 | 文件读取缓存、abort、memory、skill 列表、状态回写 |
+| 例外  | ——                       | 后台 Bash 任务的清理回调**始终穿透到父**，否则变僵尸进程 |
+
 
 这说明一件事：**父子通信通道不是随便建的，它被缓存经济学和状态安全双重约束**——该同步的同步（省钱），该隔离的隔离（防污染）。
 
 ---
+
+
 
 ## 4. 通道 B · 对等互通：A2A 协议（跨进程）
 
@@ -173,6 +189,7 @@ A2A 之外，ACP / ANP 占同一条 Agent↔Agent 边界，走 HTTP 而非 JSON-
 
 > [!WARNING] 易错点：MCP 不是 agent 间通信
 > MCP 和 A2A 经常被放在一起比较，但它们各占一条边界、互补而非竞争：
+>
 > - **MCP** 走 Agent ↔ External Capability——agent **拿能力**（访问 GitHub、数据库、文件系统）；
 > - **A2A** 走 Agent ↔ Agent——agent **拿另一个 agent**（委托一个专业 agent 做 review）。
 >
@@ -181,6 +198,8 @@ A2A 之外，ACP / ANP 占同一条 Agent↔Agent 边界，走 HTTP 而非 JSON-
 **父子 vs 对等，一句话区分**：父子是**同进程、同源继承、不透明下属**；A2A 是**跨进程、独立部署、不透明对等**。前者靠 fork 共享缓存省成本，后者靠 wire protocol 跨越部署边界。
 
 ---
+
+
 
 ## 5. 通道 C · 共享黑板：读写同一份协调状态（间接通信）
 
@@ -202,13 +221,15 @@ A2A 之外，ACP / ANP 占同一条 Agent↔Agent 边界，走 HTTP 而非 JSON-
 
 ---
 
+
+
 ## 6. 通道 D · 事件与钩子：一对多广播 + 旁路干预
 
 **原理**：前三条通道是 agent 之间点对点传任务结果。但一个多 agent 系统还需要让**外围组件感知内部正在发生什么**（UI 渲染、日志审计、上层编排器追踪子 agent 进度），并在关键节点**旁路插一脚**（验证、注入反馈）。这靠事件总线 + 钩子，是**一对多广播**而非点对点委派。两套来源各有所长，但骨架是共识的。
 
 ### 6.1 Pi 的事件订阅：单一订阅点 + fan-out
 
-Pi 的 Agent 内核**只暴露一个事件流 `AgentEvent`**，所有下游消费者通过订阅这一个流获取信号（[[24-AgentEvent-订阅模型与-Compaction-子系统]]）。物理结构上只有一个真正的订阅点，再由会话容器层做 fan-out 分发：
+Pi 的 Agent 内核**只暴露一个事件流** `AgentEvent`，所有下游消费者通过订阅这一个流获取信号（[[24-AgentEvent-订阅模型与-Compaction-子系统]]）。物理结构上只有一个真正的订阅点，再由会话容器层做 fan-out 分发：
 
 ```mermaid
 flowchart TB
@@ -220,6 +241,8 @@ flowchart TB
   H --> Ext["扩展运行器（可改写/拦截）"]
   H --> SM["持久化（消息固化时落盘）"]
 ```
+
+
 
 三条不变量决定了它是"观测通道"而非"控制通道"：
 
@@ -245,13 +268,17 @@ SubagentStop hook 脚本执行
 
 **两家对照**：
 
-| | Pi 事件订阅 | Claude Code 钩子 |
-| --- | --- | --- |
-| 共识 | 事件驱动观测：内部动作通过事件流外溢，UI/日志/上层天然能感知 | 同 |
-| 方向 | 纯只读投影，改写走扩展 hook | 观测之外，exit 2 可**反向注入消息**把子 agent 打回重做 |
-| 定位 | 一对多广播的神经总线 | 广播 + 生命周期闸门（可中止、可注入、可清理） |
+
+|     | Pi 事件订阅                          | Claude Code 钩子                       |
+| --- | -------------------------------- | ------------------------------------ |
+| 共识  | 事件驱动观测：内部动作通过事件流外溢，UI/日志/上层天然能感知 | 同                                    |
+| 方向  | 纯只读投影，改写走扩展 hook                 | 观测之外，exit 2 可**反向注入消息**把子 agent 打回重做 |
+| 定位  | 一对多广播的神经总线                       | 广播 + 生命周期闸门（可中止、可注入、可清理）             |
+
 
 ---
+
+
 
 ## 7. 通道 E · headless 驱动：外部编排器按行协议驱动子进程
 
@@ -259,11 +286,13 @@ SubagentStop hook 脚本执行
 
 `pi --mode rpc` 让 agent 以 headless 方式跑起来，通过 stdin/stdout 上的 JSON 通信。协议是严格的 JSONL（只用 `\n` 分隔），三个方向：
 
-| 方向 | 内容 | 关联方式 |
-| --- | --- | --- |
-| **stdin → agent**：Commands | 每行一个 JSON 对象（`prompt` / `steer` / `abort` / `new_session`…） | 带 `id` |
-| **agent → stdout**：Responses | `type: "response"`，含 `success` | 用 `id` 关联请求 |
-| **agent → stdout**：Events | 流式 JSON 行（`message_update` / `turn_end`…） | **无 `id`** |
+
+| 方向                           | 内容                                                          | 关联方式        |
+| ---------------------------- | ----------------------------------------------------------- | ----------- |
+| **stdin → agent**：Commands   | 每行一个 JSON 对象（`prompt` / `steer` / `abort` / `new_session`…） | 带 `id`      |
+| **agent → stdout**：Responses | `type: "response"`，含 `success`                              | 用 `id` 关联请求 |
+| **agent → stdout**：Events    | 流式 JSON 行（`message_update` / `turn_end`…）                   | **无** `id`  |
+
 
 这条通道的精妙在于**队列语义**——streaming 期间再发 prompt，必须声明何时送达：
 
@@ -277,22 +306,26 @@ SubagentStop hook 脚本执行
 
 ---
 
+
+
 ## 8. 通信该携带什么：handoff contract（开放问题）
 
 **原理**：前面五条通道解决的是"信息走哪条路径"。还有一个被普遍忽视、且至今没有标准答案的问题——**一次交接到底该带上什么信息**（[[08-跨层综合与开放问题]] §3.4）。
 
 把工作分布到 planner / subagent / tool / sandbox / evaluator / human 之间的那些接口，目前仍然**特别 ad hoc**。已有的局部标准只覆盖了"怎么传"：MCP（tool 访问）、A2A（agent 间通信）、OpenTelemetry（trace 底座）。缺的是一个**跨层交接契约（cross-layer handoff contract）**——规定一次 handoff 应当转移的不只是一段文字摘要，还要带上：
 
-| 应携带 | 缺了会怎样 |
-| --- | --- |
-| **intent（意图）** | 接手方不知道为什么做这件事 |
-| **constraint（约束）** | 接手方可能违反隐含限制 |
-| **permission（权限）** | 不知道自己被允许做什么 |
-| **artifact（产物）/ provenance（凭据）** | 拿不到中间结果，不知道证据来源 |
-| **budget state（预算）** | 不知道还剩多少 token / 时间 |
-| **risk level（风险）** | 无法判断该多谨慎 |
-| **trace history（轨迹）** | 丢失"怎么走到这一步"的复现能力 |
-| **unresolved decision（未决事项）** | 把已定的当未定、把未定的当已定 |
+
+| 应携带                              | 缺了会怎样              |
+| -------------------------------- | ------------------ |
+| **intent（意图）**                   | 接手方不知道为什么做这件事      |
+| **constraint（约束）**               | 接手方可能违反隐含限制        |
+| **permission（权限）**               | 不知道自己被允许做什么        |
+| **artifact（产物）/ provenance（凭据）** | 拿不到中间结果，不知道证据来源    |
+| **budget state（预算）**             | 不知道还剩多少 token / 时间 |
+| **risk level（风险）**               | 无法判断该多谨慎           |
+| **trace history（轨迹）**            | 丢失"怎么走到这一步"的复现能力   |
+| **unresolved decision（未决事项）**    | 把已定的当未定、把未定的当已定    |
+
 
 **只传摘要，接手方就丢了一半上下文。** 这一点正是 §3.1 那条"综合才是命门"在系统层的放大——协调者给 worker 的 spec 之所以要带文件路径、行号、确切改法，本质就是在手工拼一份 handoff contract。
 
@@ -301,18 +334,23 @@ SubagentStop hook 脚本执行
 
 ---
 
+
+
 ## 9. 收尾：五条通道一图对照
 
-| 通道 | 跨什么边界 | 信息怎么走 | 锚定来源 | 适用 |
-| --- | --- | --- | --- | --- |
-| **A 父子委派** | 同进程父 ↔ 子 | 指令下行（自包含 spec）/ 结果上行（result 报文）/ SendMessage 续轮 | Claude Code | 协调者拆活给隔离 worker |
-| **B 对等互通** | 跨进程 agent ↔ agent | A2A：Agent Card 发现 + 同步/流式 + 长任务 | Survey 02-T | 跨部署、互不透明的专业 agent 协作 |
-| **C 共享黑板** | 多方 ↔ 一份外置状态 | 读写共享协调状态 / repo 当 control plane | Survey 04-L | 角色分配、任务图、跨 run 持久协作 |
-| **D 事件与钩子** | 内核 ↔ 外围 + 闸门 | 单一事件流 fan-out 广播；exit 2 反向注入 | Pi + Claude Code | 观测、审计、验证、旁路干预 |
-| **E headless 驱动** | 外部编排器 ↔ agent 子进程 | JSONL command/response/event + steer/followUp 队列 | Pi RPC | 进程隔离、跨语言的上层编排 |
+
+| 通道                | 跨什么边界             | 信息怎么走                                            | 锚定来源             | 适用                   |
+| ----------------- | ----------------- | ------------------------------------------------ | ---------------- | -------------------- |
+| **A 父子委派**        | 同进程父 ↔ 子          | 指令下行（自包含 spec）/ 结果上行（result 报文）/ SendMessage 续轮  | Claude Code      | 协调者拆活给隔离 worker      |
+| **B 对等互通**        | 跨进程 agent ↔ agent | A2A：Agent Card 发现 + 同步/流式 + 长任务                  | Survey 02-T      | 跨部署、互不透明的专业 agent 协作 |
+| **C 共享黑板**        | 多方 ↔ 一份外置状态       | 读写共享协调状态 / repo 当 control plane                  | Survey 04-L      | 角色分配、任务图、跨 run 持久协作  |
+| **D 事件与钩子**       | 内核 ↔ 外围 + 闸门      | 单一事件流 fan-out 广播；exit 2 反向注入                     | Pi + Claude Code | 观测、审计、验证、旁路干预        |
+| **E headless 驱动** | 外部编排器 ↔ agent 子进程 | JSONL command/response/event + steer/followUp 队列 | Pi RPC           | 进程隔离、跨语言的上层编排        |
+
 
 三条贯穿全篇的判断：
 
 1. **隔离是默认，通信是成本**——每凿一条通道都要付代价（cache 失效、协调开销、状态一致性），所以简单任务硬拆多 agent 往往得不偿失。
 2. **综合不能委派**——无论哪条通道，把信息搬过去之后，"读懂并整理成可执行下一步"这件事必须由发起方自己做，否则多 agent 退化成任务转发机。
 3. **传路径易、传内容难**——MCP/A2A/RPC 解决了"怎么传"，但"一次交接该带哪些 state"仍是开放问题，决定了多 agent 系统的 safety 与可恢复性上限。
+

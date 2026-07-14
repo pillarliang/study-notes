@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 640" font-family="PingFang SC, Hiragino Sans GB, Microsoft YaHei, sans-serif">
+  <defs>
+    <marker id="ah-blue" markerWidth="10" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0,0 L9,4 L0,8 Z" fill="#58a6ff"/></marker>
+    <marker id="ah-green" markerWidth="10" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0,0 L9,4 L0,8 Z" fill="#3fb950"/></marker>
+    <marker id="ah-orange" markerWidth="10" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0,0 L9,4 L0,8 Z" fill="#f0883e"/></marker>
+    <marker id="ah-purple" markerWidth="10" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0,0 L9,4 L0,8 Z" fill="#bc8cff"/></marker>
+  </defs>
+  <rect x="0" y="0" width="1100" height="640" fill="#0d1117"/>
+  <text x="40" y="48" fill="#e6edf3" font-size="22" font-weight="700">Nexus 三仓库模型：group 统一入口 · proxy 管缓存 · hosted 管私有</text>
+  <rect x="300" y="90" width="500" height="470" rx="16" fill="#11161d" stroke="#30363d" stroke-width="2" stroke-dasharray="7,5"/>
+  <text x="320" y="118" fill="#8b949e" font-size="15" font-weight="700" text-anchor="start">Nexus 服务</text>
+  <rect x="40" y="255" width="190" height="150" rx="12" fill="#161b22" stroke="#4b5563" stroke-width="2"/>
+  <text x="135" y="290" fill="#e6edf3" font-size="17" font-weight="700" text-anchor="middle">客户端</text>
+  <text x="135" y="320" fill="#8b949e" font-size="13" font-weight="400" text-anchor="middle">npm · pnpm · pip</text>
+  <text x="135" y="344" fill="#8b949e" font-size="13" font-weight="400" text-anchor="middle">CI Runner</text>
+  <text x="135" y="378" fill="#6e7681" font-size="12" font-weight="400" text-anchor="middle">只认识一个入口地址</text>
+  <rect x="330" y="295" width="150" height="120" rx="12" fill="#161b22" stroke="#58a6ff" stroke-width="2"/>
+  <text x="405" y="330" fill="#58a6ff" font-size="17" font-weight="700" text-anchor="middle">group</text>
+  <text x="405" y="356" fill="#e6edf3" font-size="13" font-weight="400" text-anchor="middle">统一入口</text>
+  <text x="405" y="378" fill="#8b949e" font-size="12" font-weight="400" text-anchor="middle">只转发</text>
+  <text x="405" y="396" fill="#8b949e" font-size="12" font-weight="400" text-anchor="middle">不存包</text>
+  <rect x="560" y="150" width="200" height="115" rx="12" fill="#161b22" stroke="#3fb950" stroke-width="2"/>
+  <text x="660" y="185" fill="#3fb950" font-size="17" font-weight="700" text-anchor="middle">hosted</text>
+  <text x="660" y="211" fill="#e6edf3" font-size="13" font-weight="400" text-anchor="middle">私有库</text>
+  <text x="660" y="233" fill="#8b949e" font-size="12" font-weight="400" text-anchor="middle">团队自产的私有包</text>
+  <rect x="560" y="430" width="200" height="115" rx="12" fill="#161b22" stroke="#f0883e" stroke-width="2"/>
+  <text x="660" y="465" fill="#f0883e" font-size="17" font-weight="700" text-anchor="middle">proxy</text>
+  <text x="660" y="491" fill="#e6edf3" font-size="13" font-weight="400" text-anchor="middle">公网源缓存镜像</text>
+  <text x="660" y="513" fill="#8b949e" font-size="12" font-weight="400" text-anchor="middle">命中即从本地返回</text>
+  <rect x="880" y="430" width="190" height="115" rx="12" fill="#161b22" stroke="#6e7681" stroke-width="2"/>
+  <text x="975" y="465" fill="#e6edf3" font-size="16" font-weight="700" text-anchor="middle">上游公网源</text>
+  <text x="975" y="491" fill="#8b949e" font-size="12" font-weight="400" text-anchor="middle">registry.npmjs.org</text>
+  <text x="975" y="513" fill="#8b949e" font-size="12" font-weight="400" text-anchor="middle">pypi.org</text>
+  <path d="M230,340 L330,345" fill="none" stroke="#58a6ff" stroke-width="2.5" marker-end="url(#ah-blue)"/>
+  <rect x="237.0" y="320" width="86" height="19" rx="4" fill="#0d1117"/>
+  <text x="280" y="332" fill="#58a6ff" font-size="12" font-weight="400" text-anchor="middle">装包 install</text>
+  <path d="M480,325 C520,300 525,250 560,215" fill="none" stroke="#3fb950" stroke-width="2.5" marker-end="url(#ah-green)"/>
+  <rect x="497.0" y="246" width="78" height="19" rx="4" fill="#0d1117"/>
+  <text x="536" y="258" fill="#3fb950" font-size="12" font-weight="400" text-anchor="middle">① 私有优先</text>
+  <path d="M480,390 C520,420 525,460 560,478" fill="none" stroke="#58a6ff" stroke-width="2.5" marker-end="url(#ah-blue)"/>
+  <rect x="497.0" y="420" width="78" height="19" rx="4" fill="#0d1117"/>
+  <text x="536" y="432" fill="#58a6ff" font-size="12" font-weight="400" text-anchor="middle">② 公网回退</text>
+  <path d="M760,487 L880,487" fill="none" stroke="#f0883e" stroke-width="2.5" stroke-dasharray="7,5" marker-end="url(#ah-orange)"/>
+  <rect x="760.0" y="466" width="120" height="19" rx="4" fill="#0d1117"/>
+  <text x="820" y="478" fill="#f0883e" font-size="12" font-weight="400" text-anchor="middle">仅首次未命中回源</text>
+  <path d="M135,255 L135,66 L660,66 L660,150" fill="none" stroke="#bc8cff" stroke-width="2.5" stroke-dasharray="6,4" marker-end="url(#ah-purple)"/>
+  <rect x="285.0" y="72" width="230" height="19" rx="4" fill="#0d1117"/>
+  <text x="400" y="84" fill="#bc8cff" font-size="12" font-weight="400" text-anchor="middle">发布 publish（写入 · 需认证）</text>
+  <text x="55" y="427" fill="#8b949e" font-size="12" font-weight="700" text-anchor="start">箭头语义</text>
+  <line x1="55" y1="453" x2="89" y2="453" stroke="#58a6ff" stroke-width="3"/>
+  <text x="99" y="457" fill="#c9d1d9" font-size="12" font-weight="400" text-anchor="start">装包读取：group → proxy / 公网包</text>
+  <line x1="55" y1="477" x2="89" y2="477" stroke="#3fb950" stroke-width="3"/>
+  <text x="99" y="481" fill="#c9d1d9" font-size="12" font-weight="400" text-anchor="start">私有命中：group → hosted</text>
+  <line x1="55" y1="501" x2="89" y2="501" stroke="#f0883e" stroke-width="3" stroke-dasharray="6,4"/>
+  <text x="99" y="505" fill="#c9d1d9" font-size="12" font-weight="400" text-anchor="start">回源拉取：proxy → 上游（仅首次）</text>
+  <line x1="55" y1="525" x2="89" y2="525" stroke="#bc8cff" stroke-width="3" stroke-dasharray="6,4"/>
+  <text x="99" y="529" fill="#c9d1d9" font-size="12" font-weight="400" text-anchor="start">发布写入：客户端 → hosted（需认证）</text>
+</svg>

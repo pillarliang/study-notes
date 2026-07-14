@@ -95,7 +95,16 @@
       "Skill(claude-api)",
       "Skill(claude-api:*)",
       "Bash(python3 -c ' *)",
-      "Bash(curl -sL https://code.claude.com/docs/en/agent-sdk/custom-tools.md)"
+      "Bash(curl -sL https://code.claude.com/docs/en/agent-sdk/custom-tools.md)",
+      "Bash(cat \"/Users/liangzhu/Library/Mobile Documents/iCloud~md~obsidian/Documents/study-notes/.vscode/settings.json\" 2>/dev/null; echo \"---USER---\"; grep -A3 '\\\\[markdown\\\\]' \"/Users/liangzhu/Library/Application Support/Code/User/settings.json\" 2>/dev/null)",
+      "Read(//Users/liangzhu/Library/Application Support/Code/User/**)",
+      "Read(//Users/liangzhu/Downloads/**)",
+      "Read(//tmp/**)",
+      "Read(//private/tmp/**)",
+      "Bash(grep -n \"ANTHROPIC\" ~/.zshrc ~/.zprofile ~/.zshenv ~/.bash_profile 2>/dev/null | sed 's/=sk-[^ ]*/=sk-***[已隐藏]/')",
+      "Read(//Users/liangzhu/**)",
+      "Bash(python3 -c \"import claude_agent_sdk, os; print\\(os.path.dirname\\(claude_agent_sdk.__file__\\)\\)\")",
+      "Bash(pip show *)"
     ]
   }
 }
