@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 560" width="1200" height="560">
+  <style>
+    text { font-family: 'Helvetica Neue', Helvetica, Arial, 'PingFang SC', 'Microsoft YaHei', 'SimHei', sans-serif; }
+    .title { fill: #111827; font-size: 24px; font-weight: 700; }
+    .subtitle { fill: #6b7280; font-size: 13px; }
+    .lane { fill: #6b7280; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; }
+    .node-title { fill: #111827; font-size: 16px; font-weight: 700; }
+    .node-text { fill: #4b5563; font-size: 13px; }
+    .arrow-label { fill: #2563eb; font-size: 12px; font-weight: 600; }
+    .feedback-label { fill: #7c3aed; font-size: 12px; font-weight: 600; }
+  </style>
+  <defs>
+    <marker id="arrow-blue" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#2563eb"/>
+    </marker>
+    <marker id="arrow-purple" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#7c3aed"/>
+    </marker>
+  </defs>
+
+  <rect width="1200" height="560" fill="#ffffff"/>
+  <text class="title" x="600" y="42" text-anchor="middle">智能知识：把模型能力缺口转成可信训练信号</text>
+  <text class="subtitle" x="600" y="66" text-anchor="middle">主线：需求定义 → 专家组织 → 数据生产 → 验证交付 → 模型反馈</text>
+
+  <rect x="42" y="98" width="1116" height="150" rx="12" fill="#eff6ff" fill-opacity="0.45" stroke="#bfdbfe" stroke-dasharray="6,4"/>
+  <text class="lane" x="60" y="122">客户与交付</text>
+  <rect x="42" y="278" width="1116" height="192" rx="12" fill="#f0fdf4" fill-opacity="0.5" stroke="#bbf7d0" stroke-dasharray="6,4"/>
+  <text class="lane" x="60" y="302">平台与供给</text>
+
+  <path d="M 238 175 L 284 175" stroke="#2563eb" stroke-width="2.5" fill="none" marker-end="url(#arrow-blue)"/>
+  <text class="arrow-label" x="261" y="163" text-anchor="middle">能力缺口</text>
+  <path d="M 500 175 L 546 175" stroke="#2563eb" stroke-width="2.5" fill="none" marker-end="url(#arrow-blue)"/>
+  <text class="arrow-label" x="523" y="163" text-anchor="middle">任务规格</text>
+  <path d="M 762 175 L 808 175" stroke="#2563eb" stroke-width="2.5" fill="none" marker-end="url(#arrow-blue)"/>
+  <text class="arrow-label" x="785" y="163" text-anchor="middle">合格资产</text>
+
+  <path d="M 392 248 L 392 328" stroke="#2563eb" stroke-width="2" fill="none" marker-end="url(#arrow-blue)"/>
+  <text class="arrow-label" x="404" y="292">招募匹配</text>
+  <path d="M 654 248 L 654 328" stroke="#2563eb" stroke-width="2" fill="none" marker-end="url(#arrow-blue)"/>
+  <text class="arrow-label" x="666" y="292">生产质检</text>
+  <path d="M 914 328 L 914 248" stroke="#2563eb" stroke-width="2" fill="none" marker-end="url(#arrow-blue)"/>
+  <text class="arrow-label" x="926" y="292">跑测验证</text>
+
+  <path d="M 1024 214 L 1024 500 L 176 500 L 176 224" stroke="#7c3aed" stroke-width="2" fill="none" marker-end="url(#arrow-purple)"/>
+  <text class="feedback-label" x="600" y="522" text-anchor="middle">模型通过率、失败轨迹与客户验收回流，决定下一批数据打在哪里</text>
+
+  <rect x="78" y="135" width="160" height="80" rx="10" fill="#ffffff" stroke="#93c5fd" stroke-width="1.6"/>
+  <text class="node-title" x="158" y="169" text-anchor="middle">模型实验室</text>
+  <text class="node-text" x="158" y="193" text-anchor="middle">“模型哪里不会？”</text>
+
+  <rect x="284" y="135" width="216" height="80" rx="10" fill="#eff6ff" stroke="#60a5fa" stroke-width="1.8"/>
+  <text class="node-title" x="392" y="166" text-anchor="middle">数据研究与方案</text>
+  <text class="node-text" x="392" y="190" text-anchor="middle">任务 · rubric · 黄金样本</text>
+
+  <rect x="546" y="135" width="216" height="80" rx="10" fill="#ffffff" stroke="#93c5fd" stroke-width="1.6"/>
+  <text class="node-title" x="654" y="166" text-anchor="middle">可信数据资产</text>
+  <text class="node-text" x="654" y="190" text-anchor="middle">示范 · 偏好 · 轨迹 · verifier</text>
+
+  <rect x="808" y="135" width="216" height="80" rx="10" fill="#ffffff" stroke="#93c5fd" stroke-width="1.6"/>
+  <text class="node-title" x="916" y="166" text-anchor="middle">训练与评测</text>
+  <text class="node-text" x="916" y="190" text-anchor="middle">SFT · RLHF · RLVR · Evals</text>
+
+  <rect x="284" y="328" width="216" height="104" rx="10" fill="#f0fdf4" stroke="#4ade80" stroke-width="1.8"/>
+  <text class="node-title" x="392" y="363" text-anchor="middle">一面千识</text>
+  <text class="node-text" x="392" y="387" text-anchor="middle">招募 · AI 面试 · 试标</text>
+  <text class="node-text" x="392" y="408" text-anchor="middle">匹配 · 激励 · 结算</text>
+
+  <rect x="546" y="328" width="216" height="104" rx="10" fill="#f0fdf4" stroke="#22c55e" stroke-width="1.8"/>
+  <text class="node-title" x="654" y="363" text-anchor="middle">Xpert Studio</text>
+  <text class="node-text" x="654" y="387" text-anchor="middle">智能知识旗下 B 端产品</text>
+  <text class="node-text" x="654" y="408" text-anchor="middle">低代码 · 工作流 · 质量追踪</text>
+
+  <rect x="808" y="328" width="216" height="104" rx="10" fill="#faf5ff" stroke="#a78bfa" stroke-width="1.8"/>
+  <text class="node-title" x="916" y="363" text-anchor="middle">环境与反馈系统</text>
+  <text class="node-text" x="916" y="387" text-anchor="middle">Docker · 工具 · 测试</text>
+  <text class="node-text" x="916" y="408" text-anchor="middle">rollout · 轨迹 · 失败分析</text>
+
+  <line x1="60" y1="546" x2="92" y2="546" stroke="#2563eb" stroke-width="2.5" marker-end="url(#arrow-blue)"/>
+  <text class="subtitle" x="104" y="550">生产与交付</text>
+  <line x1="230" y1="546" x2="262" y2="546" stroke="#7c3aed" stroke-width="2" marker-end="url(#arrow-purple)"/>
+  <text class="subtitle" x="274" y="550">模型反馈闭环</text>
+</svg>

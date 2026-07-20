@@ -4,21 +4,17 @@
     "type": "split",
     "children": [
       {
-        "id": "f3cdcea3aeeaaded",
+        "id": "e03769a823893d18",
         "type": "tabs",
         "children": [
           {
-            "id": "7e6f17d064d05384",
+            "id": "b76637c9e8921e28",
             "type": "leaf",
             "state": {
-              "type": "markdown",
-              "state": {
-                "file": "infra/nexus-私有包仓库入门.md",
-                "mode": "preview",
-                "source": false
-              },
+              "type": "empty",
+              "state": {},
               "icon": "lucide-file",
-              "title": "nexus-私有包仓库入门"
+              "title": "New tab"
             }
           }
         ]
@@ -78,7 +74,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 505.5
+    "width": 326.5
   },
   "right": {
     "id": "18704fb929da8db0",
@@ -185,11 +181,16 @@
       "terminal:Open terminal": false
     }
   },
-  "active": "7e6f17d064d05384",
+  "active": "b76637c9e8921e28",
   "lastOpenFiles": [
+    "面试作战笔记-智能知识(一面千识).md",
+    "assets/智能知识-专家数据价值链.png",
+    "assets/智能知识-专家数据价值链.svg",
+    "infra/engineering-practices/凭证扫描-gitleaks-detect-secrets-速查与详解.md",
+    "infra/engineering-practices",
+    "infra/nexus-私有包仓库入门.md",
     "infra/github-actions-配置速查与详解.md",
     "infra/github-actions-触发机制入门.md",
-    "infra/nexus-私有包仓库入门.md",
     "infra/assets/nexus-repo-model.png",
     "infra/assets/nexus-repo-model.svg",
     "CN模型下线与迁移映射.md",
@@ -219,20 +220,15 @@
     "AI/memory",
     "SE/algorithm/2-binary-search.md",
     "AI/agents/claude-agent-sdk/Claude-Agent-SDK-架构定位与子进程原理.md",
-    "assets/quality-defense-flow.png",
-    "assets/summary-card-pipeline-map.png",
     "AI/agents/A2A_学习笔记.md",
     "AI/00-从一个问题的旅程看AI全貌.md",
     "AI/Alibaba-ROLL-与-ROCK-学习指南.md",
-    "SE/algorithm/00-算法范式分类总纲.md",
-    "SE/algorithm/1a-two-pointers.md",
     "output.html",
     "output",
     "work/generate_image",
     "work/image",
     "AI/assets",
     "SE/algorithm/1a-two-pointers.md.tmp.30042.d1dc6a942624",
-    "Plaud-Summary-项目介绍（面试）.md.tmp.2337.ded7801412e9",
     "Untitled.canvas"
   ]
 }
