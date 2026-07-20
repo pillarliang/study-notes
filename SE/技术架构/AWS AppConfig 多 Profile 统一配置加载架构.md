@@ -13,65 +13,37 @@ aliases:
 > 部署环境只提供配置入口；Main Profile 声明依赖拓扑；`ConfigManager` 统一编排 Profile 与 Secret 的加载生命周期；业务模块只读取完整校验后原子发布的配置快照。
 
 ```mermaid
-flowchart TB
-    subgraph Sources["外部来源"]
-        direction LR
-        Deploy["部署启动参数<br/>Region / App / Env / Main"]
-        Profiles["Profile 来源<br/>AWS AppConfig / LOCAL_MODE 文件"]
-        Secrets["AWS Secrets Manager<br/>Secret 原文与版本"]
-    end
+flowchart LR
+    Deploy["部署启动参数<br/>定位 Region / App / Env / Main"]
+    AppConfig["AWS AppConfig<br/>Main 拓扑 + 依赖 Profiles"]
+    Manager["ConfigManager<br/>统一加载 · 组合 · 校验<br/>编排 Secret Loader"]
+    Snapshot["ApplicationSettings<br/>原子只读快照<br/>更新失败时保持旧版本"]
+    Secrets["AWS Secrets Manager<br/>Secret 读取与轮换"]
+    Business["基础设施与业务组件<br/>配置读取 / Secret 受控注入"]
 
-    subgraph Control["进程内配置控制面：ConfigManager"]
-        direction TB
-        Bootstrap["BootstrapSettings<br/>校验并确定加载入口"]
-        Topology["加载 Main Profile<br/>解析固定依赖拓扑"]
-        Sessions["Profile Sessions<br/>每个 Profile 一个 Session"]
-        SecretLoader["Secret Loader / Watchdog<br/>读取、注入与轮换凭证"]
-        Candidate["构建完整候选<br/>解析、派生、跨源校验"]
-        Snapshot["ApplicationSettings<br/>原子发布的新快照"]
-        LKG["last-known-good<br/>继续使用旧快照"]
-        Poller["一条 Profile 轮询线程"]
-        Lifecycle["统一 start / stop / join"]
+    Deploy -->|确定加载入口| Manager
+    AppConfig -->|非敏感配置| Manager
+    Manager -->|完整校验后发布| Snapshot
+    Snapshot -->|统一读取| Business
 
-        Bootstrap --> Topology
-        Topology -->|Profile 引用| Sessions
-        Topology -->|Secret 引用| SecretLoader
-        Sessions -->|Profile 内容| Candidate
-        SecretLoader -->|凭证注入，不进入快照| Candidate
-        Candidate -->|完整有效：替换| Snapshot
-        Candidate -.->|校验失败：不替换| LKG
-        Poller -.->|轮询| Sessions
-        Lifecycle -.-> Poller
-        Lifecycle -.-> SecretLoader
-    end
+    Manager -.-> Secrets
+    Secrets -.-> Business
 
-    subgraph Consumption["业务消费"]
-        direction LR
-        Read["get_settings() / 兼容 Adapter"]
-        Business["基础设施与业务组件"]
-        Read -->|只读| Business
-    end
-
-    Deploy --> Bootstrap
-    Profiles --> Topology
-    Profiles --> Sessions
-    Secrets -->|Secret 值| SecretLoader
-    Snapshot --> Read
-    LKG -.->|更新失败时继续服务| Read
-
-    classDef external fill:#faf9f5,stroke:#6b6a64,color:#141413;
     classDef normal fill:#ffffff,stroke:#504e49,color:#141413;
     classDef focal fill:#EEF2F7,stroke:#1B365D,color:#141413,stroke-width:2px;
     classDef secret fill:#faf9f5,stroke:#6b6a64,color:#141413,stroke-dasharray:5 3;
 
-    class Deploy,Profiles external;
-    class Secrets,SecretLoader secret;
-    class Bootstrap,Topology,Sessions,LKG,Poller,Lifecycle,Read,Business normal;
-    class Candidate,Snapshot focal;
+    class Deploy,AppConfig,Business normal;
+    class Manager,Snapshot focal;
+    class Secrets secret;
 ```
+
+
 
 > [!tip] 全局心智模型
 > AWS AppConfig 保存非敏感的期望状态；AWS Secrets Manager 保存凭证原文；`ConfigManager` 是进程内配置控制器；`ApplicationSettings` 是业务唯一可见的已发布状态。
+
+
 
 ## 1. 这个范式解决什么问题
 
@@ -90,12 +62,14 @@ flowchart TB
 
 整个架构分为四层：
 
-| 层次 | 回答的问题 | 核心内容 |
-| --- | --- | --- |
-| 启动定位层 | 去哪里加载 | Region、Application、Environment、Main Profile |
-| 外部来源层 | 配置与凭证存在哪里 | AWS AppConfig、AWS Secrets Manager、本地文件 |
-| 配置控制层 | 如何形成有效运行时状态 | `ConfigManager`、Secret Loader、候选构建与原子发布 |
-| 业务消费层 | 业务能读取什么 | `ApplicationSettings` 与统一读取入口 |
+
+| 层次    | 回答的问题       | 核心内容                                        |
+| ----- | ----------- | ------------------------------------------- |
+| 启动定位层 | 去哪里加载       | Region、Application、Environment、Main Profile |
+| 外部来源层 | 配置与凭证存在哪里   | AWS AppConfig、AWS Secrets Manager、本地文件      |
+| 配置控制层 | 如何形成有效运行时状态 | `ConfigManager`、Secret Loader、候选构建与原子发布     |
+| 业务消费层 | 业务能读取什么     | `ApplicationSettings` 与统一读取入口               |
+
 
 主链路只有一条：
 
@@ -115,17 +89,19 @@ Secret 不与普通配置走同一条存储链路。Main Profile 只保存 Secre
 
 ## 3. 组件职责与边界
 
-| 组件 | 职责 | 明确不负责 |
-| --- | --- | --- |
-| 部署环境 | 提供最小启动定位参数 | 承载业务配置或 Secret |
-| Main Profile | 声明 Profile 引用与 Secret 引用，形成依赖拓扑 | 保存 Secret 原文 |
-| AWS AppConfig | 保存和发布非敏感配置 | 保证多个 Profile 同时生效 |
-| AWS Secrets Manager | 保存、授权访问并版本化 Secret | 组织普通业务配置 |
-| `ConfigManager` | 加载 Profile、编排 Secret 注入、构建候选、校验、发布、轮询和关闭 | 向业务暴露 AWS Client 或 Secret 值 |
-| Secret Loader / Watchdog | 读取并轮换 Secret，写入环境变量或临时文件 | 组合或发布配置快照 |
-| `ApplicationSettings` | 保存当前完整、有效、只读的配置快照 | 访问 AWS、持有 Session 或执行轮询 |
-| 统一读取入口 | 向业务返回当前快照 | 保存第二份配置状态 |
-| 业务模块 | 定义领域 schema、约束和使用方式 | 自行加载 AppConfig 或 Secrets Manager |
+
+| 组件                       | 职责                                       | 明确不负责                            |
+| ------------------------ | ---------------------------------------- | -------------------------------- |
+| 部署环境                     | 提供最小启动定位参数                               | 承载业务配置或 Secret                   |
+| Main Profile             | 声明 Profile 引用与 Secret 引用，形成依赖拓扑          | 保存 Secret 原文                     |
+| AWS AppConfig            | 保存和发布非敏感配置                               | 保证多个 Profile 同时生效                |
+| AWS Secrets Manager      | 保存、授权访问并版本化 Secret                       | 组织普通业务配置                         |
+| `ConfigManager`          | 加载 Profile、编排 Secret 注入、构建候选、校验、发布、轮询和关闭 | 向业务暴露 AWS Client 或 Secret 值      |
+| Secret Loader / Watchdog | 读取并轮换 Secret，写入环境变量或临时文件                 | 组合或发布配置快照                        |
+| `ApplicationSettings`    | 保存当前完整、有效、只读的配置快照                        | 访问 AWS、持有 Session 或执行轮询          |
+| 统一读取入口                   | 向业务返回当前快照                                | 保存第二份配置状态                        |
+| 业务模块                     | 定义领域 schema、约束和使用方式                      | 自行加载 AppConfig 或 Secrets Manager |
+
 
 进程内只有一个 `ConfigManager`，但有两类更新机制：
 
@@ -141,6 +117,8 @@ ConfigManager
 
 > [!important]
 > “只有一个配置管理器”不等于“整个进程只有一条后台线程”。Profile 轮询与 Secret 轮换解决不同问题，可以使用不同线程，但必须由同一个生命周期入口启动和停止。
+
+
 
 ## 4. 依赖拓扑如何形成
 
@@ -161,10 +139,12 @@ secrets:
 
 依赖分为两类：
 
-| 依赖 | 生命周期 | 变更方式 |
-| --- | --- | --- |
-| Profile 名、Secret 引用、Region | 启动拓扑 | 修改后滚动重启 |
-| Profile 内容、Secret 版本 | 运行时状态 | 允许受控热更新或轮换 |
+
+| 依赖                         | 生命周期  | 变更方式       |
+| -------------------------- | ----- | ---------- |
+| Profile 名、Secret 引用、Region | 启动拓扑  | 修改后滚动重启    |
+| Profile 内容、Secret 版本       | 运行时状态 | 允许受控热更新或轮换 |
+
 
 启动拓扑固定后，`ConfigManager` 才能稳定维护 Session、校验关系和资源生命周期。运行中如果 Main Profile 改变依赖集合，当前进程拒绝这次更新，并继续使用 last-known-good；新拓扑由滚动重启后的新进程加载。
 
@@ -172,17 +152,23 @@ secrets:
 
 只有一个判断标准：**配置能否独立发布、验证和回滚。**
 
-| 配置关系 | 处理方式 |
-| --- | --- |
-| 必须一起修改、验证和回滚 | 放在同一个 Profile |
-| 具有独立发布节奏和权限边界 | 拆成不同 Profile |
-| 只服务于可选能力 | 单独建 Profile，由 Main Profile 显式引用 |
+
+| 配置关系            | 处理方式                               |
+| --------------- | ---------------------------------- |
+| 必须一起修改、验证和回滚    | 放在同一个 Profile                      |
+| 具有独立发布节奏和权限边界   | 拆成不同 Profile                       |
+| 只服务于可选能力        | 单独建 Profile，由 Main Profile 显式引用    |
 | 密码、Token、服务账号凭证 | 存入 Secrets Manager，AppConfig 只保存引用 |
+
 
 > [!important]
 > 文件大小不是拆分依据。若 Profile A 发布后必须等待 Profile B 才能恢复可用，二者就没有形成真正独立的发布单元。
 
+
+
 ## 5. 配置生命周期
+
+
 
 ### 5.1 首次启动
 
@@ -246,15 +232,17 @@ Secret 更新是否能立即被客户端使用，取决于下游对象是否缓�
 6. 热更新失败时保留 last-known-good。
 7. Secret 值不进入普通配置、快照和日志。
 
-| 场景 | 行为 |
-| --- | --- |
-| 启动定位参数缺失 | 创建 AWS Client 前退出 |
-| 必需 Profile 首次加载失败 | 启动失败，Pod 不进入 Ready |
-| Secret 不可用且没有有效的受控回退 | 候选构建失败，阻止启动或更新 |
-| 配置解析、派生或校验失败 | 启动时退出；热更新时保留 last-known-good |
-| Profile 名或 Secret 引用变化 | 拒绝热更新，要求滚动重启 |
-| 合法内容更新 | 构建完整候选后一次替换当前快照 |
-| 进程退出 | 停止 Profile 轮询和 Secret Watchdog，并等待退出 |
+
+| 场景                     | 行为                                   |
+| ---------------------- | ------------------------------------ |
+| 启动定位参数缺失               | 创建 AWS Client 前退出                    |
+| 必需 Profile 首次加载失败      | 启动失败，Pod 不进入 Ready                   |
+| Secret 不可用且没有有效的受控回退   | 候选构建失败，阻止启动或更新                       |
+| 配置解析、派生或校验失败           | 启动时退出；热更新时保留 last-known-good         |
+| Profile 名或 Secret 引用变化 | 拒绝热更新，要求滚动重启                         |
+| 合法内容更新                 | 构建完整候选后一次替换当前快照                      |
+| 进程退出                   | 停止 Profile 轮询和 Secret Watchdog，并等待退出 |
+
 
 日志只记录 Profile 名、版本、Secret ID 和错误类型。日志不得记录配置全文、Secret 原文或注入后的环境变量值。
 
@@ -270,13 +258,17 @@ Secret 更新是否能立即被客户端使用，取决于下游对象是否缓�
 
 当前项目中的具象命名如下：
 
-| 架构角色 | 项目实现 |
-| --- | --- |
-| 启动定位模型 | `BootstrapSettings` |
-| 统一加载器与生命周期编排器 | `ConfigManager` |
-| 原子只读快照 | `ApplicationSettings` |
-| 业务统一读取入口 | `get_settings()` |
-| Secret 读取与轮换 | `hub_secrets.py` 中的 Secret Loader / Watchdog |
+
+| 架构角色          | 项目实现                                         |
+| ------------- | -------------------------------------------- |
+| 启动定位模型        | `BootstrapSettings`                          |
+| 统一加载器与生命周期编排器 | `ConfigManager`                              |
+| 原子只读快照        | `ApplicationSettings`                        |
+| 业务统一读取入口      | `get_settings()`                             |
+| Secret 读取与轮换  | `hub_secrets.py` 中的 Secret Loader / Watchdog |
+
+
+
 
 ### 验收清单
 
