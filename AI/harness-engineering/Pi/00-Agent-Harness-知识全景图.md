@@ -1,13 +1,11 @@
 ---
-
-## title: Agent Harness 知识全景图
-
+title: Agent Harness 知识全景图
 tags: [agent, harness-engineering, knowledge-map, index]
 created: 2026-05-30
 sources:
-
-- [[Pi/22-从零到一搭建-Agent-完整技术文档]]
-- [[Claude_Code-Harness_Engineering]]
+  - "[[official-doc/22-从零到一搭建-Agent-完整技术文档]]"
+  - "[[Claude_Code-Harness_Engineering]]"
+---
 
 # Agent Harness 知识全景图
 
@@ -108,7 +106,7 @@ agent（整个进程 / 系统）
 
 ### 与 T 层协议的衔接
 
-[[survey-etclovg/02-T-工具接口与协议]] 用 *integration boundary* 给协议分类时，function calling 落在 "Model ↔ Function" 边界——这条边界恰好就在 **agentLoop 与 LLM client 之间**：
+[[02-T-工具接口与协议]] 用 *integration boundary* 给协议分类时，function calling 落在 "Model ↔ Function" 边界——这条边界恰好就在 **agentLoop 与 LLM client 之间**：
 
 - LLM 通过 function calling 协议输出结构化指令（JSON）
 - agentLoop 收到指令后用 tool executor 真正执行
@@ -486,10 +484,10 @@ flowchart TD
 |---|---|---|---|---|---|---|---|
 | — | type State | 状态散落不可读 | 把状态从局部变量提取成显式 State type | 承认 agent loop 是 state machine 而非流水线；强制设计者面对完整状态空间 | `AgentState` 9 字段 + `AgentHarnessTurnState` | `type State` 10 字段（query.ts:204） | I3 |
 | 历史 | messages + transition | 不知本轮被什么逼出来 | 双字段：messages 是数据、transition 是元数据 | "为什么没停"显式记下让测试断言"恢复路径 X 触发了"而不必看 messages | `AgentState.messages` + Pi 用 AgentEvent 替代 transition | query.ts:203-217 | I4 |
-| 预算 | autoCompactTracking + maxOutputTokensOverride | compact 重复触发；max-output 截断无处提升 | 预算不是一次性配置是会被恢复路径动态调整的运行时变量 | `_compactionAbortController + _overflowRecoveryAttempted`；Pi 不动态调 max_output_tokens | query.ts autoCompactTracking + maxOutputTokensOverride | I2 |
-| 恢复 | maxOutputTokensRecoveryCount + hasAttemptedReactiveCompact | 截断重试无限循环；compact 重复死循环 | 计数器分两种：永久型（跨迭代累积）+ 一次性型（本轮有效） | `_retryAttempt`（永久）+ `_overflowRecoveryAttempted`（一次性） | maxOutputTokensRecoveryCount + hasAttemptedReactiveCompact | I1 恢复必有界 |
-| 节奏 | turnCount + pendingToolUseSummary + stopHookActive | 工具汇总阻塞主循环；stop hook 半途打断 | pendingToolUseSummary 用 Promise 类型暴露异步性强制使用方思考 await 时机；stopHookActive 是节奏锁 | `_turnIndex` agent_start 归零；pending/stopHookActive 在 Pi 无等价 | 3 字段同名 | I5 节奏可控 |
-| 映射 | 字段-环节一对一 | 字段没人能说出"服务于哪个环节" | 每字段都要回答"谁读它、谁写它、何时清零" | Pi 三层分离：AgentState 公共面 / AgentHarnessTurnState 私有 / AgentSession 运行时计数器 | CC 单一 State type 集中管理 | I3+I4 |
+| 预算 | autoCompactTracking + maxOutputTokensOverride | compact 重复触发；max-output 截断无处提升 | 将预算字段显式纳入 State | 预算不是一次性配置，而是会被恢复路径动态调整的运行时变量 | `_compactionAbortController + _overflowRecoveryAttempted`；Pi 不动态调 max_output_tokens | query.ts autoCompactTracking + maxOutputTokensOverride | I2 |
+| 恢复 | maxOutputTokensRecoveryCount + hasAttemptedReactiveCompact | 截断重试无限循环；compact 重复死循环 | 按恢复路径拆分计数器与标志位 | 计数器分两种：永久型（跨迭代累积）+ 一次性型（本轮有效） | `_retryAttempt`（永久）+ `_overflowRecoveryAttempted`（一次性） | maxOutputTokensRecoveryCount + hasAttemptedReactiveCompact | I1 恢复必有界 |
+| 节奏 | turnCount + pendingToolUseSummary + stopHookActive | 工具汇总阻塞主循环；stop hook 半途打断 | 将异步等待与收尾锁提升为 State | pendingToolUseSummary 用 Promise 类型暴露异步性，强制使用方思考 await 时机；stopHookActive 是节奏锁 | `_turnIndex` agent_start 归零；pending/stopHookActive 在 Pi 无等价 | 3 字段同名 | I5 节奏可控 |
+| 映射 | 字段-环节一对一 | 字段没人能说出"服务于哪个环节" | 建立字段与环节的显式映射 | 每字段都要回答"谁读它、谁写它、何时清零" | Pi 三层分离：AgentState 公共面 / AgentHarnessTurnState 私有 / AgentSession 运行时计数器 | CC 单一 State type 集中管理 | I3+I4 |
 
 **演化逻辑**：CC 走"单一 State type"路线把全部 10 字段集中管理；Pi 走"三层分离"路线（AgentState 公共面 / AgentHarnessTurnState turn 快照 / 私有运行时计数器），把跨进程边界状态和私有状态隔离开——两种设计对应不同的扩展点形态（CC 暴露 query loop 给 extension；Pi 把扩展面收窄到 AgentState + 事件流）。
 
@@ -1107,22 +1105,22 @@ flowchart TD
 
 ### 上游材料
 
-- [[Pi/22-从零到一搭建-Agent-完整技术文档]] — Pi 的完整源码级技术文档，覆盖 packages/agent / packages/coding-agent / packages/ai 三个核心包
+- [[official-doc/22-从零到一搭建-Agent-完整技术文档]] — Pi 的完整源码级技术文档，覆盖 packages/agent / packages/coding-agent / packages/ai 三个核心包
 - [[Claude_Code-Harness_Engineering]] — Claude Code 的 harness 工程笔记，覆盖 8 章 prompt / query loop / 工具系统 / 上下文治理 / 错误恢复 / multi-agent / 团队治理
 
 ### 平行展开（按环节深挖）
 
-- [[Pi/06-Sessions-会话树]] — 与 [[#§ 5 环节⑥ 写回结果]] 平行，深入讲 Pi 的 session 文件格式、fork 语义、resume 流程
-- [[Pi/07-Compaction-上下文压缩]] — 与 [[#§ 1 环节① 构造输入]] 治理表 13 步平行，深入讲 Pi 的 compact 算法实现
-- [[Pi/08-Extensions-扩展编写]] — 与 [[#§ 10 Pi 特色 · Extensions 系统]] 平行，深入讲怎么写 Pi extension
-- [[Pi/09-Skills-按需技能]] — 与 [[#§ 9 团队扩展 · Convention]] 的 Skill 双路径平行
-- [[Pi/13-Custom-Models-自定义模型]] / [[Pi/14-Custom-Providers-自定义-Provider]] — 与 [[#§ 2 环节② 调模型]] 的 Provider adapter 平行
-- [[Pi/15-Session-文件格式]] — [[#§ 5 环节⑥ 写回结果]] 持久化演化表 11 步的具体文件格式
-- [[Pi/16-SDK-嵌入-Node-应用]] — [[#§ 11.4 Pi 三种运行模式]] 的 createAgentSession SDK 面具体用法
+- [[official-doc/06-Sessions-会话树]] — 与 [[#§ 5 环节⑥ 写回结果]] 平行，深入讲 Pi 的 session 文件格式、fork 语义、resume 流程
+- [[official-doc/07-Compaction-上下文压缩]] — 与 [[#§ 1 环节① 构造输入]] 治理表 13 步平行，深入讲 Pi 的 compact 算法实现
+- [[official-doc/08-Extensions-扩展编写]] — 与 [[#§ 10 Pi 特色 · Extensions 系统]] 平行，深入讲怎么写 Pi extension
+- [[official-doc/09-Skills-按需技能]] — 与 [[#§ 9 团队扩展 · Convention]] 的 Skill 双路径平行
+- [[official-doc/13-Custom-Models-自定义模型]] / [[official-doc/14-Custom-Providers-自定义-Provider]] — 与 [[#§ 2 环节② 调模型]] 的 Provider adapter 平行
+- [[official-doc/15-Session-文件格式]] — [[#§ 5 环节⑥ 写回结果]] 持久化演化表 11 步的具体文件格式
+- [[official-doc/16-SDK-嵌入-Node-应用]] — [[#§ 11.4 Pi 三种运行模式]] 的 createAgentSession SDK 面具体用法
 
 ### 横向参照
 
-- [[#§ 13 总论]] 的"Prompt vs Harness 边界" → 与 prompt engineering 类笔记（如 [[Pi/10-Prompt-Templates-提示模板]]）形成正交对比
+- [[#§ 13 总论]] 的"Prompt vs Harness 边界" → 与 prompt engineering 类笔记（如 [[official-doc/10-Prompt-Templates-提示模板]]）形成正交对比
 - [[#§ 14 五大不变量 I1-I5]] → 是整个文档的索引锚点，每条不变量在多个章节有具体落地
 - [[#§ 17 专家思维框架]] 的七问诊断法 → 用于 review 任何新增的 harness 机制
 
@@ -1132,6 +1130,5 @@ flowchart TD
 - 引用 Pi 源码用 `packages/...../file.ts:line` 格式
 - 引用 CC 笔记用 `§ N.M` 格式对应 [[Claude_Code-Harness_Engineering]] 的章节号
 - 演化表的"Pi / CC"列直接标注实现位置，不在叙述中插入路径
-
 
 

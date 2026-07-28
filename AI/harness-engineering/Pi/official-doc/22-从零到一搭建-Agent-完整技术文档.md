@@ -1,13 +1,11 @@
 ---
-
-## title: 从零到一搭建 Agent：基于 Pi 的完整技术文档
-
+title: 从零到一搭建 Agent：基于 Pi 的完整技术文档
 tags: [Pi, agent, harness-engineering, architecture]
 created: 2026-05-28
 sources:
-
-- /Users/liangzhu/Documents/dev/agent-in-one/pi-agents/docs
-- [https://github.com/earendil-works/pi/tree/main/packages/coding-agent](https://github.com/earendil-works/pi/tree/main/packages/coding-agent)
+  - "/Users/liangzhu/Documents/dev/agent-in-one/pi-agents/docs"
+  - "https://github.com/earendil-works/pi/tree/main/packages/coding-agent"
+---
 
 # 从零到一搭建 Agent：基于 Pi 的完整技术文档
 
@@ -287,18 +285,18 @@ interface ToolResultMessage {
 
 ```mermaid
 sequenceDiagram
-  participant Loop as Agent Loop
+  participant AgentLoop as Agent Loop
   participant AI as pi-ai
   participant Adapter as Provider Adapter
   participant API as Remote Model API
 
-  Loop->>AI: streamSimple(context, options)
+  AgentLoop->>AI: streamSimple(context, options)
   AI->>Adapter: normalize context
   Adapter->>API: provider-specific request
   API-->>Adapter: provider-specific stream
   Adapter-->>AI: AssistantMessageEvent
-  AI-->>Loop: text/tool/thinking/error events
-  Loop->>Loop: assemble AssistantMessage
+  AI-->>AgentLoop: text/tool/thinking/error events
+  AgentLoop->>AgentLoop: assemble AssistantMessage
 ```
 
 
@@ -391,24 +389,24 @@ interface AgentTool<TArgs, TResult> {
 
 ```mermaid
 sequenceDiagram
-  participant Loop as Agent Loop
+  participant AgentLoop as Agent Loop
   participant Model as LLM
   participant Hook as Hooks
   participant Tool as Tool
   participant Ctx as Context
 
-  Loop->>Model: messages + tools
-  Model-->>Loop: assistant content: toolCall
-  Loop->>Loop: find tool by name
-  Loop->>Loop: validate args (schema)
-  Loop->>Hook: beforeToolCall
-  Hook-->>Loop: allow / block / rewrite / confirm
-  Loop->>Tool: execute(args, signal)
-  Tool-->>Loop: ToolResult
-  Loop->>Hook: afterToolCall
-  Hook-->>Loop: optional override
-  Loop->>Ctx: append toolResult
-  Loop->>Model: next request
+  AgentLoop->>Model: messages + tools
+  Model-->>AgentLoop: assistant content: toolCall
+  AgentLoop->>AgentLoop: find tool by name
+  AgentLoop->>AgentLoop: validate args (schema)
+  AgentLoop->>Hook: beforeToolCall
+  Hook-->>AgentLoop: allow / block / rewrite / confirm
+  AgentLoop->>Tool: execute(args, signal)
+  Tool-->>AgentLoop: ToolResult
+  AgentLoop->>Hook: afterToolCall
+  Hook-->>AgentLoop: optional override
+  AgentLoop->>Ctx: append toolResult
+  AgentLoop->>Model: next request
 ```
 
 
@@ -1297,14 +1295,14 @@ sequenceDiagram
   participant UI
   participant API as Express
   participant Store
-  participant Loop
+  participant AgentLoop as Agent Loop
 
   UI->>API: POST /api/prompt
   API->>Store: append user message
   API->>Store: compactIfNeeded
   API->>Store: buildContext
-  API->>Loop: runAgentLoop(context)
-  Loop-->>API: newMessages + events
+  API->>AgentLoop: runAgentLoop(context)
+  AgentLoop-->>API: newMessages + events
   API->>Store: append newMessages
   API-->>UI: SessionResponse
 ```
@@ -1351,19 +1349,19 @@ app.listen(4317);
 sequenceDiagram
   participant UI
   participant API
-  participant Loop
+  participant AgentLoop as Agent Loop
 
   UI->>API: POST /api/runs { text }
   API-->>UI: { runId }
   UI->>API: GET /api/runs/:runId/events (SSE)
-  API->>Loop: runAgentLoop(onEvent)
-  Loop-->>API: message_update
+  API->>AgentLoop: runAgentLoop(onEvent)
+  AgentLoop-->>API: message_update
   API-->>UI: SSE message_update
-  Loop-->>API: tool_execution_start
+  AgentLoop-->>API: tool_execution_start
   API-->>UI: SSE tool_execution_start
-  Loop-->>API: tool_execution_end
+  AgentLoop-->>API: tool_execution_end
   API-->>UI: SSE tool_execution_end
-  Loop-->>API: agent_end
+  AgentLoop-->>API: agent_end
   API-->>UI: SSE run_done + full session
 ```
 

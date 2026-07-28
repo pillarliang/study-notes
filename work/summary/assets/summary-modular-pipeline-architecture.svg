@@ -1,0 +1,148 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" width="1200" height="900">
+  <style>
+    text { font-family: 'Helvetica Neue', Helvetica, Arial, 'PingFang SC', 'Microsoft YaHei', 'Microsoft JhengHei', 'SimHei', sans-serif; }
+    .title { fill: #111827; font-size: 24px; font-weight: 700; }
+    .subtitle { fill: #6b7280; font-size: 13px; }
+    .layer-title { font-size: 13px; font-weight: 700; letter-spacing: 0.04em; }
+    .node-title { fill: #111827; font-size: 14px; font-weight: 600; }
+    .node-sub { fill: #6b7280; font-size: 11px; }
+    .rail-title { fill: #0f766e; font-size: 14px; font-weight: 700; }
+    .rail-sub { fill: #475569; font-size: 11px; }
+    .legend { fill: #6b7280; font-size: 11px; }
+  </style>
+  <defs>
+    <marker id="arrow-blue" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#2563eb"/>
+    </marker>
+    <marker id="arrow-teal" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#0d9488"/>
+    </marker>
+    <marker id="arrow-orange" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#ea580c"/>
+    </marker>
+  </defs>
+
+  <rect width="1200" height="900" fill="#ffffff"/>
+  <text x="600" y="38" text-anchor="middle" class="title">Summary 模块化 Pipeline：业务流与可观测性边界</text>
+  <text x="600" y="62" text-anchor="middle" class="subtitle">业务数据显式流动 · 任务元信息自动传播 · 模块状态局部封装 · Trace 描述一次执行</text>
+
+  <!-- Arrows: drawn before containers and nodes -->
+  <path d="M 34 158 L 34 760" fill="none" stroke="#2563eb" stroke-width="3" marker-end="url(#arrow-blue)"/>
+  <path d="M 875 265 L 928 265" fill="none" stroke="#0d9488" stroke-width="2" marker-end="url(#arrow-teal)"/>
+  <path d="M 875 445 L 928 445" fill="none" stroke="#0d9488" stroke-width="1.8" stroke-dasharray="5,3" marker-end="url(#arrow-teal)"/>
+  <path d="M 875 610 L 928 610" fill="none" stroke="#0d9488" stroke-width="1.8" stroke-dasharray="5,3" marker-end="url(#arrow-teal)"/>
+  <path d="M 1035 316 L 1035 374" fill="none" stroke="#0d9488" stroke-width="2" marker-end="url(#arrow-teal)"/>
+  <path d="M 1035 486 L 1035 544" fill="none" stroke="#0d9488" stroke-width="2" marker-end="url(#arrow-teal)"/>
+  <path d="M 1035 656 L 1035 712" fill="none" stroke="#0d9488" stroke-width="2" marker-end="url(#arrow-teal)"/>
+
+  <!-- Main architecture layers -->
+  <rect x="55" y="92" width="820" height="116" rx="10" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
+  <text x="72" y="116" class="layer-title" fill="#1d4ed8">业务请求</text>
+  <rect x="85" y="132" width="225" height="54" rx="8" fill="#ffffff" stroke="#bfdbfe" stroke-width="1.5"/>
+  <text x="197" y="154" text-anchor="middle" class="node-title">稳定业务身份</text>
+  <text x="197" y="173" text-anchor="middle" class="node-sub">摘要标识 · 文件标识 · 场景</text>
+  <rect x="352" y="132" width="225" height="54" rx="8" fill="#ffffff" stroke="#bfdbfe" stroke-width="1.5"/>
+  <text x="464" y="154" text-anchor="middle" class="node-title">业务输入</text>
+  <text x="464" y="173" text-anchor="middle" class="node-sub">转写内容 · 输出语言 · 场景参数</text>
+  <rect x="619" y="132" width="225" height="54" rx="8" fill="#ffffff" stroke="#bfdbfe" stroke-width="1.5"/>
+  <text x="731" y="154" text-anchor="middle" class="node-title">不可变请求</text>
+  <text x="731" y="173" text-anchor="middle" class="node-sub">业务执行的唯一显式输入</text>
+
+  <rect x="55" y="228" width="820" height="128" rx="10" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
+  <text x="72" y="252" class="layer-title" fill="#c2410c">应用控制边界</text>
+  <rect x="78" y="271" width="178" height="60" rx="8" fill="#ffffff" stroke="#fed7aa" stroke-width="1.5"/>
+  <text x="167" y="295" text-anchor="middle" class="node-title">校验与合规</text>
+  <text x="167" y="315" text-anchor="middle" class="node-sub">统一前置规则</text>
+  <rect x="276" y="271" width="178" height="60" rx="8" fill="#ffffff" stroke="#fed7aa" stroke-width="1.5"/>
+  <text x="365" y="295" text-anchor="middle" class="node-title">绑定任务上下文</text>
+  <text x="365" y="315" text-anchor="middle" class="node-sub">进入时设置 · 退出时恢复</text>
+  <rect x="474" y="271" width="178" height="60" rx="8" fill="#ffffff" stroke="#fed7aa" stroke-width="1.5"/>
+  <text x="563" y="295" text-anchor="middle" class="node-title">场景路由</text>
+  <text x="563" y="315" text-anchor="middle" class="node-sub">选择独立业务模块</text>
+  <rect x="672" y="271" width="178" height="60" rx="8" fill="#ffffff" stroke="#fed7aa" stroke-width="1.5"/>
+  <text x="761" y="295" text-anchor="middle" class="node-title">超时与异常转换</text>
+  <text x="761" y="315" text-anchor="middle" class="node-sub">统一请求级行为</text>
+
+  <rect x="55" y="376" width="820" height="142" rx="10" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5"/>
+  <text x="72" y="400" class="layer-title" fill="#15803d">独立业务 Pipeline</text>
+  <rect x="87" y="421" width="228" height="70" rx="8" fill="#ffffff" stroke="#bbf7d0" stroke-width="1.5"/>
+  <text x="201" y="447" text-anchor="middle" class="node-title">简单单次调用</text>
+  <text x="201" y="468" text-anchor="middle" class="node-sub">Prompt → 模型 → 格式化</text>
+  <rect x="351" y="421" width="228" height="70" rx="8" fill="#ffffff" stroke="#bbf7d0" stroke-width="1.5"/>
+  <text x="465" y="447" text-anchor="middle" class="node-title">长文本并行处理</text>
+  <text x="465" y="468" text-anchor="middle" class="node-sub">切分 → 分段 → 合并 → 校验</text>
+  <rect x="615" y="421" width="228" height="70" rx="8" fill="#ffffff" stroke="#bbf7d0" stroke-width="1.5"/>
+  <text x="729" y="447" text-anchor="middle" class="node-title">用户自定义流程</text>
+  <text x="729" y="468" text-anchor="middle" class="node-sub">约束处理 → 模型 → 修复</text>
+
+  <rect x="55" y="538" width="820" height="136" rx="10" fill="#faf5ff" stroke="#d8b4fe" stroke-width="1.5"/>
+  <text x="72" y="562" class="layer-title" fill="#7e22ce">共享能力</text>
+  <rect x="78" y="583" width="178" height="62" rx="8" fill="#ffffff" stroke="#e9d5ff" stroke-width="1.5"/>
+  <text x="167" y="607" text-anchor="middle" class="node-title">Prompt 管理</text>
+  <text x="167" y="627" text-anchor="middle" class="node-sub">区域版本 · 校验 · 缓存</text>
+  <rect x="276" y="583" width="178" height="62" rx="8" fill="#ffffff" stroke="#e9d5ff" stroke-width="1.5"/>
+  <text x="365" y="607" text-anchor="middle" class="node-title">模型调用</text>
+  <text x="365" y="627" text-anchor="middle" class="node-sub">逻辑模型 · 基础设施重试</text>
+  <rect x="474" y="583" width="178" height="62" rx="8" fill="#ffffff" stroke="#e9d5ff" stroke-width="1.5"/>
+  <text x="563" y="607" text-anchor="middle" class="node-title">文本处理</text>
+  <text x="563" y="627" text-anchor="middle" class="node-sub">切分 · 格式化</text>
+  <rect x="672" y="583" width="178" height="62" rx="8" fill="#ffffff" stroke="#e9d5ff" stroke-width="1.5"/>
+  <text x="761" y="607" text-anchor="middle" class="node-title">结果校验</text>
+  <text x="761" y="627" text-anchor="middle" class="node-sub">结构 · 长度 · 业务约束</text>
+
+  <rect x="55" y="694" width="820" height="118" rx="10" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+  <text x="72" y="718" class="layer-title" fill="#475569">资源与基础设施</text>
+  <rect x="87" y="740" width="228" height="48" rx="8" fill="#ffffff" stroke="#d1d5db" stroke-width="1.5"/>
+  <text x="201" y="762" text-anchor="middle" class="node-title">区域 Prompt 资源</text>
+  <text x="201" y="779" text-anchor="middle" class="node-sub">当前区域启动时加载</text>
+  <rect x="351" y="740" width="228" height="48" rx="8" fill="#ffffff" stroke="#d1d5db" stroke-width="1.5"/>
+  <text x="465" y="762" text-anchor="middle" class="node-title">模型路由与容错</text>
+  <text x="465" y="779" text-anchor="middle" class="node-sub">Endpoint · Failover</text>
+  <rect x="615" y="740" width="228" height="48" rx="8" fill="#ffffff" stroke="#d1d5db" stroke-width="1.5"/>
+  <text x="729" y="762" text-anchor="middle" class="node-title">日志与 Trace 后端</text>
+  <text x="729" y="779" text-anchor="middle" class="node-sub">检索 · 调用链 · 告警</text>
+
+  <!-- Observability rail -->
+  <rect x="928" y="92" width="225" height="720" rx="12" fill="#f0fdfa" stroke="#5eead4" stroke-width="1.5" stroke-dasharray="7,4"/>
+  <text x="1040" y="120" text-anchor="middle" class="rail-title">请求级可观测性作用域</text>
+  <text x="1040" y="140" text-anchor="middle" class="rail-sub">不参与业务决策，只提供关联能力</text>
+
+  <rect x="955" y="174" width="170" height="142" rx="8" fill="#ffffff" stroke="#99f6e4" stroke-width="1.5"/>
+  <text x="1040" y="198" text-anchor="middle" class="node-title">只读任务上下文</text>
+  <text x="1040" y="222" text-anchor="middle" class="rail-sub">摘要标识</text>
+  <text x="1040" y="242" text-anchor="middle" class="rail-sub">文件标识</text>
+  <text x="1040" y="262" text-anchor="middle" class="rail-sub">场景 · 请求标识</text>
+  <text x="1040" y="290" text-anchor="middle" class="rail-sub">并发任务自动隔离</text>
+
+  <rect x="955" y="374" width="170" height="112" rx="8" fill="#ffffff" stroke="#99f6e4" stroke-width="1.5"/>
+  <text x="1040" y="398" text-anchor="middle" class="node-title">日志自动关联</text>
+  <text x="1040" y="423" text-anchor="middle" class="rail-sub">每条日志自动注入</text>
+  <text x="1040" y="443" text-anchor="middle" class="rail-sub">任务与文件标识</text>
+  <text x="1040" y="466" text-anchor="middle" class="rail-sub">业务接口无需透传</text>
+
+  <rect x="955" y="544" width="170" height="112" rx="8" fill="#ffffff" stroke="#99f6e4" stroke-width="1.5"/>
+  <text x="1040" y="568" text-anchor="middle" class="node-title">执行链路追踪</text>
+  <text x="1040" y="593" text-anchor="middle" class="rail-sub">一次执行一个 Trace</text>
+  <text x="1040" y="613" text-anchor="middle" class="rail-sub">重要步骤建立 Span</text>
+  <text x="1040" y="636" text-anchor="middle" class="rail-sub">业务标识作为属性</text>
+
+  <rect x="955" y="712" width="170" height="76" rx="8" fill="#ffffff" stroke="#99f6e4" stroke-width="1.5"/>
+  <text x="1040" y="738" text-anchor="middle" class="node-title">统一输出</text>
+  <text x="1040" y="762" text-anchor="middle" class="rail-sub">结构化日志 · Trace · 指标</text>
+
+  <!-- Scope labels and legend -->
+  <rect x="55" y="836" width="270" height="38" rx="7" fill="#eff6ff" stroke="#bfdbfe"/>
+  <text x="190" y="852" text-anchor="middle" class="node-title">业务请求：显式传递</text>
+  <text x="190" y="868" text-anchor="middle" class="node-sub">承载业务身份与输入</text>
+  <rect x="344" y="836" width="270" height="38" rx="7" fill="#f0fdfa" stroke="#99f6e4"/>
+  <text x="479" y="852" text-anchor="middle" class="node-title">任务上下文：自动传播</text>
+  <text x="479" y="868" text-anchor="middle" class="node-sub">只承载安全元信息</text>
+  <rect x="633" y="836" width="270" height="38" rx="7" fill="#f0fdf4" stroke="#bbf7d0"/>
+  <text x="768" y="852" text-anchor="middle" class="node-title">模块状态：局部封装</text>
+  <text x="768" y="868" text-anchor="middle" class="node-sub">保存 Pipeline 中间结果</text>
+
+  <line x1="947" y1="847" x2="982" y2="847" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+  <text x="990" y="851" class="legend">业务流</text>
+  <line x1="947" y1="869" x2="982" y2="869" stroke="#0d9488" stroke-width="2" marker-end="url(#arrow-teal)"/>
+  <text x="990" y="873" class="legend">关联流</text>
+</svg>

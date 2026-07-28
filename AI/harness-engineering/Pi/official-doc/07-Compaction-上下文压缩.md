@@ -19,7 +19,7 @@ Pi 提供两个互补的压缩机制：
 
 ### 2.1 触发条件
 
-**自动**：当前 context token 数超过 `contextWindow - reserveTokens`（默认 reserve = 16384）触发。
+**自动**：当前 context token 数超过 `contextWindow - reserveTokens`（为模型的下一次回复保留，默认 reserve = 16384）触发。
 **手动**：`/compact [instructions]`，可选 instructions 用来引导摘要重点（如 `/compact 聚焦在 auth 重构的决策上`）。
 
 ### 2.2 工作流程（5 步）

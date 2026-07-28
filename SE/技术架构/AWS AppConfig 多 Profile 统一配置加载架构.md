@@ -9,120 +9,94 @@ aliases:
 
 # AWS AppConfig 多 Profile 统一配置加载架构
 
-> [!abstract] 一句话方案
-> 部署环境只提供配置入口；Main Profile 声明依赖拓扑；`ConfigManager` 统一编排 Profile 与 Secret 的加载生命周期；业务模块只读取完整校验后原子发布的配置快照。
+> [!abstract] 定位
+> 这是一套面向生产环境的通用配置控制架构。部署环境只提供配置入口；Main Profile 声明依赖；每个进程内的配置控制器加载、校验并发布完整运行时快照；业务只读取已接受的快照。
 
-```mermaid
-flowchart LR
-    Deploy["部署启动参数<br/>定位 Region / App / Env / Main"]
-    AppConfig["AWS AppConfig<br/>Main 拓扑 + 依赖 Profiles"]
-    Manager["ConfigManager<br/>统一加载 · 组合 · 校验<br/>编排 Secret Loader"]
-    Snapshot["ApplicationSettings<br/>原子只读快照<br/>更新失败时保持旧版本"]
-    Secrets["AWS Secrets Manager<br/>Secret 读取与轮换"]
-    Business["基础设施与业务组件<br/>配置读取 / Secret 受控注入"]
-
-    Deploy -->|确定加载入口| Manager
-    AppConfig -->|非敏感配置| Manager
-    Manager -->|完整校验后发布| Snapshot
-    Snapshot -->|统一读取| Business
-
-    Manager -.-> Secrets
-    Secrets -.-> Business
-
-    classDef normal fill:#ffffff,stroke:#504e49,color:#141413;
-    classDef focal fill:#EEF2F7,stroke:#1B365D,color:#141413,stroke-width:2px;
-    classDef secret fill:#faf9f5,stroke:#6b6a64,color:#141413,stroke-dasharray:5 3;
-
-    class Deploy,AppConfig,Business normal;
-    class Manager,Snapshot focal;
-    class Secrets secret;
-```
-
-
+![[aws-appconfig-unified-configuration-architecture.png|1200]]
 
 > [!tip] 全局心智模型
-> AWS AppConfig 保存非敏感的期望状态；AWS Secrets Manager 保存凭证原文；`ConfigManager` 是进程内配置控制器；`ApplicationSettings` 是业务唯一可见的已发布状态。
+> AWS AppConfig 保存非敏感的期望状态，AWS Secrets Manager 保存凭证原文。配置控制器把多个外部版本收敛为一个进程内已接受状态。业务看不到“正在加载”或“校验失败”的中间状态，只能读取完整旧快照或完整新快照。
 
+## 1. 适用范围与目标
 
+这套架构适用于同时满足以下条件的服务：
 
-## 1. 这个范式解决什么问题
+- 使用多个 AWS AppConfig Profile；
+- Profile 具有独立发布节奏或权限边界；
+- 配置更新前需要执行 schema、跨 Profile 引用或派生对象校验；
+- 需要在运行期间轮询配置，并在错误更新到达时保留 last-known-good；
+- Secret 保存在 AWS Secrets Manager，AppConfig 只保存引用；
+- API、Worker 或脚本需要共享同一套启动顺序。
 
-多 Profile 的难点不在于“读取多个文件”，而在于保证业务始终看到一份完整、有效且版本一致的运行时配置。
-
-如果各业务模块分别加载和缓存配置，会产生四类风险：
-
-- 启动时只加载了部分依赖，进程却已经开始接收流量；
-- 某个 Profile 更新后，业务读到新旧版本混合的中间状态；
-- 每个模块各自维护 Session、轮询线程和失败策略；
-- Secret 混入普通配置、日志或配置快照，扩大泄露面。
-
-因此，系统需要在业务组件之外建立一层**进程内配置控制面**。它负责把多个外部来源收敛成一个只读快照，再向所有消费者提供统一读取边界。
-
-## 2. 整体架构
-
-整个架构分为四层：
-
-
-| 层次    | 回答的问题       | 核心内容                                        |
-| ----- | ----------- | ------------------------------------------- |
-| 启动定位层 | 去哪里加载       | Region、Application、Environment、Main Profile |
-| 外部来源层 | 配置与凭证存在哪里   | AWS AppConfig、AWS Secrets Manager、本地文件      |
-| 配置控制层 | 如何形成有效运行时状态 | `ConfigManager`、Secret Loader、候选构建与原子发布     |
-| 业务消费层 | 业务能读取什么     | `ApplicationSettings` 与统一读取入口               |
-
-
-主链路只有一条：
+核心目标只有一个：
 
 ```text
-启动定位
-  → 解析依赖拓扑
-  → 加载 Profile 与注入 Secret
+外部期望状态
   → 构建完整候选
-  → 解析、派生并校验
-  → 原子发布只读快照
-  → 业务统一读取
+  → 校验候选
+  → 发布已接受状态
+  → 业务只读使用
 ```
 
-Secret 不与普通配置走同一条存储链路。Main Profile 只保存 Secret 引用，Secret Loader 根据引用从 AWS Secrets Manager 读取原文，再注入环境变量或受控临时文件。
+这套架构不负责自动切换数据库连接池、消息消费者、第三方 SDK Client 等有状态资源。配置快照更新只表示新配置已经可见，不表示所有外部资源已经完成重建。
 
-`ConfigManager` 是这里的**统一加载器与生命周期编排器**。它管理 Profile 的加载、组合、轮询和快照发布，也负责启动和停止 Secret Loader。它不保存、不解释，也不对业务发布 Secret 值。
+## 2. 核心模型
 
-## 3. 组件职责与边界
+### 2.1 四层职责
 
+| 层次 | 回答的问题 | 核心内容 |
+| --- | --- | --- |
+| 启动定位层 | 去哪里加载 | Region、Application、Environment、Main Profile |
+| 外部来源层 | 期望状态存在哪里 | AWS AppConfig、本地 Profile、AWS Secrets Manager |
+| 进程控制层 | 哪些状态可以生效 | 依赖拓扑、Profile Session、候选构建、校验、原子发布 |
+| 业务消费层 | 业务可以读取什么 | 已接受的只读快照、必需资源和应用就绪状态 |
 
-| 组件                       | 职责                                       | 明确不负责                            |
-| ------------------------ | ---------------------------------------- | -------------------------------- |
-| 部署环境                     | 提供最小启动定位参数                               | 承载业务配置或 Secret                   |
-| Main Profile             | 声明 Profile 引用与 Secret 引用，形成依赖拓扑          | 保存 Secret 原文                     |
-| AWS AppConfig            | 保存和发布非敏感配置                               | 保证多个 Profile 同时生效                |
-| AWS Secrets Manager      | 保存、授权访问并版本化 Secret                       | 组织普通业务配置                         |
-| `ConfigManager`          | 加载 Profile、编排 Secret 注入、构建候选、校验、发布、轮询和关闭 | 向业务暴露 AWS Client 或 Secret 值      |
-| Secret Loader / Watchdog | 读取并轮换 Secret，写入环境变量或临时文件                 | 组合或发布配置快照                        |
-| `ApplicationSettings`    | 保存当前完整、有效、只读的配置快照                        | 访问 AWS、持有 Session 或执行轮询          |
-| 统一读取入口                   | 向业务返回当前快照                                | 保存第二份配置状态                        |
-| 业务模块                     | 定义领域 schema、约束和使用方式                      | 自行加载 AppConfig 或 Secrets Manager |
-
-
-进程内只有一个 `ConfigManager`，但有两类更新机制：
+主链路如下：
 
 ```text
-ConfigManager
-  ├─ 多个 AppConfig Session：每个 Profile 一个
-  ├─ 一条 Profile 轮询线程：依次检查所有 Profile
-  ├─ 一个当前有效的 ApplicationSettings 快照
-  └─ Secret Loader / Watchdog：独立轮换 Secret，由 Manager 编排生命周期
+启动定位参数
+  → 加载 Main Profile
+  → 固定依赖拓扑
+  → 读取 Secret 引用
+  → 加载所有依赖 Profile
+  → 构建完整候选与派生对象
+  → 完整校验
+  → 原子发布已接受快照
+  → 构建必需资源
+  → 应用进入 Ready
 ```
 
-每个 Profile 必须使用独立 Session，因为 AppConfig Session 与具体 Profile 绑定。多个 Session 可以由同一条线程轮询，不需要为每个 Profile 创建线程。
+### 2.2 组件边界
 
-> [!important]
-> “只有一个配置管理器”不等于“整个进程只有一条后台线程”。Profile 轮询与 Secret 轮换解决不同问题，可以使用不同线程，但必须由同一个生命周期入口启动和停止。
+| 组件 | 负责 | 不负责 |
+| --- | --- | --- |
+| 部署环境 | 提供最小启动定位参数 | 保存业务配置或 Secret 原文 |
+| Main Profile | 声明 Profile 与 Secret 引用 | 保存 Secret 原文、控制运行时线程 |
+| AWS AppConfig | 保存、验证和分阶段部署非敏感配置 | 保证多个 Profile 同时生效 |
+| AWS Secrets Manager | 保存、授权访问并版本化 Secret | 组织普通业务配置 |
+| 配置控制器 | 加载 Profile、构建候选、校验、发布、轮询和关闭 | 向业务暴露 AWS Client 或未校验内容 |
+| Secret Runtime | 读取、注入和跟踪 Secret 版本 | 组合普通配置快照 |
+| 应用配置快照 | 保存完整、有效、逻辑只读的运行时状态 | 访问 AWS、持有轮询 Session |
+| 业务组件 | 定义领域约束并读取已接受快照 | 自行创建 AppConfig 加载器或第二份配置缓存 |
 
+### 2.3 七条不变量
 
+1. 每个 OS 进程只有一个配置控制器。
+2. 每个 Profile 拥有独立 AppConfig Data Session。
+3. 依赖拓扑在启动时确定，运行期间不局部改写。
+4. 候选包含所有必需 Profile、来源版本和派生对象。
+5. 候选通过格式、schema、跨 Profile 引用和派生对象校验后才能发布。
+6. 热更新失败时保留 last-known-good，不能用未校验内容覆盖它。
+7. Secret 原文不进入 AppConfig、普通配置 payload、日志和诊断接口。
 
-## 4. 依赖拓扑如何形成
+> [!important] “只读”的准确含义
+> 快照提供逻辑只读契约。`frozen` 模型无法自动冻结内部 `dict` 或第三方 SDK 对象，因此构造时必须隔离源数据，消费者不得修改快照内容。安全要求高的字段应使用不可变容器。
 
-Main Profile 是配置依赖清单。它先被加载，再由 `ConfigManager` 解析出本进程需要的其他 Profile 和 Secret 引用。
+## 3. 依赖拓扑
+
+### 3.1 Main Profile 是依赖清单
+
+Main Profile 先被加载。配置控制器随后从中提取当前进程需要的 Profile 和 Secret 引用。
 
 ```yaml
 profiles:
@@ -139,147 +113,305 @@ secrets:
 
 依赖分为两类：
 
+| 依赖 | 生命周期 | 变更方式 |
+| --- | --- | --- |
+| Region、Profile 名、Secret 引用 | 启动拓扑 | 修改后滚动重启 |
+| Profile 内容、Secret 版本 | 运行时状态 | 受控热更新或轮换 |
 
-| 依赖                         | 生命周期  | 变更方式       |
-| -------------------------- | ----- | ---------- |
-| Profile 名、Secret 引用、Region | 启动拓扑  | 修改后滚动重启    |
-| Profile 内容、Secret 版本       | 运行时状态 | 允许受控热更新或轮换 |
+固定拓扑的原因是 AppConfig Session、校验关系和后台资源都依赖 Profile 集合。运行期间若 Main Profile 改变依赖集合，当前进程拒绝该候选并继续使用 last-known-good。新拓扑由滚动重启后的新进程加载。
 
+### 3.2 Profile 拆分原则
 
-启动拓扑固定后，`ConfigManager` 才能稳定维护 Session、校验关系和资源生命周期。运行中如果 Main Profile 改变依赖集合，当前进程拒绝这次更新，并继续使用 last-known-good；新拓扑由滚动重启后的新进程加载。
+判断标准是配置能否独立发布、验证和回滚。
 
-### Profile 的拆分原则
-
-只有一个判断标准：**配置能否独立发布、验证和回滚。**
-
-
-| 配置关系            | 处理方式                               |
-| --------------- | ---------------------------------- |
-| 必须一起修改、验证和回滚    | 放在同一个 Profile                      |
-| 具有独立发布节奏和权限边界   | 拆成不同 Profile                       |
-| 只服务于可选能力        | 单独建 Profile，由 Main Profile 显式引用    |
+| 配置关系 | 归属方式 |
+| --- | --- |
+| 必须一起修改、验证和回滚 | 放入同一个 Profile |
+| 发布节奏或权限边界独立 | 拆成不同 Profile |
+| 只服务于可选能力 | 单独建 Profile，由 Main Profile 显式引用 |
 | 密码、Token、服务账号凭证 | 存入 Secrets Manager，AppConfig 只保存引用 |
 
+跨 Profile 变更必须保持分阶段兼容。假设 `routing v11` 只有配合 `feature v21` 才合法：
 
-> [!important]
-> 文件大小不是拆分依据。若 Profile A 发布后必须等待 Profile B 才能恢复可用，二者就没有形成真正独立的发布单元。
+```text
+routing v11 + feature v20 → 拒绝
+routing v10 + feature v21 → 拒绝
+```
 
+两个新版本会互相等待，系统始终停留在旧组合。正确做法是使用“扩展 → 迁移 → 收缩”的兼容发布流程；无法提供兼容窗口的字段应放入同一个 Profile。
 
+## 4. 首次启动
 
-## 5. 配置生命周期
-
-
-
-### 5.1 首次启动
+### 4.1 启动顺序
 
 ```text
 1. 校验启动定位参数
-2. 创建 ConfigManager
+2. 创建当前进程唯一的配置控制器
 3. 加载 Main Profile 并解析固定依赖拓扑
-4. 根据 Secret 引用读取并注入凭证
+4. 根据 Secret 引用读取并准备凭证
 5. 为每个依赖 Profile 创建独立 Session 并加载内容
-6. 解析配置，构建索引、映射或 SDK typed config 等派生对象
+6. 解析配置，构建索引、映射和 SDK typed config 等派生对象
 7. 校验完整候选
-8. 原子发布 ApplicationSettings
+8. 原子发布应用配置快照
 9. 启动 Profile 轮询和 Secret 轮换
-10. Pod 进入 Ready
+10. 构建必需资源，通过应用就绪门后进入 Ready
 ```
 
-首次启动没有 last-known-good。任意必需 Profile 无法获取，或完整候选无法通过校验，进程都必须在接收流量前退出。
+首次启动没有 last-known-good。任意必需 Profile 无法获取，或完整候选无法通过校验，进程都必须在接收流量或任务前退出。
 
-### 5.2 Profile 热更新
+### 4.2 配置就绪与应用就绪
 
-假设当前有效组合是：
+配置控制器只能决定配置是否就绪：
+
+```text
+config_ready =
+  首个完整快照已发布
+  AND 必需 Secret 已准备
+  AND 配置生命周期已经建立
+```
+
+Pod 是否进入 Ready 由应用就绪门决定：
+
+```text
+application_ready =
+  config_ready
+  AND 必需数据库 / Redis / 队列等资源已就绪
+  AND 进程未进入关闭状态
+```
+
+Readiness 探针必须查询应用就绪门，不能只探测进程存活或 TCP 端口。
+
+> [!warning] Liveness 与 Readiness 不可混用
+> AppConfig 暂时不可用但进程仍持有 last-known-good 时，服务通常应继续 Ready，同时告警。若把外部配置源的瞬时故障当作 liveness 失败，Kubernetes 会重启仍可正常服务的进程，并放大故障。
+
+## 5. Profile 更新状态机
+
+### 5.1 远端会话与业务状态必须分离
+
+每个 Profile 至少维护三类状态：
+
+| 状态 | 含义 |
+| --- | --- |
+| 轮询游标 | `NextPollConfigurationToken` 与下一次允许轮询时间 |
+| 最近观察版本 | AppConfig 最近返回并完成解析尝试的版本 |
+| 最近接受版本 | 最近一次进入完整有效快照的版本，即 last-known-good |
+
+AppConfig 返回的 Token 通常是一次性的。即使新内容校验失败，也必须推进轮询游标，否则下一轮可能重复使用失效 Token。推进远端会话不等于接受新配置。
+
+```text
+拉取远端响应
+  → 立即保存下一枚 Token 和轮询间隔
+  → 内容为空：结束本轮
+  → 内容存在：记录观察版本并构建候选
+      ├─ 校验成功：更新接受版本并发布
+      └─ 校验失败：保留旧接受版本，记录拒绝原因
+```
+
+轮询器应遵守服务端返回的 `NextPollIntervalInSeconds`，并对网络失败、Token 失效和 Session 重建采用带退避的重试策略。
+
+### 5.2 候选构建与原子发布
+
+当前已接受组合为：
 
 ```text
 main v5 + routing v10 + feature v20
 ```
 
-当 `routing v11` 到达时，`ConfigManager` 不直接覆盖当前字段，而是在内存中构建候选：
+当 `routing v11` 到达时，配置控制器构建：
 
 ```text
 main v5 + routing v11 + feature v20
 ```
 
-随后只有两个结果：
+随后执行：
 
 ```text
-完整校验通过 → 一次替换当前 ApplicationSettings 引用
-完整校验失败 → 丢弃候选，继续使用上一份有效快照
+格式解析
+  → Profile schema
+  → 跨 Profile 引用
+  → Secret 解析或引用绑定
+  → 派生对象构建
+  → 完整根模型校验
+      ├─ 全部通过：一次替换当前快照引用
+      └─ 任一失败：丢弃候选，保留旧快照
 ```
 
-原子发布是进程内语义：读取者看到完整旧快照或完整新快照，不会看到逐字段修改的中间状态。它不表示 AWS AppConfig 能同时发布多个 Profile。
+原子发布只保证同一进程内的读取者看到完整旧快照或完整新快照。它不表示 AWS AppConfig 能同时发布多个 Profile，也不表示多个进程会在同一时刻切换。
 
-### 5.3 Secret 轮换
+### 5.3 快照版本是版本向量
 
-Secret Watchdog 按版本检查 AWS Secrets Manager。版本变化后，它只更新对应环境变量或临时文件，不把 Secret 写入 `ApplicationSettings`。
+多个 Profile 没有共同的 AWS 版本号。一个快照应记录：
 
-Secret 更新是否能立即被客户端使用，取决于下游对象是否缓存凭证。读取文件型凭证的客户端通常可以复用稳定路径；在构造时缓存 Token 的客户端需要重建或滚动重启。这个切换策略属于客户端生命周期，不能由配置快照替换自动保证。
+```text
+generation = 42                 # 当前进程内发布代次
+profile_versions = {            # 组成快照的接受版本向量
+  main: v5,
+  routing: v11,
+  feature: v20
+}
+```
 
-### 5.4 进程关闭
+`generation` 只用于当前进程内比较先后；诊断跨进程差异时必须使用 Profile 版本向量。
 
-统一关闭入口依次通知 Profile 轮询线程和 Secret Watchdog 停止，等待线程退出，并清理 Secret 临时文件。业务入口不自行管理这些后台资源。
+## 6. Secret 运行时与轮换
 
-## 6. 正确性约束与失败语义
+### 6.1 Secret 的安全边界
 
-这套架构成立依赖七条不变量：
+Secret 原文必须满足以下约束：
 
-1. 同一进程只有一个 `ConfigManager`。
-2. 每个 Profile 拥有独立 AppConfig Session。
-3. 依赖拓扑在启动时确定，运行中不局部改写。
-4. 候选必须包含所有必需配置和派生对象。
-5. 候选完整校验后才能原子发布。
-6. 热更新失败时保留 last-known-good。
-7. Secret 值不进入普通配置、快照和日志。
+- 不写入 AppConfig；
+- 不写入普通配置 payload；
+- 不进入结构化日志、异常消息和诊断接口；
+- 不参与可序列化的快照输出；
+- 临时文件使用受限权限，并在进程退出时清理。
 
+第三方 SDK 有时要求在构造 typed config 时提供明文凭证。此时解析后的凭证会存在于进程内运行时对象中。该对象必须被视为敏感对象：禁止序列化、打印、复制到普通配置或暴露给诊断接口。
 
-| 场景                     | 行为                                   |
-| ---------------------- | ------------------------------------ |
-| 启动定位参数缺失               | 创建 AWS Client 前退出                    |
-| 必需 Profile 首次加载失败      | 启动失败，Pod 不进入 Ready                   |
-| Secret 不可用且没有有效的受控回退   | 候选构建失败，阻止启动或更新                       |
-| 配置解析、派生或校验失败           | 启动时退出；热更新时保留 last-known-good         |
-| Profile 名或 Secret 引用变化 | 拒绝热更新，要求滚动重启                         |
-| 合法内容更新                 | 构建完整候选后一次替换当前快照                      |
-| 进程退出                   | 停止 Profile 轮询和 Secret Watchdog，并等待退出 |
+因此，准确的不变量是：
 
+> Secret 原文不进入普通配置和可观察面；运行时对象只有在 SDK 契约确实要求时才持有解析后的凭证。
 
-日志只记录 Profile 名、版本、Secret ID 和错误类型。日志不得记录配置全文、Secret 原文或注入后的环境变量值。
+### 6.2 首选凭证模型
 
-## 7. 业务接入规范
+通用架构优先向业务发布凭证引用或 `CredentialProvider`，而不是发布明文字符串：
 
-业务模块只承担三个职责：
+```text
+业务 Client
+  → CredentialProvider
+  → 当前 Secret 版本
+```
 
-- 定义需要的配置字段与领域 schema；
+这使凭证轮换与普通配置快照解耦。SDK 只支持字符串或文件路径时，Secret Runtime 负责适配，但必须明确实际生效条件：
+
+| 消费模式 | Watchdog 更新动作 | 新凭证实际生效条件 |
+| --- | --- | --- |
+| Credential Provider | 替换 Provider 内部版本 | 后续请求重新取值 |
+| 稳定文件路径 | 原路径原子重写内容 | Client 在后续请求重新读取文件 |
+| 环境变量或 typed config 字符串 | 更新环境变量 | 重建 typed config 和 Client，或滚动重启 |
+
+Watchdog 能发现并注入新版本，不等于下游请求已经使用新凭证。凭证消费模式和 Client 生命周期共同决定轮换完成时间。
+
+### 6.3 Secret 失败策略
+
+| 场景 | 行为 |
+| --- | --- |
+| 必需 Secret 首次获取失败，且没有有效受控回退 | 配置候选失败，应用不 Ready |
+| 可选能力的 Secret 缺失 | 对应能力保持关闭，不能伪造凭证 |
+| 运行时轮换失败 | 继续使用仍有效的旧版本，告警并重试 |
+| 旧凭证已经失效且新版本不可用 | 对依赖该凭证的能力降级或置为不可用 |
+
+## 7. 多进程与一致性边界
+
+“唯一配置控制器”的边界是 OS 进程，不是 Pod：
+
+```text
+一个 Pod
+  ├─ 进程 A → 配置控制器 A → generation 42
+  ├─ 进程 B → 配置控制器 B → generation 41
+  └─ 进程 C → 配置控制器 C → generation 42
+```
+
+各进程独立持有 AppConfig Session，并在各自轮询周期内最终收敛。系统不保证跨进程、跨 Pod 同时切换。
+
+业务操作开始时只读取一次快照，并在本次操作内复用：
+
+```python
+settings = get_settings()
+handle_request(settings, request)
+```
+
+不要在一个请求的不同阶段反复读取当前快照，否则同一操作可能混用两个配置代次。
+
+若业务要求全局同时切换，就不能依赖进程内轮询实现。此类需求应使用兼容发布、流量分组或显式协调协议。
+
+## 8. AWS 服务端发布保护
+
+进程内候选校验是最后一道防线，不应替代 AWS AppConfig 的服务端保护。
+
+```text
+发布前
+  → JSON Schema / Lambda Validator
+部署中
+  → Deployment Strategy / Bake Time
+运行监控
+  → CloudWatch Alarm / 自动回滚
+进程内
+  → 跨 Profile、Secret 与派生对象完整校验
+```
+
+两层校验职责不同：
+
+| 层次 | 适合验证 |
+| --- | --- |
+| AppConfig Validator | 单 Profile 格式、字段类型、局部约束 |
+| 进程内候选校验 | 跨 Profile 引用、部署参数、Secret 可用性、派生对象和领域约束 |
+
+发布策略应控制变更扩散速度。Bake time 内的错误指标触发自动回滚，减少错误版本到达全部进程的概率。
+
+## 9. 失败语义
+
+| 场景 | 行为 |
+| --- | --- |
+| 启动定位参数缺失或非法 | 创建 AWS Client 前退出 |
+| 必需 Profile 首次加载失败 | 启动失败，应用不 Ready |
+| 首次候选解析、校验或派生构建失败 | 不发布快照，启动失败 |
+| Profile 热更新获取失败 | 保留 last-known-good，推进重试计划 |
+| Profile 热更新候选非法 | 记录观察版本和拒绝原因，保留接受版本 |
+| Profile 名或 Secret 引用变化 | 拒绝热更新，通过滚动重启生效 |
+| AppConfig 暂时不可用且旧快照仍有效 | 继续服务并告警 |
+| 有状态资源尚未完成切换 | 不宣称该资源已经应用新配置 |
+| 进程关闭 | 立即退出 Ready，停止轮询并清理 Secret 临时文件 |
+
+## 10. 可观测性
+
+配置系统至少暴露以下指标和诊断状态：
+
+| 信号 | 用途 |
+| --- | --- |
+| 当前进程 `generation` | 判断本进程发布次数 |
+| 各 Profile 观察版本 | 判断远端新版本是否已到达 |
+| 各 Profile 接受版本 | 判断当前快照实际使用什么 |
+| last-known-good 年龄 | 发现长期无法接受更新的进程 |
+| 最近成功拉取与发布时间 | 判断轮询是否停滞 |
+| 拉取、解析、校验失败计数 | 定位失败阶段 |
+| Session 重建次数 | 发现 Token 或网络异常 |
+| Secret 轮换成功与失败计数 | 判断凭证控制面是否健康 |
+| `config_ready` / `application_ready` | 区分配置就绪与应用就绪 |
+
+日志只记录 Profile 名、版本、候选阶段、Secret ID 和错误类型。不得记录配置全文、Secret 原文、注入后的值或敏感运行时对象。
+
+## 11. 接入规范
+
+业务模块只承担三项职责：
+
+- 定义需要的字段与领域 schema；
 - 定义跨字段、跨 Profile 的有效性约束；
-- 通过统一入口读取解析后的配置快照。
+- 在一次业务操作开始时读取并固定当前快照。
 
-业务模块不得自行创建 `AppConfigSessionClient`、Secrets Manager Client、轮询线程或第二份配置缓存。兼容旧接口时，旧 getter 也只能作为当前快照的薄 Adapter。
+业务模块不得：
 
-当前项目中的具象命名如下：
+- 自行创建 AppConfig Data Session；
+- 自行轮询 AppConfig 或 Secrets Manager；
+- 直接读取未校验的 Profile 字典；
+- 永久缓存 Prompt、模型映射、白名单等可派生配置；
+- 把配置发布等同于有状态资源切换完成。
 
+可由配置纯计算得到的索引、映射和 typed config，应在候选发布前完成构建。需要建立网络连接或后台线程的资源，由资源所有者实现“创建新实例 → 健康检查 → 切换流量 → 排空旧实例 → 失败回退”。
 
-| 架构角色          | 项目实现                                         |
-| ------------- | -------------------------------------------- |
-| 启动定位模型        | `BootstrapSettings`                          |
-| 统一加载器与生命周期编排器 | `ConfigManager`                              |
-| 原子只读快照        | `ApplicationSettings`                        |
-| 业务统一读取入口      | `get_settings()`                             |
-| Secret 读取与轮换  | `hub_secrets.py` 中的 Secret Loader / Watchdog |
+## 12. 验收清单
 
-
-
-
-### 验收清单
-
-- [ ] 同一进程只有一个 `ConfigManager`；
+- [ ] 每个 OS 进程只有一个配置控制器；
 - [ ] Main Profile 能完整描述 Profile 与 Secret 引用；
-- [ ] 每个 Profile 有独立 Session；
-- [ ] 所有 Profile Session 共用一条配置轮询线程；
-- [ ] Secret Manager 已作为独立来源接入，并由 Manager 编排生命周期；
-- [ ] 所有必需配置通过完整校验后 Pod 才进入 Ready；
-- [ ] 配置热更新失败时继续使用 last-known-good；
-- [ ] Profile 名或 Secret 引用变化只能通过滚动重启生效；
-- [ ] 业务模块只通过统一入口读取配置；
-- [ ] Secret 值不进入 AppConfig、`ApplicationSettings` 和日志；
-- [ ] 进程退出时 Profile 轮询线程与 Secret Watchdog 都能正常停止。
+- [ ] 每个 Profile 拥有独立 AppConfig Data Session；
+- [ ] 轮询游标、观察版本和接受版本分开维护；
+- [ ] 所有 Profile Session 可共用一条调度线程，并遵守各自轮询间隔；
+- [ ] 首个完整候选发布前，应用不会进入 Ready；
+- [ ] 合法候选一次替换完整快照；
+- [ ] 非法候选保留 last-known-good，并能观察拒绝原因；
+- [ ] Profile 名和 Secret 引用只能通过滚动重启变更；
+- [ ] Secret 原文不进入普通配置、日志和诊断接口；
+- [ ] Secret 轮换文档明确下游 Client 的实际生效条件；
+- [ ] 单次请求或任务固定使用一个快照；
+- [ ] AppConfig Validator、部署策略、告警和回滚已经配置；
+- [ ] 配置就绪与应用就绪分别可观测；
+- [ ] 进程退出时先退出 Ready，再停止 Profile 与 Secret 后台任务。

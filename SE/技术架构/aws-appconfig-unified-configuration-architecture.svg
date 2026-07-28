@@ -22,7 +22,7 @@
 
   <rect width="1200" height="800" fill="#ffffff"/>
   <text x="600" y="48" text-anchor="middle" class="title">AWS AppConfig 多 Profile 统一配置加载范式</text>
-  <text x="600" y="74" text-anchor="middle" class="subtitle">外部来源分离，ConfigManager 统一编排，完整候选原子发布，业务只读快照</text>
+  <text x="600" y="74" text-anchor="middle" class="subtitle">外部来源分离，每个进程独立收敛，完整候选原子发布，应用就绪统一判定</text>
 
   <rect x="40" y="96" width="1120" height="158" rx="16" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.4" stroke-dasharray="6 5"/>
   <text x="60" y="121" class="section">外部来源</text>
@@ -30,7 +30,7 @@
 
   <rect x="40" y="292" width="1120" height="300" rx="16" fill="#eff6ff" fill-opacity="0.36" stroke="#93c5fd" stroke-width="1.6" stroke-dasharray="7 5"/>
   <text x="60" y="320" class="section">进程内配置控制面</text>
-  <text x="60" y="342" class="section-sub">ConfigManager：唯一的 Profile 加载器与配置生命周期编排器</text>
+  <text x="60" y="342" class="section-sub">每个 OS 进程只有一个配置控制器；同进程只发布完整、已接受的运行状态</text>
 
   <rect x="40" y="630" width="1120" height="112" rx="16" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.4" stroke-dasharray="6 5"/>
   <text x="60" y="657" class="section">业务消费</text>
@@ -41,8 +41,9 @@
   <path d="M 710 222 L 710 280 L 320 280 L 320 372" fill="none" stroke="#2563eb" stroke-width="2.2" marker-end="url(#arrow-blue)"/>
   <path d="M 290 468 L 290 486 L 760 486 L 760 468" fill="none" stroke="#2563eb" stroke-width="2.2" marker-end="url(#arrow-blue)"/>
   <path d="M 890 420 L 945 420" fill="none" stroke="#2563eb" stroke-width="2.2" marker-end="url(#arrow-blue)"/>
-  <path d="M 1035 468 L 1035 612 L 455 612 L 455 676" fill="none" stroke="#2563eb" stroke-width="2.2" marker-end="url(#arrow-blue)"/>
-  <path d="M 570 698 L 690 698" fill="none" stroke="#2563eb" stroke-width="2.2" marker-end="url(#arrow-blue)"/>
+  <path d="M 1035 468 L 1035 612 L 295 612 L 295 676" fill="none" stroke="#2563eb" stroke-width="2.2" marker-end="url(#arrow-blue)"/>
+  <path d="M 400 698 L 495 698" fill="none" stroke="#2563eb" stroke-width="2.2" marker-end="url(#arrow-blue)"/>
+  <path d="M 735 698 L 840 698" fill="none" stroke="#2563eb" stroke-width="2.2" marker-end="url(#arrow-blue)"/>
 
   <!-- Secret 旁路 -->
   <path d="M 990 222 L 990 274 L 512 274 L 512 372" fill="none" stroke="#059669" stroke-width="2.2" marker-end="url(#arrow-green)"/>
@@ -56,7 +57,7 @@
 
   <rect x="350" y="154" width="220" height="68" rx="10" fill="#fff7ed" stroke="#fb923c" stroke-width="1.8"/>
   <text x="460" y="184" text-anchor="middle" class="node-title">AWS AppConfig</text>
-  <text x="460" y="206" text-anchor="middle" class="node-sub">Main 与依赖 Profile</text>
+  <text x="460" y="206" text-anchor="middle" class="node-sub">Profile / Validator / Deployment</text>
 
   <path d="M 635 154 L 761 154 L 785 178 L 785 222 L 635 222 Z" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.8"/>
   <path d="M 761 154 L 761 178 L 785 178" fill="none" stroke="#94a3b8" stroke-width="1.2"/>
@@ -69,14 +70,14 @@
 
   <!-- ConfigManager 内部节点 -->
   <rect x="110" y="372" width="240" height="96" rx="10" fill="#ffffff" stroke="#60a5fa" stroke-width="2"/>
-  <text x="230" y="405" text-anchor="middle" class="node-title">加载并解析依赖拓扑</text>
+  <text x="230" y="405" text-anchor="middle" class="node-title">加载并固定依赖拓扑</text>
   <text x="230" y="429" text-anchor="middle" class="node-sub">Main → Profile / Secret 引用</text>
   <text x="230" y="450" text-anchor="middle" class="node-note">每个 Profile 一个 Session</text>
 
   <rect x="405" y="372" width="215" height="96" rx="10" fill="#f0fdf4" stroke="#34d399" stroke-width="2"/>
-  <text x="512" y="405" text-anchor="middle" class="node-title">Secret Loader</text>
-  <text x="512" y="429" text-anchor="middle" class="node-sub">读取并注入凭证</text>
-  <text x="512" y="450" text-anchor="middle" class="node-note">独立 Watchdog 负责轮换</text>
+  <text x="512" y="405" text-anchor="middle" class="node-title">Secret 运行时</text>
+  <text x="512" y="429" text-anchor="middle" class="node-sub">读取、注入与版本跟踪</text>
+  <text x="512" y="450" text-anchor="middle" class="node-note">原文不进入 payload 和日志</text>
 
   <path d="M 695 372 L 870 372 L 890 420 L 870 468 L 695 468 L 675 420 Z" fill="#faf5ff" stroke="#a78bfa" stroke-width="2"/>
   <text x="782" y="405" text-anchor="middle" class="node-title">构建完整候选</text>
@@ -85,8 +86,8 @@
 
   <rect x="945" y="372" width="180" height="96" rx="10" fill="#ecfdf5" stroke="#22c55e" stroke-width="2"/>
   <rect x="951" y="378" width="168" height="84" rx="7" fill="none" stroke="#22c55e" stroke-width="1" opacity="0.6"/>
-  <text x="1035" y="405" text-anchor="middle" class="node-title">原子快照</text>
-  <text x="1035" y="429" text-anchor="middle" class="node-sub">ApplicationSettings</text>
+  <text x="1035" y="405" text-anchor="middle" class="node-title">已接受快照</text>
+  <text x="1035" y="429" text-anchor="middle" class="node-sub">完整只读运行状态</text>
   <text x="1035" y="450" text-anchor="middle" class="node-note">失败保留 last-known-good</text>
 
   <!-- 生命周期约束 -->
@@ -94,17 +95,20 @@
   <text x="285" y="536" text-anchor="middle" class="node-sub">一条 Profile 轮询线程</text>
 
   <rect x="475" y="508" width="250" height="46" rx="23" fill="#ffffff" stroke="#a7f3d0" stroke-width="1.4"/>
-  <text x="600" y="536" text-anchor="middle" class="node-sub">一条 Secret 轮换旁路</text>
+  <text x="600" y="536" text-anchor="middle" class="node-sub">一条 Secret 轮换线程</text>
 
   <rect x="790" y="508" width="250" height="46" rx="23" fill="#ffffff" stroke="#c4b5fd" stroke-width="1.4"/>
-  <text x="915" y="536" text-anchor="middle" class="node-sub">统一 start / stop / join</text>
+  <text x="915" y="536" text-anchor="middle" class="node-sub">统一启动与关闭生命周期</text>
 
   <!-- 业务消费节点 -->
-  <rect x="340" y="676" width="230" height="46" rx="10" fill="#ecfdf5" stroke="#4ade80" stroke-width="1.8"/>
-  <text x="455" y="704" text-anchor="middle" class="node-title">统一读取入口</text>
+  <rect x="190" y="676" width="210" height="46" rx="10" fill="#ecfdf5" stroke="#4ade80" stroke-width="1.8"/>
+  <text x="295" y="704" text-anchor="middle" class="node-title">统一快照读取</text>
 
-  <rect x="690" y="676" width="270" height="46" rx="10" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.8"/>
-  <text x="825" y="704" text-anchor="middle" class="node-title">基础设施与业务组件</text>
+  <rect x="495" y="676" width="240" height="46" rx="10" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.8"/>
+  <text x="615" y="704" text-anchor="middle" class="node-title">必需资源与业务组件</text>
+
+  <rect x="840" y="676" width="230" height="46" rx="10" fill="#faf5ff" stroke="#a78bfa" stroke-width="1.8"/>
+  <text x="955" y="704" text-anchor="middle" class="node-title">应用就绪门</text>
 
   <!-- 箭头标签 -->
   <text x="168" y="266" text-anchor="middle" class="arrow-label">定位入口</text>
@@ -112,13 +116,14 @@
   <text x="780" y="266" text-anchor="middle" class="arrow-label" style="fill:#047857">读取 Secret</text>
   <text x="377" y="396" text-anchor="middle" class="arrow-label" style="fill:#047857">Secret 引用</text>
   <text x="525" y="500" text-anchor="middle" class="arrow-label">Profile 内容</text>
-  <text x="649" y="420" text-anchor="middle" class="arrow-label" style="fill:#047857">凭证注入</text>
+  <text x="649" y="420" text-anchor="middle" class="arrow-label" style="fill:#047857">凭证解析 / 引用</text>
   <text x="918" y="410" text-anchor="middle" class="arrow-label">校验通过</text>
-  <text x="628" y="688" text-anchor="middle" class="arrow-label">只读</text>
+  <text x="448" y="688" text-anchor="middle" class="arrow-label">只读</text>
+  <text x="787" y="688" text-anchor="middle" class="arrow-label">全部就绪</text>
 
   <!-- 图例 -->
   <line x1="55" y1="776" x2="88" y2="776" stroke="#2563eb" stroke-width="2.2" marker-end="url(#arrow-blue)"/>
   <text x="100" y="780" class="legend">配置与控制流</text>
   <line x1="230" y1="776" x2="263" y2="776" stroke="#059669" stroke-width="2.2" marker-end="url(#arrow-green)"/>
-  <text x="275" y="780" class="legend">Secret 流（不进入配置快照）</text>
+  <text x="275" y="780" class="legend">Secret 流（原文不进入 payload / 日志）</text>
 </svg>

@@ -258,9 +258,9 @@ Extensions 调 `ctx.ui.*` 方法时，会在 stdout 上产生 `extension_ui_requ
 
 | 方法 | 入参 |
 |------|------|
-| `notify` | `{message, notifyType: "info"|"warning"|"error"}` |
+| `notify` | `{message, notifyType: "info"\|"warning"\|"error"}` |
 | `setStatus` | `{statusKey, statusText?}`（省略 text 即清除） |
-| `setWidget` | `{widgetKey, widgetLines?, widgetPlacement: "aboveEditor"|"belowEditor"}`（RPC 模式下只支持字符串数组；component factory 被忽略） |
+| `setWidget` | `{widgetKey, widgetLines?, widgetPlacement: "aboveEditor"\|"belowEditor"}`（RPC 模式下只支持字符串数组；component factory 被忽略） |
 | `setTitle` | `{title}` |
 | `set_editor_text` | `{text}` |
 

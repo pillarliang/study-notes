@@ -1,6 +1,6 @@
 ---
 
-## title: 多 Agent 通信 - 交互协议与信息流
+title: 多 Agent 通信 - 交互协议与信息流
 tags: [agent, harness-engineering, multi-agent, protocol, a2a, orchestration, event-driven]
 created: 2026-06-16
 source: 综述 - 融合 Claude Code Harness、ETCLOVG Survey、Pi Harness 三套来源

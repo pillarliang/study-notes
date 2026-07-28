@@ -1,12 +1,12 @@
 ---
-
-## title: AgentEvent 订阅模型 · Compaction 为何也是 subscriber
+title: AgentEvent 订阅模型 · Compaction 为何也是 subscriber
 tags: [Pi, agent, harness-engineering, event-driven, compaction]
 created: 2026-05-31
 sources:
-  - /Users/liangzhu/Documents/dev/pi/packages/agent/src/types.ts
-  - /Users/liangzhu/Documents/dev/pi/packages/coding-agent/src/core/agent-session.ts
-  - /Users/liangzhu/Documents/dev/pi/packages/coding-agent/src/core/compaction/
+  - "/Users/liangzhu/Documents/dev/pi/packages/agent/src/types.ts"
+  - "/Users/liangzhu/Documents/dev/pi/packages/coding-agent/src/core/agent-session.ts"
+  - "/Users/liangzhu/Documents/dev/pi/packages/coding-agent/src/core/compaction/"
+---
 
 # AgentEvent 订阅模型 · Compaction 为何也是 subscriber
 
@@ -50,7 +50,7 @@ Compaction 处于 `Subscriber` 这一层：它**读** AssistantMessage 的 `usag
 | `tool_execution_start`  | 单个 tool 即将执行                   | `toolCallId`, `toolName`, `args`   |
 | `tool_execution_update` | 单个 tool 输出 partial result      | `toolCallId`, `partialResult`      |
 | `tool_execution_end`    | 单个 tool 执行完毕                   | `toolCallId`, `result`, `isError`  |
-| `compaction_start`      | 自动压缩开始（由 AgentSession 发出）      | `reason: "overflow" | "threshold"` |
+| `compaction_start`      | 自动压缩开始（由 AgentSession 发出）      | `reason: "overflow" \| "threshold"` |
 | `compaction_end`        | 自动压缩结束                         | `result`, `aborted`, `willRetry`   |
 
 
@@ -227,18 +227,18 @@ flowchart LR
 
 ```mermaid
 sequenceDiagram
-  participant Loop as Agent loop
+  participant AgentLoop as Agent loop
   participant AS as AgentSession
   participant SM as SessionManager
   participant Comp as Compaction 子系统
   participant Subs as 其它 Subscriber
 
-  Loop->>AS: message_end (assistant)
+  AgentLoop->>AS: message_end (assistant)
   AS->>SM: appendMessage(assistant)
   AS->>AS: _lastAssistantMessage = assistant
   AS->>Subs: 广播 message_end
 
-  Loop->>AS: agent_end
+  AgentLoop->>AS: agent_end
   AS->>Subs: 广播 agent_end
 
   Note over AS: 进入 _handlePostAgentRun()
@@ -252,7 +252,7 @@ sequenceDiagram
     Comp->>AS: agent.state.messages = buildSessionContext().messages
     Comp->>Subs: 广播 compaction_end
     Comp-->>AS: return true (告知需要 continue)
-    AS->>Loop: agent.continue()
+    AS->>AgentLoop: agent.continue()
   else 不需要压缩
     Comp-->>AS: return false
   end

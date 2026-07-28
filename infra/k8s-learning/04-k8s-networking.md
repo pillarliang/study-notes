@@ -17,7 +17,7 @@
 
 **问题**：传统 Docker 容器依赖端口映射（`-p 8080:80`）才能被外部访问，容器之间的通信依赖 bridge 网络或 link。当集群有上百个容器分布在多台机器上时，端口映射和 bridge 网络根本管不过来。
 
-K8s 的回答是定义一个**扁平网络模型**，所有网络插件（CNI）都必须满足三条规则：
+K8s 的回答是定义一个**扁平网络模型**，所有网络插件（CNI）（负责给 Pod“接上网络”的插件。 Container Network Interface）都必须满足三条规则：
 
 1. **每个 Pod 拥有独立 IP**——不共享节点 IP，不需要端口映射
 2. **所有 Pod 之间可直接通信**——跨节点也不需要 NAT
@@ -39,6 +39,8 @@ Pod-A 可以直接访问 10.0.2.5:8001 到达 Pod-C，即使在不同节点上�
 这三条规则只是"规范"，具体怎么实现取决于 CNI 插件。
 
 ---
+
+
 
 ## 二、CNI——Pod 的 IP 从哪来
 
@@ -85,26 +87,34 @@ EC2 实例 (m5.large)
 
 **代价是单节点 Pod 数量有上限**（受 ENI 数和每 ENI IP 数限制）：
 
-| 实例类型 | 最大 ENI 数 | 每 ENI 最大 IP 数 | 最大 Pod 数 |
-|------|------|------|------|
-| t3.medium | 3 | 6 | 17 |
-| m5.large | 3 | 10 | 29 |
-| m5.xlarge | 4 | 15 | 58 |
-| m5.4xlarge | 8 | 30 | 234 |
+
+| 实例类型       | 最大 ENI 数 | 每 ENI 最大 IP 数 | 最大 Pod 数 |
+| ---------- | -------- | ------------- | -------- |
+| t3.medium  | 3        | 6             | 17       |
+| m5.large   | 3        | 10            | 29       |
+| m5.xlarge  | 4        | 15            | 58       |
+| m5.4xlarge | 8        | 30            | 234      |
+
 
 > [!tip] 排障提示
 > 如果 Pod 一直 Pending 且事件显示 `Too many pods` 或 IP 分配失败，往往是实例类型的 ENI/IP 上限已用尽。换更大的实例类型或减少节点上的 Pod 数。
 
+
+
 ### 2.3 主流 CNI 对比
 
-| CNI 插件 | 核心特点 | 典型场景 |
-|------|------|------|
-| **AWS VPC CNI** | Pod 用 VPC 真实 IP，性能最好 | EKS（默认） |
-| **Calico** | 支持 NetworkPolicy、BGP 路由 | 自建集群、需要网络策略 |
-| **Cilium** | 基于 eBPF，高性能 + 强网络策略 + 可观测性 | 大规模集群、安全要求高 |
-| **Flannel** | 最简单的 overlay 网络（VXLAN） | 学习、小集群 |
+
+| CNI 插件          | 核心特点                       | 典型场景        |
+| --------------- | -------------------------- | ----------- |
+| **AWS VPC CNI** | Pod 用 VPC 真实 IP，性能最好       | EKS（默认）     |
+| **Calico**      | 支持 NetworkPolicy、BGP 路由    | 自建集群、需要网络策略 |
+| **Cilium**      | 基于 eBPF，高性能 + 强网络策略 + 可观测性 | 大规模集群、安全要求高 |
+| **Flannel**     | 最简单的 overlay 网络（VXLAN）     | 学习、小集群      |
+
 
 ---
+
+
 
 ## 三、Service 的实现——kube-proxy 与 iptables（进阶）
 
@@ -148,10 +158,14 @@ deployer:
 
 ### 3.2 kube-proxy 的两种模式
 
-| 模式               | 原理                               | 优劣                                                         |
-|--------------------|------------------------------------|--------------------------------------------------------------|
-| **iptables**（默认） | 为每个 Service 生成一组 DNAT 规则     | 简单可靠；规则数随 Service 增长，大规模时性能下降                  |
-| **IPVS**           | 使用 Linux 内核的 IPVS 负载均衡模块   | 支持多种调度算法（轮询、最少连接等）；大规模集群更高效               |
+
+| 模式               | 原理                       | 优劣                            |
+| ---------------- | ------------------------ | ----------------------------- |
+| **iptables**（默认） | 为每个 Service 生成一组 DNAT 规则 | 简单可靠；规则数随 Service 增长，大规模时性能下降 |
+| **IPVS**         | 使用 Linux 内核的 IPVS 负载均衡模块 | 支持多种调度算法（轮询、最少连接等）；大规模集群更高效   |
+
+
+
 
 ### 3.3 四种 Service 类型
 
@@ -170,12 +184,16 @@ deployer:
   ExternalName（特殊：纯 DNS CNAME，不走 iptables）
 ```
 
-| 类型 | 访问范围 | 典型用法 |
-|------|------|------|
-| **ClusterIP** | 仅集群内 | 微服务间通信（本项目主要使用） |
-| **NodePort** | 集群外可通过节点 IP:端口访问 | 开发测试 |
-| **LoadBalancer** | 云厂商 LB 的外部 IP | 直接暴露服务（不经过 Ingress） |
-| **ExternalName** | DNS CNAME | 引用集群外部服务或跨 namespace 桥接 |
+
+| 类型               | 访问范围             | 典型用法                    |
+| ---------------- | ---------------- | ----------------------- |
+| **ClusterIP**    | 仅集群内             | 微服务间通信（本项目主要使用）         |
+| **NodePort**     | 集群外可通过节点 IP:端口访问 | 开发测试                    |
+| **LoadBalancer** | 云厂商 LB 的外部 IP    | 直接暴露服务（不经过 Ingress）     |
+| **ExternalName** | DNS CNAME        | 引用集群外部服务或跨 namespace 桥接 |
+
+
+
 
 ### 3.4 实战：Headless Service（进阶）
 
@@ -196,6 +214,8 @@ $ nslookup postgres-headless
 ```
 
 > [!tip] Headless Service 主要配合 [[03-k8s-workload-types#三、StatefulSet — 有状态应用|StatefulSet]] 使用，让客户端能精确连接特定 Pod（如数据库主节点）。
+
+
 
 ### 3.5 实战：ExternalName 跨 Namespace 桥接（进阶）
 
@@ -218,6 +238,8 @@ spec:
 plaud-api namespace 中的 Ingress 引用 `plaud-ask-external`，DNS 自动解析到 plaud-ask namespace 中的真实 Service。
 
 ---
+
+
 
 ## 四、CoreDNS——Service DNS 怎么工作
 
@@ -244,6 +266,8 @@ Pod DNS（Headless Service 下）：
 跨 namespace：     plaud-api.other-ns          → 自动补全 .svc.cluster.local
 完整域名：         plaud-api.other-ns.svc.cluster.local
 ```
+
+
 
 ### 4.2 ndots:5 的性能陷阱（进阶）
 
@@ -276,6 +300,8 @@ api.openai.com                                            → 成功（第 5 次
 
 ---
 
+
+
 ## 五、Ingress——HTTP 路由的实现
 
 **问题**：ClusterIP Service 只在集群内可达。外部用户怎么通过域名访问服务？
@@ -292,6 +318,8 @@ Ingress 本身**只是一个 API 对象**（一份路由规则的声明）。真
 │  path: /api → svc:8001  │      │  生成 nginx.conf → reload   │
 └─────────────────────────┘      └─────────────────────────────┘
 ```
+
+
 
 ### 5.2 实战：plaud-project-summary 的三层 Ingress
 
@@ -340,6 +368,8 @@ deployer:
 - **逐层收窄**：internal 开放 `/` 和 `/api`，private 只开放 `/api/temporal`，public 只开放 `/api/strategy`
 - **CN 区域 TLS**：中国区的 Ingress 额外配置了 `tls.secretName: plaudcn`，因为 CN 区域需要自行管理 TLS 证书（非 AWS Certificate Manager）
 
+
+
 ### 5.3 EKS 中的多 Ingress Controller 架构（进阶）
 
 每个 `ingressClassName` 对应一个独立的 Ingress Controller 实例，各自关联不同的 AWS 负载均衡器：
@@ -361,9 +391,12 @@ AWS NLB / ALB
 ```
 
 > [!tip] Ingress vs API Gateway vs Service Mesh
+>
 > - **Ingress**：L7 路由（域名 + 路径），当前项目方案
 > - **API Gateway**（Kong/APISIX）：Ingress + 认证、限流、熔断
 > - **Service Mesh**（Istio）：服务间通信的全面管控（mTLS、链路追踪、故障注入）
+
+
 
 ### 5.4 路径重写——API 网关模式（进阶）
 
@@ -388,6 +421,8 @@ ingresses:
 `rewrite-target: /$2` 将 `/project-summary/xxx` 重写为 `/xxx`，每个微服务各自定义一个带前缀的 Ingress，统一汇聚到 `api-apne1.plaud.ai` 这个网关域名。
 
 ---
+
+
 
 ## 六、NetworkPolicy——Pod 级别的防火墙（进阶）
 
@@ -428,6 +463,8 @@ spec:
         - port: 5432
 ```
 
+
+
 ### 6.2 实战：Prometheus 的网络隔离
 
 项目的监控系统为每个组件配置了精细的 NetworkPolicy：
@@ -460,16 +497,20 @@ Alertmanager 的隔离更精细——9093 只允许 Prometheus 推送告警，90
 
 ### 6.3 常见策略模式速查
 
-| 需求 | 关键配置 |
-|------|------|
-| 默认拒绝所有入站 | `podSelector: {}` + `policyTypes: [Ingress]` + 不写 ingress 规则 |
-| 允许同 namespace 内通信 | `ingress.from.podSelector: {}` |
+
+| 需求                       | 关键配置                                                                |
+| ------------------------ | ------------------------------------------------------------------- |
+| 默认拒绝所有入站                 | `podSelector: {}` + `policyTypes: [Ingress]` + 不写 ingress 规则        |
+| 允许同 namespace 内通信        | `ingress.from.podSelector: {}`                                      |
 | 允许 Ingress Controller 流量 | `ingress.from.namespaceSelector.matchLabels: {name: ingress-nginx}` |
-| 允许特定 Pod 访问特定端口 | `ingress.from.podSelector + ports` |
+| 允许特定 Pod 访问特定端口          | `ingress.from.podSelector + ports`                                  |
+
 
 > [!tip] NetworkPolicy 需要 CNI 插件支持。Calico 和 Cilium 完整支持；AWS VPC CNI 需配合 Calico 网络策略引擎使用。详见 [[08-k8s-security-rbac#四、NetworkPolicy 网络隔离（进阶）|K8s 安全]]。
 
 ---
+
+
 
 ## 七、排障速查
 
@@ -503,6 +544,8 @@ kubectl describe networkpolicy <name> -n <namespace>
 
 ---
 
+
+
 ## 延伸阅读
 
 - [[02-k8s-core-concepts|K8s 核心概念]] — Service 和 Ingress 的基本用法
@@ -511,3 +554,4 @@ kubectl describe networkpolicy <name> -n <namespace>
 - [[13-k8s-lane-mechanism|K8s 泳道机制]] — Ingress canary 实现流量分流
 - [[12-k8s-pod-graceful-shutdown|Pod 优雅终止]] — kube-proxy 更新 iptables 的传播延迟
 - [[08-k8s-security-rbac|K8s 安全与权限]] — NetworkPolicy 的安全实践
+
