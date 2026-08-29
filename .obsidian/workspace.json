@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "work/summary/Summary 模块化 Pipeline 与区域化 Prompt 架构设计.md",
+                "file": "SE/技术架构/Daily experience.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Summary 模块化 Pipeline 与区域化 Prompt 架构设计"
+              "title": "Daily experience"
             }
           }
         ]
@@ -41,7 +41,9 @@
               "type": "file-explorer",
               "state": {
                 "sortOrder": "alphabetical",
-                "autoReveal": false
+                "autoReveal": false,
+                "showSearch": false,
+                "searchQuery": ""
               },
               "icon": "lucide-folder-closed",
               "title": "Files"
@@ -78,7 +80,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 200
+    "width": 272.5
   },
   "right": {
     "id": "18704fb929da8db0",
@@ -200,6 +202,12 @@
   },
   "active": "ccc6c71254b01cd6",
   "lastOpenFiles": [
+    "SE/技术架构/Refactoring.md",
+    "SE/技术架构/Daily experience.md",
+    "tools/iOS 虚拟定位操作手册 — wloc + Shadowrocket.md",
+    "work/summary/Summary 模块化 Pipeline 与区域化 Prompt 架构设计.md",
+    "tools/iOS 网络定位改写机制 — 以 wloc 为例.md",
+    "tools",
     "AI/harness-engineering/Pi/official-doc/07-Compaction-上下文压缩.md",
     "AI/harness-engineering/harness-survey-etclovg/02-T-工具接口与协议.md",
     "1.md",
@@ -215,21 +223,16 @@
     "AI/harness-engineering/Pi/official-doc/09-Skills-按需技能.md",
     "AI/harness-engineering/Pi/official-doc/20-平台与终端配置.md",
     "AI/harness-engineering/Pi/00-Agent-Harness-知识全景图.md",
-    "AI/harness-engineering/Pi/01-Agent-Loop-模块交互.md",
+    "AI/harness-engineering/Pi/02-Agent-Loop-模块交互.md",
     "AI/harness-engineering/Pi/official-doc/06-Sessions-会话树.md",
     "AI/harness-engineering/Pi/official-doc/15-Session-文件格式.md",
-    "work/summary/Summary 模块化 Pipeline 与区域化 Prompt 架构设计.md",
-    "SE/技术架构/Refactoring.md",
     "infra/k8s-learning/04-k8s-networking.md",
     "infra/k8s-learning/01-docker-basics.md",
     "SE/技术架构/AWS AppConfig 多 Profile 统一配置加载架构.md",
     "SE/技术架构/aws-appconfig-unified-configuration-architecture.png",
-    "面试作战笔记-智能知识(一面千识).md",
     "assets/智能知识-专家数据价值链.png",
     "assets/智能知识-专家数据价值链.svg",
-    "infra/engineering-practices/凭证扫描-gitleaks-detect-secrets-速查与详解.md",
     "infra/engineering-practices",
-    "infra/nexus-私有包仓库入门.md",
     "infra/assets/nexus-repo-model.png",
     "infra/assets/nexus-repo-model.svg",
     "infra/assets/ghactions-learn-path.png",
@@ -245,7 +248,6 @@
     "work/generate_image",
     "work/image",
     "AI/assets",
-    "SE/algorithm/1a-two-pointers.md.tmp.30042.d1dc6a942624",
     "Untitled.canvas"
   ]
 }

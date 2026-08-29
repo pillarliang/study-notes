@@ -185,6 +185,7 @@ study-notes/
 | ------ | -------- | ------ |
 | [Claude Code 使用文档](tools/Claude_Code_使用文档.md) | Claude Code CLI、配置、使用技巧 | Claude Code CLI 工具的使用指南，涵盖安装配置、身份认证、核心命令与常见工作流程。帮助快速上手 Claude Code 进行日常开发。 |
 | [解剖小龍蝦 — OpenClaw 运作原理（讲座整理）](tools/解剖小龍蝦%20—%20以%20OpenClaw%20為例介紹%20AI%20Agent%20的運作原理-transcript-clean.md) | 讲座文字稿、OpenClaw 原理 | 以 OpenClaw 为案例讲解 AI Agent 核心运作原理的讲座清洁版文字稿。从实际系统出发，串讲 Agent 的感知、推理、工具调用与记忆管理的完整链路。 |
+| [iOS 虚拟定位操作手册 — wloc + Shadowrocket](tools/iOS%20虚拟定位操作手册%20—%20wloc%20+%20Shadowrocket.md) | iOS 26、Shadowrocket、高德选点、locationd 定位缓存 | 可照着执行的操作手册。从模块订阅、HTTPS 解密与证书信任，到用高德分享菜单选点写入坐标，再到恢复真实定位的完整流程。iOS 26 上「写入坐标」与「清定位缓存」必须合成一步做，给出不重启与重启两条完整路径（写入动作在两条路径里的位置不同）。附排查表（现象 → 原因 → 处理）、能力边界与风险，末尾附原理速览与其他代理工具的订阅地址。 |
 
 ---
 

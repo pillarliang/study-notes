@@ -49,12 +49,12 @@ OpenTelemetry 负责描述一次执行链路。`summary_id` 负责关联同一�
 
 不同摘要类型本身就有不同流程，例如：
 
-| 摘要类型 | 典型流程 |
-| --- | --- |
-| Dairy | 渲染 Prompt → 单次 LLM 调用 → 格式化 |
-| Meeting | 文本切分 → 分段摘要 → 合并 → 标题 → 校验 |
-| User Custom | 读取用户要求 → 安全处理 → LLM 调用 → Markdown 修复 |
-| Dimension Note | 提取特定维度 → 结构校验 → 输出 |
+| 摘要类型           | 典型流程                                 |
+| -------------- | ------------------------------------ |
+| Dairy          | 渲染 Prompt → 单次 LLM 调用 → 格式化          |
+| Meeting        | 文本切分 → 分段摘要 → 合并 → 标题 → 校验           |
+| User Custom    | 读取用户要求 → 安全处理 → LLM 调用 → Markdown 修复 |
+| Dimension Note | 提取特定维度 → 结构校验 → 输出                   |
 
 因此，业务目标不是让所有场景服从一条统一 Pipeline，而是：
 

@@ -39,7 +39,7 @@ Pi 提供两个互补的压缩机制：
 
 ### 2.4 Split turn：单 turn 过大怎么办
 
-一个 turn 从 user 消息开始，包括后续所有 assistant 和 tool 消息，到下一条 user 消息前结束。
+这里的 turn 是 **compaction turn（会话轮）**，跟事件流里的 `turn_start` / `turn_end` 不是一回事——它从一条 user、`BashExecution`、custom、branch summary 或 compaction summary 消息开始，包括后续所有 assistant 和 tool 消息，到下一条同类消息前结束，内部可以横跨多次 LLM 调用。运行时 `loop turn` 的边界见 [[03-agentLoop-无状态循环引擎#2. 一个 turn 的完整边界|03-agentLoop-无状态循环引擎 §2「一个 turn 的完整边界」]]；compaction turn 以本节定义为准。
 
 正常情况下切分点落在 turn 边界。但**如果单个 turn 自身超过 `keepRecentTokens`**，切分点会落在 turn 内部某条 assistant 消息上。Pi 此时生成两段摘要（history 段 + turn prefix 段）然后合并。
 

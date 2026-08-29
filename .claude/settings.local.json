@@ -104,7 +104,14 @@
       "Bash(grep -n \"ANTHROPIC\" ~/.zshrc ~/.zprofile ~/.zshenv ~/.bash_profile 2>/dev/null | sed 's/=sk-[^ ]*/=sk-***[已隐藏]/')",
       "Read(//Users/liangzhu/**)",
       "Bash(python3 -c \"import claude_agent_sdk, os; print\\(os.path.dirname\\(claude_agent_sdk.__file__\\)\\)\")",
-      "Bash(pip show *)"
+      "Bash(pip show *)",
+      "Bash(cd /Users/liangzhu/Documents/dev/pi && grep -rn \"turn\" --include=*.ts -il | head -40)",
+      "Read(//Users/liangzhu/Documents/dev/pi/**)",
+      "Read(//Users/liangzhu/Documents/dev/pi/packages/agent/src/**)",
+      "Bash(cd /Users/liangzhu/Documents/dev/pi && grep -rn \"turn_start\\\\|turn_end\\\\|turnIndex\\\\|turnCount\\\\|TurnState\\\\|prepareNextTurn\\\\|shouldStopAfterTurn\\\\|nextTurn\" --include=\"*.ts\" --include=\"*.md\" packages | grep -v \"\\\\.test\\\\.ts\" | head -60)",
+      "Bash(cd /Users/liangzhu/Documents/dev/pi && grep -n \"turn_start\\\\|turn_end\\\\|AgentEvent =\\\\|type AgentEvent\" -A4 packages/agent/src/types.ts | head -60)",
+      "Bash(ls ~/.pi/agent/ 2>/dev/null || echo \"not found\")",
+      "Read(//Users/liangzhu/.pi/agent/**)"
     ]
   }
 }
