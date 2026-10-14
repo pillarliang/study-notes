@@ -17,7 +17,18 @@
 
 ## 工作经历
 
-### Plaud AI | LLM 应用算法工程师 *(2024.10 – 至今)*
+负责阿里云百炼国际站（Model Studio）的 大模型评测、客户方案验证与技术支持，帮助海外客户选择并接入适合业务场景的模型；同时参与 Qwen 模型商业授权合作，推动客户需求与模型能力、部署方式及商业方案对齐。
+
+### 阿里云（北京）科技有限公司 | GenAI SA *(2026.08 – 至今)*
+
+- **模型评测与选型**：牵头文本模型评测方案设计，开发 API 性能评测工具，支持多模型对比、延迟与输出速度分析及可视化报告。
+- **客户技术验证**：针对 Maxinsight 视频标注需求，完成 **40 组模型与推理配置评测**，输出效果、用量和性能分析；开发图像及具身数据标注 Demo，支持客户验证与销售演示。
+- **海外模型授权合作**：参与 AWS、Together AI、Nebius、Modal 等伙伴的 Qwen 商业授权推进，梳理客户需求、模型范围、部署支持及收费方案，形成合作与决策材料。
+- **模型接入与问题排查**：建设文本、多模态和语音调用样例，排查客户视频生成限流问题，提出配额调整与重试策略建议。
+
+---
+
+### Plaud AI | LLM 应用算法工程师 *(2024.11 – 2026.08)*
 
 负责 Plaud AI 背后的 AI 服务，覆盖 **录音总结、RAG 问答、项目级摘要、MCP / Agent 集成** 四条业务线，纵向贯穿「Model Hub 底层路由 / 容错 / 可观测性 → 上层 Multi-Agent 业务编排」全栈。
 
@@ -33,7 +44,7 @@
 
 #### Plaud Model Hub — 统一 LLM 调用基础设施（核心贡献者）
 
-公司所有 LLM 调用的底座，统一接入 OpenAI / Anthropic / Gemini / 火山 / DashScope / Bedrock 等多厂商。解决配额限制、成本优化、可用性 SLA 三重约束。支撑 Plaud-Summary / Plaud-Insight 等所有业务线，**日调用量 50 万次，P99 延迟 <800ms，可用性 99.9%**。
+公司所有 LLM 调用的底座，统一接入 OpenAI / Anthropic / Gemini / 火山 / DashScope / Bedrock 等多厂商。解决配额限制、成本优化、可用性 SLA 三重约束。支撑 Plaud-Summary / Plaud-Insight 等所有业务线，**日调用量 50 万次，P99 延迟 <800ms，可用性 100%**。
 
 - **PassThrough 架构（核心设计）**：单一入口 `invoke()` 支持统一模式（Hub 标准字段翻译成各家 SDK）、同风格透传（零转换）、跨风格透传（Adapter 矩阵翻译 OpenAI ↔ Anthropic / Gemini / Bedrock），业务方无感切换厂商，三种模式共享同一套容错基础设施（路由 / 重试 / 熔断 / 插件）
 - **自适应权重 + 权重重分配（调度算法核心）**：按 429 错误率渐进降权替代二值切流，保留 10% 下限作探测流量；权重重分配让应急 Endpoint 从 8% 升至 45% 真正承接流量；recovery_rate 限速恢复防流量瞬涌再次 429。**GSU(80%) + PayGo(20%) 配置下流量平滑转移，单月节省成本 $1200+**
@@ -45,7 +56,7 @@
 把录音转写变成结构化 Markdown 笔记。覆盖海外 / CN 多 Region、多语种、50+ 业务场景；底层依赖 Kafka (MSK) 异步消费 + FastAPI + Model Hub + Langfuse 全链路追踪。
 
 - **「JSON → Reasoning One-Shot」总结链路重构（最大收益项）**：Markdown 直出释放被强 schema 吃掉的 reasoning output budget；配合长文本 map-reduce、十余场景 One-Shot 模板，**已上线为默认管道**；自研 G-Eval 评估体系（六维度加权 + LLM-as-Judge）让 Prompt 改动可量化对比，**评测分从 30% 提升至 70+%**
-- **知识库模板（PFS）三步管道（最有特色）**：近 30 个专业场景走 **Framework → Sections → Polish** 产出专家级笔记；框架步 LLM 动态生成结构并自检，分节步并行抽取（max_concurrency=7），润色步用文本 diff 比例（阈值 0.10）防摆烂并重试；每步独立选模型 + fallback，**评测分从 70+% 提升至 80+%**
+- **知识库模板（PFS）三步管道**：近 30 个专业场景走 **Framework → Sections → Polish** 产出专家级笔记；框架步 LLM 动态生成结构并自检，分节步并行抽取（max_concurrency=7），润色步用文本 diff 比例（阈值 0.10）防摆烂并重试；每步独立选模型 + fallback，**评测分从 70+% 提升至 80+%**
 - **总结头图生成（Summary Card）**：LLM 生成 HTML（非黑盒生图）→ 浏览器渲染 → S3 归档；1200+ 行设计指南 + 前置拦截 6 类 AI 翻车（分隔符错误 → 布局崩坏、嵌套 grid 缺 col-span-12）；独立渲染服务（Node.js + Playwright）可扩容，多语言字体自动切换 + CN 区域 AIGC 合规
 - **工程化与生态**：User-Custom Prompt 污染治理（正则门控 + 小模型复核防出处泄露）；模板推荐（Milvus 向量相似度）+ 审核状态机；Persona 个性化（onboarding 问卷生成画像调整表达风格）
 
@@ -56,14 +67,6 @@
 - **卡片不污染 LLM 上下文**：分「展示」与「LLM 推理」两通道，避免模型把自己草稿当用户发言反向引用
 - **配置驱动 Handler + 双状态机**：注册表 + builder 替代 if/elif，新技能只追加配置；按 MCP 工具数路由三模式；卡片态 / 投递态分离，部分失败仍标成功
 - **Email 链 + MCP Client**：`转写 → Markdown → PDF → 投递` PDF 失败非阻断；S3 key 换 presigned URL 让远端 LLM 读图；1500+ 行单测覆盖原子性 / OAuth / 部分失败
-
----
-
-### 微软（中国）| 算法研究实习生（Excel Copilot） *(2024.01 – 2024.02)*
-
-- 主导 **LLM4Causality** 研究：梳理文献构建基准因果图，设计元数据解析提升预处理效率
-- 设计专业推理 Prompts，量化评估 LLM 在复杂因果识别上的优越性
-- 用 Excel Lambda 实现 ML 概念验证(One-Hot / 线性 / 岭回归)，证明 Excel 做高级分析可行
 
 ---
 
