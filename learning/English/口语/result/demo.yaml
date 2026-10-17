@@ -1,0 +1,35 @@
+daily-communication:
+  - "Make a request （表达请求）":
+    - "Make a request（提出请求）":
+      - "Can you ...?: ":
+        "特性": 
+          - "用于获取对方知道而你不知道的信息。"
+        "Example":
+          - Can you tell me what happened?
+          - Can you give me the book?
+      - "用于更礼貌的表达":
+        - "Would it be possible ...?":
+          "特性": 
+            - "正式"
+          "Example":
+            - Would it be possible for you to come here at 8 A.M.?
+        - "Could you please ...?":
+          "特性": 
+          "Example":
+        - "May I":
+          "特性": 
+          "Example":
+        - "Can I":
+          "特性": 
+          "Example":
+
+    - "Respond to request（提出请求）":
+      - "Agree":
+        - "Sure, go ahead."
+        - "Sure."
+        - "No problem."
+      - "Disagree":
+        - "No, please don't."
+        
+
+

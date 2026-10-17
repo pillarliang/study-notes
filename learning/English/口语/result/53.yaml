@@ -1,0 +1,71 @@
+daily-communication:
+  - "Make and respond to offers（提出并回应提议）":
+      - "Offer food, drinks, or help（提供食物、饮品或帮助）":
+          - "Would you like [something]?":
+              "特性":
+                - "向对方提供食物、饮品或其他物品时使用。"
+              "结构":
+                - "Would you like [something]?"
+              "Example":
+                - "Would you like something to drink?"
+                - "Would you like something to eat?"
+
+          - "Would you like me to [do something]?":
+              "特性":
+                - "主动提出替对方做某事时使用。"
+              "结构":
+                - "Would you like me to [do something]?"
+              "Example":
+                - "Would you like me to open the door?"
+                - "Would you like me to answer the phone?"
+
+          - "Can I help you?":
+              "特性":
+                - "看到对方可能需要帮助，但还不知道具体需求时，用它先询问是否需要帮忙。"
+
+          - "Let me help you.":
+              "特性":
+                - "已经判断对方需要帮助并准备直接帮忙时使用；Can I help you? 则先询问对方是否需要。"
+
+          - "Do you want [something]?":
+              "特性":
+                - "向熟人提供物品时使用；比 Would you like [something]? 更随意。"
+              "结构":
+                - "Do you want [something]?"
+              "Example":
+                - "Do you want some more coffee?"
+
+          - "Do you want me to [do something]?":
+              "特性":
+                - "向熟人提出替对方做某事时使用；比 Would you like me to [do something]? 更随意。"
+              "结构":
+                - "Do you want me to [do something]?"
+              "Example":
+                - "Do you want me to turn off the light?"
+
+      - "Accept an offer or invitation（接受提议或邀请）":
+          - "Yes, please.":
+              "特性":
+                - "对方提供物品或具体帮助时，用它直接表示接受。"
+
+          - "Yes, I'd love to.":
+              "特性":
+                - "只用于接受自己将参与的活动或邀请；对方提出替你做事时，改用 Yes, please 或 That would be great。"
+
+          - "Yes, that would be great.":
+              "特性":
+                - "对方提出替你做事或给出安排时，用它同时表示接受并认可该方案；Yes, please 只表示接受。"
+
+      - "Acknowledge someone's kindness（感谢对方的好意）":
+          - "That's very kind of you.":
+              "特性":
+                - "只表示感谢对方的好意，不表示接受或拒绝；需要另接 Yes, please 或 No, thanks 表明决定。"
+
+      - "Decline an offer（谢绝提议）":
+          - "No, thanks.":
+              "特性":
+                - "对方提供物品或帮助时，用它直接谢绝。"
+
+          - "It's okay. / Don't worry. / I can do it.":
+              "特性":
+                - "It's okay 表示不需要帮助，Don't worry 用来让对方放心，I can do it 说明自己能处理；可单独使用或连用。"

@@ -3,7 +3,7 @@
 ## 一、概述
 
 Plaud Model Hub 向业务侧暴露一个稳定的逻辑模型名（如 `summary-gemini`），把请求自动分发到多个底层 Endpoint（GSU、PayGo、跨厂商等），并在调用失败时按"重试 → Failover → 跨模型降级"自动救援。所有策略由 YAML 驱动，业务代码零改动。
-
+ 
 要解决的三类约束：
 
 - **配额上限**：单 Endpoint RPM 固定，触顶即 429

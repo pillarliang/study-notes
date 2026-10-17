@@ -1,0 +1,89 @@
+daily-communication:
+  - "Make a request（表达请求）":
+      - "Make a request（提出请求）":
+          - "Can you ...?":
+              "特性":
+                - "用于请求对方提供信息或帮忙做某事。"
+                - "表达直接、自然，常用于日常交流。"
+                - "适合关系较熟悉的人；加上 please 可以使语气更礼貌。"
+              "结构":
+                - "Can you + 动词原形 + ...?"
+              "Example":
+                - "Can you tell me what happened?"
+                - "Can you give me the book?"
+
+          - "Would it be possible for you to ...?":
+              "特性":
+                - "用于礼貌地询问对方是否能够做某事。"
+                - "较为正式、委婉，适合正式或需要格外礼貌的场合。"
+              "结构":
+                - "Would it be possible for you to + 动词原形 + ...?"
+              "Example":
+                - "Would it be possible for you to come here at 8 A.M.?"
+
+          - "Could you please ...?":
+              "特性":
+                - "用于礼貌地请对方做某事。"
+                - "比 Can you ...? 更客气。"
+                - "常用于服务场合或与不太熟悉的人交流。"
+              "结构":
+                - "Could you please + 动词原形 + ...?"
+              "Example":
+                - "Could you please take off your raincoat?"
+
+          - "Would you mind ...?":
+              "特性":
+                - "用于委婉地请对方做某事。"
+                - "礼貌且常见。"
+                - "mind 后接动词的 -ing 形式。"
+              "结构":
+                - "Would you mind + 动词-ing + ...?"
+              "Example":
+                - "Would you mind opening the window for me, please?"
+
+          - "May I ...?":
+              "特性":
+                - "用于询问自己是否可以做某事。"
+                - "语气礼貌，正式程度高于 Can I ...?。"
+              "结构":
+                - "May I + 动词原形 + ...?"
+              "Example":
+                - "May I open the window, please?"
+
+          - "Can I ...?":
+              "特性":
+                - "用于在日常交流中请求许可，或请求得到、查看某物。"
+                - "自然、口语化。"
+              "结构":
+                - "Can I + 动词原形 + ...?"
+              "Example":
+                - "Can I have a look at your photo album?"
+
+          - "Do you mind if I ...?":
+              "特性":
+                - "用于询问对方是否介意自己做某事。"
+                - "用于礼貌地请求许可。"
+                - "回答时要注意：No 表示不介意，Yes 表示介意。"
+              "结构":
+                - "Do you mind if I + 动词原形 + ...?"
+              "Example":
+                - "Do you mind if I smoke?"
+
+          - "Is it okay if I ...?":
+              "特性":
+                - "用于询问自己做某事是否可以。"
+                - "常用于日常口语中的许可请求。"
+              "结构":
+                - "Is it okay if I + 动词原形 + ...?"
+              "Example":
+                - "Is it okay if I sit here?"
+
+      - "Respond to a request（回应请求）":
+          - "Agree（同意）":
+              - "Sure, go ahead."
+              - "Sure."
+              - "No problem."
+          - "Disagree（拒绝）":
+              - "No, please don't."
+              - "I'm sorry."
+              - "I'm afraid not."

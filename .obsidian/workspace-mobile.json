@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "面试作战笔记-智能知识(一面千识).md",
-                "mode": "preview",
+                "file": "work/model-hub/自适应权重插件设计方案.md",
+                "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "面试作战笔记-智能知识(一面千识)"
+              "title": "自适应权重插件设计方案"
             }
           }
         ]
@@ -37,7 +37,9 @@
           "type": "file-explorer",
           "state": {
             "sortOrder": "alphabetical",
-            "autoReveal": false
+            "autoReveal": false,
+            "showSearch": false,
+            "searchQuery": ""
           },
           "icon": "lucide-folder-closed",
           "title": "文件列表"
@@ -112,7 +114,7 @@
         "state": {
           "type": "backlink",
           "state": {
-            "file": "面试作战笔记-智能知识(一面千识).md",
+            "file": "learning/口语/英语口语.md",
             "collapseAll": false,
             "extraContext": false,
             "sortOrder": "alphabetical",
@@ -171,6 +173,9 @@
   },
   "active": "c54cf109978555d4",
   "lastOpenFiles": [
+    "work/model-hub/统一模式数据链路详解-good.md",
+    "work/model-hub/model-hub-project-overview.md",
+    "work/model-hub/PlaudModelHub架构介绍.md",
     "work/model-hub/PlaudModelHub完全指南.md",
     "work/model-hub/PlaudModelHub思维导图.md",
     "infra/k8s-learning/02-k8s-core-concepts.md",
