@@ -1,0 +1,23 @@
+business-english:
+  - "chapter-1":
+    title: "Agenda"
+    sentences:
+      - sentence1:
+        "chinese": "议程"
+        "english": "Agenda"
+      - sentence2:
+        "chinese": "会议的议程如下："
+        "english": "The agenda for the meeting is as follows:"
+    Phrases:
+      - phrase1:
+        "chinese": "线下"
+        "english": ["in-person", "on-site"]
+      - phrase2:
+        "chinese": "线上"
+        "english": ["online", "through Google Meet"]
+      - phrase3:
+        "chinese": "混合"
+        "english": ["hybrid"]
+      - phrase4:
+        "chinese": "点名"
+        "english": ["roll call", "call the roll"]
