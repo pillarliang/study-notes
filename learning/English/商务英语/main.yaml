@@ -1,23 +1,34 @@
-business-english:
-  - "chapter-1":
-    title: "Agenda"
-    sentences:
-      - sentence1:
-        "chinese": "议程"
-        "english": "Agenda"
-      - sentence2:
-        "chinese": "会议的议程如下："
-        "english": "The agenda for the meeting is as follows:"
-    Phrases:
-      - phrase1:
-        "chinese": "线下"
-        "english": ["in-person", "on-site"]
-      - phrase2:
-        "chinese": "线上"
-        "english": ["online", "through Google Meet"]
-      - phrase3:
-        "chinese": "混合"
-        "english": ["hybrid"]
-      - phrase4:
-        "chinese": "点名"
-        "english": ["roll call", "call the roll"]
+
+[{
+  "title": "会前安排与出席",
+  "scenario": [
+    {
+      "title": "等待与确认到场",
+      "cases": [
+        {
+          "cn": "我们再等一两分钟，让大家到齐或登录。",
+          "en": ["Let's wait for a couple more minutes to make sure everyone is here or logged in.", "Let's wait for a couple more minutes to make sure everyone is here or logged in."],
+          "tips": ["settle in 指安顿好，log in 指登录线上会议；等待、即将开始和已经开始是不同状态。首次客户会议宜用 everyone，不宜反复称 guys。"]
+        },
+        {
+          "cn": "case-2-cn",
+          "en": "case-2-en",
+        }
+      ]
+    }
+  ]
+},
+{
+  "title": "开场欢迎与人员介绍",
+  "scenario": [
+    {
+      "title": "问候欢迎与感谢出席",
+      "cases": [
+        {
+          "cn": "我们再等一两分钟，让大家到齐或登录。",
+        },
+      ]
+    }
+  ]
+},
+]

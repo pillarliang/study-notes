@@ -1,0 +1,13 @@
+chapter: chapter-1
+title: chapter-1-title
+scenario:
+  - title: scenario-1-title
+    cases:
+      - cn: 我们再等一两分钟，让大家到齐或登录。
+        en:
+          - Let's wait for a couple more minutes to make sure everyone is here or logged in.
+          - Let's wait for a couple more minutes to make sure everyone is here or logged in.
+        tips:
+          - settle in 指安顿好，log in 指登录线上会议；等待、即将开始和已经开始是不同状态。首次客户会议宜用 everyone，不宜反复称 guys。
+      - cn: case-2-cn
+        en: case-2-en
