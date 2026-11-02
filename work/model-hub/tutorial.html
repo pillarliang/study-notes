@@ -1,0 +1,1961 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="shadcn" data-mode="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Plaud Model Hub 全景教程 · 统一大模型调用基础设施</title>
+  <style>
+
+html[data-theme="blueprint"], html[data-theme="blueprint"][data-mode="light"] {
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "JetBrains Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  --radius: 0px;
+  --shadow: none;
+  --bw: 1.5px;
+  --head-font: var(--font-sans);
+  --bg: #f6f6f3;
+  --paper: #ffffff;
+  --ink: #16181d;
+  --ink-2: #4b5260;
+  --ink-3: #8b929e;
+  --line: #1d2026;
+  --line-2: #d6dae1;
+  --fill: #f3f5f8;
+  --accent: #1d5fbf;
+  --accent-bg: #e4ecf8;
+  --ok: #1d5fbf;
+  --ok-bg: #e4ecf8;
+  --err: #c62828;
+  --err-bg: #fbeaea;
+  --warn: #a8620a;
+  --warn-bg: #fdf3e2;
+  --head-bg: #16181d;
+  --head-fg: #ffffff;
+}
+html[data-theme="blueprint"][data-mode="dark"] {
+  --bg: #081322;
+  --paper: #0d1c31;
+  --ink: #e6edf7;
+  --ink-2: #a9b8cc;
+  --ink-3: #6b7f99;
+  --line: #c9d6e8;
+  --line-2: #23385a;
+  --fill: #12253f;
+  --accent: #6ea8ff;
+  --accent-bg: #16305a;
+  --ok: #6ea8ff;
+  --ok-bg: #16305a;
+  --err: #ff7070;
+  --err-bg: #3b1620;
+  --warn: #f0b14a;
+  --warn-bg: #3a2a10;
+  --head-bg: #e6edf7;
+  --head-fg: #081322;
+}
+@media (prefers-color-scheme: dark) {
+html[data-theme="blueprint"][data-mode="auto"] {
+  --bg: #081322;
+  --paper: #0d1c31;
+  --ink: #e6edf7;
+  --ink-2: #a9b8cc;
+  --ink-3: #6b7f99;
+  --line: #c9d6e8;
+  --line-2: #23385a;
+  --fill: #12253f;
+  --accent: #6ea8ff;
+  --accent-bg: #16305a;
+  --ok: #6ea8ff;
+  --ok-bg: #16305a;
+  --err: #ff7070;
+  --err-bg: #3b1620;
+  --warn: #f0b14a;
+  --warn-bg: #3a2a10;
+  --head-bg: #e6edf7;
+  --head-fg: #081322;
+}
+}
+
+html[data-theme="shadcn"], html[data-theme="shadcn"][data-mode="light"] {
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "JetBrains Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  --radius: 8px;
+  --shadow: 0 1px 2px 0 rgba(0,0,0,0.05);
+  --bw: 1px;
+  --head-font: var(--font-sans);
+  --bg: #fafafa;
+  --paper: #ffffff;
+  --ink: #09090b;
+  --ink-2: #71717a;
+  --ink-3: #a1a1aa;
+  --line: #e4e4e7;
+  --line-2: #f0f0f2;
+  --fill: #f4f4f5;
+  --accent: #2563eb;
+  --accent-bg: #eff6ff;
+  --ok: #16a34a;
+  --ok-bg: #f0fdf4;
+  --err: #dc2626;
+  --err-bg: #fef2f2;
+  --warn: #d97706;
+  --warn-bg: #fffbeb;
+  --head-bg: #18181b;
+  --head-fg: #fafafa;
+}
+html[data-theme="shadcn"][data-mode="dark"] {
+  --bg: #09090b;
+  --paper: #121215;
+  --ink: #fafafa;
+  --ink-2: #a1a1aa;
+  --ink-3: #71717a;
+  --line: #27272a;
+  --line-2: #1c1c1f;
+  --fill: #18181b;
+  --accent: #60a5fa;
+  --accent-bg: #172554;
+  --ok: #4ade80;
+  --ok-bg: #052e16;
+  --err: #f87171;
+  --err-bg: #450a0a;
+  --warn: #fbbf24;
+  --warn-bg: #451a03;
+  --head-bg: #fafafa;
+  --head-fg: #18181b;
+}
+@media (prefers-color-scheme: dark) {
+html[data-theme="shadcn"][data-mode="auto"] {
+  --bg: #09090b;
+  --paper: #121215;
+  --ink: #fafafa;
+  --ink-2: #a1a1aa;
+  --ink-3: #71717a;
+  --line: #27272a;
+  --line-2: #1c1c1f;
+  --fill: #18181b;
+  --accent: #60a5fa;
+  --accent-bg: #172554;
+  --ok: #4ade80;
+  --ok-bg: #052e16;
+  --err: #f87171;
+  --err-bg: #450a0a;
+  --warn: #fbbf24;
+  --warn-bg: #451a03;
+  --head-bg: #fafafa;
+  --head-fg: #18181b;
+}
+}
+
+html[data-theme="paper"], html[data-theme="paper"][data-mode="light"] {
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "JetBrains Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  --font-serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Songti SC", "STSong", "Noto Serif CJK SC", "Source Han Serif SC", serif;
+  --radius: 2px;
+  --shadow: none;
+  --bw: 1px;
+  --head-font: var(--font-serif);
+  --bg: #f5f2ea;
+  --paper: #fdfbf6;
+  --ink: #1f1c17;
+  --ink-2: #57514a;
+  --ink-3: #8c867b;
+  --line: #cbc3b4;
+  --line-2: #e5dfd3;
+  --fill: #f3eee4;
+  --accent: #8c2f1e;
+  --accent-bg: #f5e5df;
+  --ok: #2e6a3b;
+  --ok-bg: #e4efe5;
+  --err: #a3251b;
+  --err-bg: #f7e3e0;
+  --warn: #7f5300;
+  --warn-bg: #f6ecd6;
+  --head-bg: #1f1c17;
+  --head-fg: #fdfbf6;
+}
+html[data-theme="paper"][data-mode="dark"] {
+  --bg: #15130f;
+  --paper: #1c1a15;
+  --ink: #ebe5d8;
+  --ink-2: #b5ad9e;
+  --ink-3: #7b7467;
+  --line: #4a443a;
+  --line-2: #2d2a24;
+  --fill: #242119;
+  --accent: #e59a7d;
+  --accent-bg: #3a2219;
+  --ok: #8cc79a;
+  --ok-bg: #1c3122;
+  --err: #f0928a;
+  --err-bg: #3a1d1a;
+  --warn: #e3b866;
+  --warn-bg: #352a13;
+  --head-bg: #ebe5d8;
+  --head-fg: #15130f;
+}
+@media (prefers-color-scheme: dark) {
+html[data-theme="paper"][data-mode="auto"] {
+  --bg: #15130f;
+  --paper: #1c1a15;
+  --ink: #ebe5d8;
+  --ink-2: #b5ad9e;
+  --ink-3: #7b7467;
+  --line: #4a443a;
+  --line-2: #2d2a24;
+  --fill: #242119;
+  --accent: #e59a7d;
+  --accent-bg: #3a2219;
+  --ok: #8cc79a;
+  --ok-bg: #1c3122;
+  --err: #f0928a;
+  --err-bg: #3a1d1a;
+  --warn: #e3b866;
+  --warn-bg: #352a13;
+  --head-bg: #ebe5d8;
+  --head-fg: #15130f;
+}
+}
+
+html:lang(zh-Hant)[data-theme][data-mode], html:lang(zh-TW)[data-theme][data-mode], html:lang(zh-HK)[data-theme][data-mode], html:lang(zh-MO)[data-theme][data-mode] {
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Heiti TC", "Microsoft JhengHei", "Noto Sans CJK TC", "Noto Sans TC", "PingFang SC", "Microsoft YaHei", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+html:lang(ja)[data-theme][data-mode] {
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic UI", "Yu Gothic", Meiryo, "Noto Sans CJK JP", "Noto Sans JP", "PingFang SC", "Microsoft YaHei", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+html:lang(he)[data-theme][data-mode] {
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans Hebrew", "Arial Hebrew", Arial, Roboto, "Helvetica Neue", sans-serif;
+}
+
+/* Answer me with HTML base — uses theme variables only, never hard-coded colors (theme tokens and decorations: themes/<name>.js). Exception: the var() fallbacks of diagrams (flow / sequence) equal the blueprint light tokens, guarded by a test. */
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: var(--font-sans); font-size: 14px; line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+code, pre, kbd { font-family: var(--font-mono); }
+
+/* ── Toolbar ─────────────────────────────── */
+.am-toolbar {
+  position: fixed; top: 12px; inset-inline-end: 12px; z-index: 10; display: flex; gap: 6px;
+}
+.am-btn {
+  font: 12px/1 var(--font-sans); color: var(--ink); background: var(--paper);
+  border: 1px solid var(--line-2); border-radius: var(--radius); padding: 7px 10px; cursor: pointer;
+}
+.am-btn:hover { border-color: var(--ink-3); }
+.am-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+/* Theme and mode lists: a label and a native select inside one button-like box */
+.am-pick {
+  display: flex; align-items: center; gap: 6px; font: 12px/1 var(--font-sans); color: var(--ink-2); background: var(--paper);
+  border: 1px solid var(--line-2); border-radius: var(--radius); padding-block: 0; padding-inline: 10px 4px;
+}
+.am-pick:hover { border-color: var(--ink-3); }
+.am-pick:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
+.am-pick select {
+  font: inherit; color: var(--ink); background: transparent; border: 0; padding: 6px 2px; cursor: pointer; outline: none;
+}
+.am-pick option { color: var(--ink); background: var(--paper); }
+
+/* ── Header ───────────────────────────────── */
+.am-head { margin: 0 0 20px; padding-inline-end: 300px; }
+.am-head h1 { margin: 0; font-size: 24px; line-height: 1.25; letter-spacing: -0.01em; }
+.am-sub { margin: 4px 0 0; color: var(--ink-2); }
+.am-head-meta { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 10px; font-size: 12px; color: var(--ink-2); }
+.am-head-meta b { font-family: var(--font-mono); font-weight: 400; color: var(--ink-3); margin-inline-end: 6px; }
+.am-intro { margin-top: 12px; max-width: 80ch; }
+
+/* ── sheet template ────────────────────────── */
+.am-sheet { max-width: 1680px; margin: 0 auto; padding: 32px 28px 40px; }
+.am-frame { position: relative; }
+.am-grid {
+  display: grid; grid-template-columns: repeat(var(--cols, 3), minmax(0, 1fr));
+  gap: 20px; align-items: start;
+}
+.am-ruler { display: none; }
+.am-ruler span { flex: 1; display: flex; align-items: center; justify-content: center; }
+.am-ruler--top, .am-ruler--bottom { left: 18px; right: 18px; height: 18px; }
+.am-ruler--top { top: 0; }
+.am-ruler--bottom { bottom: 0; }
+.am-ruler--left, .am-ruler--right { top: 18px; bottom: 18px; width: 18px; flex-direction: column; }
+.am-ruler--left { left: 0; }
+.am-ruler--right { right: 0; }
+.am-ruler--top span + span, .am-ruler--bottom span + span { border-inline-start: 1px solid var(--line); }
+.am-ruler--left span + span, .am-ruler--right span + span { border-top: 1px solid var(--line); }
+
+/* ── Panels ───────────────────────────────── */
+.am-panel {
+  background: var(--paper); border: var(--bw) solid var(--line); border-radius: var(--radius);
+  box-shadow: var(--shadow); min-width: 0; overflow: hidden;
+}
+.am-panel-head {
+  display: flex; align-items: stretch; gap: 0; border-bottom: var(--bw) solid var(--line); min-height: 34px;
+}
+.am-panel-id {
+  display: flex; align-items: center; justify-content: center; min-width: 34px; padding: 0 8px;
+  background: var(--head-bg); color: var(--head-fg); font-weight: 600; font-size: 14px;
+}
+.am-panel-head h2 { margin: 0; padding: 7px 12px; font-size: 15px; font-weight: 600; flex: 1; display: flex; align-items: center; }
+.am-panel-meta { align-self: center; padding: 0 12px; font: 11px/1.3 var(--font-mono); color: var(--ink-2); text-align: end; }
+.am-panel-body { padding: 14px 16px 16px; }
+.am-panel-body > * + * { margin-top: 12px; }
+
+/* ── Markdown body ───────────────────────── */
+.am-md > :first-child { margin-top: 0; }
+.am-md > :last-child { margin-bottom: 0; }
+.am-md p { margin: 0 0 8px; }
+.am-md ul, .am-md ol { margin: 0 0 8px; padding-inline-start: 20px; }
+.am-md li + li { margin-top: 3px; }
+.am-md h3, .am-md h4 { margin: 14px 0 6px; font-size: 13px; }
+.am-md a { color: var(--accent); }
+.am-md blockquote { margin: 0 0 8px; padding: 2px 12px; border-inline-start: 3px solid var(--line-2); color: var(--ink-2); }
+.am-md :not(pre) > code { font-size: 0.9em; background: var(--fill); padding: 1px 5px; border-radius: 4px; }
+.am-md hr { border: 0; border-top: 1px solid var(--line-2); margin: 12px 0; }
+.am-md table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.am-md th {
+  text-align: start; font: 11px/1.3 var(--font-mono); color: var(--ink-2); font-weight: 400;
+  padding: 6px 10px; border-bottom: 1px solid var(--line-2);
+}
+/* th { text-align: start } outranks the align attribute from Markdown alignment, so restore right and center columns explicitly. */
+.am-md th[align="right"] { text-align: right; }
+.am-md th[align="center"] { text-align: center; }
+.am-md td { padding: 7px 10px; border-bottom: 1px solid var(--line-2); vertical-align: top; }
+.am-md tbody tr:nth-child(even) td { background: var(--fill); }
+.am-table-wrap { overflow-x: auto; }
+/* Images scale down to the panel and never past 70% of the window height, keeping their shape. */
+.am-md img { max-width: 100%; max-height: 70vh; height: auto; }
+.am-figure { margin: 0; text-align: center; }
+.am-figure img { display: block; margin: 0 auto; border: 1px solid var(--line-2); border-radius: var(--radius); }
+.am-figure figcaption { margin-top: 6px; font-size: 12px; line-height: 1.4; color: var(--ink-2); }
+.am-code {
+  margin: 0; padding: 12px 14px; background: var(--fill); border: 1px solid var(--line-2);
+  border-radius: var(--radius); overflow-x: auto; font-size: 12.5px; line-height: 1.5;
+}
+/* Ask: a decision the reader makes; the suggested option starts selected */
+.am-ask { margin: 10px 0; padding: 10px 12px 8px; border: 1px solid var(--line-2); border-radius: var(--radius); background: var(--fill); min-width: 0; }
+/* The question floats inside the box, so a long question wraps like text instead of riding on the border */
+.am-ask-q { float: left; width: 100%; padding: 0; margin-bottom: 4px; font-weight: 600; }
+/* Two columns: the control, then the label, tag and note, which wrap under the label and never under the control */
+.am-ask-opt { clear: both; display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 8px; align-items: baseline; padding: 5px 2px; cursor: pointer; }
+.am-ask-opt input { margin: 0; accent-color: var(--accent); position: relative; top: 2px; }
+.am-ask-tag { display: inline-block; font-size: 11px; line-height: 1.5; color: var(--accent); border: 1px solid var(--accent); border-radius: 999px; padding: 0 6px; white-space: nowrap; }
+.am-ask-note { display: block; color: var(--ink-2); }
+/* Comment box under each panel, and the Reply sheet */
+.am-comment-btn {
+  display: flex; flex-shrink: 0; align-self: center; margin-block: 0; margin-inline: auto 6px; color: var(--ink-3); background: transparent;
+  border: 1px solid transparent; border-radius: var(--radius); padding: 3px; cursor: pointer;
+}
+.am-panel-meta + .am-comment-btn { margin-inline-start: 0; }
+.am-panel:hover .am-comment-btn, .am-comment-btn:focus-visible, .am-comment-btn[aria-expanded="true"] { border-color: var(--line-2); color: var(--ink-2); }
+.am-panel .am-comment-btn.am-comment-btn--on { color: var(--accent); border-color: var(--accent); }
+.am-panel--bare { position: relative; }
+.am-panel--bare > .am-comment-btn { position: absolute; top: 4px; inset-inline-end: 0; }
+.am-comment { padding: 0 14px 12px; }
+.am-comment textarea, .am-reply textarea {
+  width: 100%; font: 13px/1.5 var(--font-sans); color: var(--ink); background: var(--paper);
+  border: 1px solid var(--line-2); border-radius: var(--radius); padding: 8px 10px; resize: vertical;
+}
+.am-comment textarea:focus-visible, .am-reply textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.am-btn--reply { color: var(--paper); background: var(--ink); border-color: var(--ink); }
+.am-btn--reply:hover { opacity: .88; }
+.am-reply {
+  width: min(640px, calc(100vw - 32px)); padding: 16px; color: var(--ink); background: var(--paper);
+  border: 1px solid var(--line-2); border-radius: var(--radius); box-shadow: 0 12px 40px rgba(0,0,0,.25);
+}
+.am-reply::backdrop { background: rgba(0,0,0,.35); }
+.am-reply-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin-bottom: 10px; }
+.am-reply-head span { color: var(--ink-2); font-size: 13px; }
+.am-reply textarea { font-family: var(--font-mono); font-size: 12.5px; }
+.am-reply-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
+.am-reply .am-btn:disabled { opacity: .5; cursor: default; }
+/* The sheet shows the reply drawn (src/runtime/reply-view.js), each line in its own direction; the Markdown that Copy copies sits under a fold. */
+.am-reply-view {
+  max-height: min(60vh, 26em); overflow: auto; padding: 10px 12px; font: 14px/1.6 var(--font-sans); color: var(--ink);
+  background: var(--paper); border: 1px solid var(--line-2); border-radius: var(--radius); overflow-wrap: anywhere;
+}
+.am-reply-view:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.am-reply-view > div { text-align: start; unicode-bidi: isolate; }
+.am-rv-gap { height: .5em; }
+.am-rv-h1 { font-weight: 700; font-size: 15px; }
+.am-rv-h2 { font-weight: 700; color: var(--ink-2); margin-top: 2px; }
+.am-rv-tag {
+  display: inline-block; min-width: 1.6em; padding: 0 4px; font-size: 12px; line-height: 1.5; text-align: center;
+  color: var(--ink-2); border: 1px solid var(--line-2); border-radius: var(--radius);
+}
+.am-rv-a { padding-inline-start: 1.6em; }
+.am-rv-a em { color: var(--ink-2); }
+.am-rv-quote { margin-inline-start: 1em; padding-inline-start: 10px; border-inline-start: 3px solid var(--line-2); color: var(--ink-2); white-space: pre-wrap; }
+.am-reply-raw summary { margin-top: 10px; margin-bottom: 6px; font-size: 12px; color: var(--ink-2); cursor: pointer; }
+/* The bar at the bottom of the page: counts and one-click copy, so the reader need not go to the Reply button at the top. */
+.am-reply-bar {
+  position: fixed; inset-block-end: 16px; inset-inline: 0; margin-inline: auto; width: max-content; max-width: calc(100vw - 24px);
+  z-index: 10; display: flex; align-items: center; gap: 10px; padding-block: 8px; padding-inline: 14px 8px; font-size: 13px;
+  color: var(--ink); background: var(--paper); border: 1px solid var(--line-2); border-radius: var(--radius); box-shadow: 0 6px 24px rgba(0,0,0,.18);
+}
+.am-reply-bar[hidden] { display: none; }
+.am-reply-bar-count { color: var(--ink-2); }
+.am-reply-bar .am-btn { flex: none; white-space: nowrap; }
+body.am-has-reply-bar { padding-block-end: 72px; }
+@media (max-width: 480px) {
+  .am-reply-bar { inset-inline: 12px; width: auto; justify-content: space-between; }
+}
+/* Code blocks contain plain multiline text so display and clipboard share the same source. */
+.am-codeblock { margin: 10px 0; min-width: 0; }
+.am-codeblock .am-code { border-top-left-radius: 0; border-top-right-radius: 0; padding: 12px 14px; }
+.am-code-head {
+  display: flex; align-items: center; gap: 8px; padding: 5px 6px 5px 12px; font: 12px/1.3 var(--font-sans); color: var(--ink-2);
+  background: var(--paper); border: 1px solid var(--line-2); border-bottom: 0; border-radius: var(--radius) var(--radius) 0 0;
+}
+.am-code-title { font-family: var(--font-mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.am-code-lang { margin-left: auto; color: var(--ink-3); text-transform: lowercase; }
+.am-code-copy { font: 12px/1 var(--font-sans); color: var(--ink-2); background: transparent; border: 1px solid var(--line-2); border-radius: var(--radius); padding: 4px 8px; cursor: pointer; margin-left: auto; }
+.am-code-lang + .am-code-copy { margin-left: 0; }
+.am-code-copy:hover { border-color: var(--ink-3); color: var(--ink); }
+.am-code-copy:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.am-code code { display: block; min-width: max-content; }
+
+/* ── Status badges ok / no / warn ──────────────── */
+.am-status { white-space: nowrap; font-weight: 500; }
+.am-status--ok { color: var(--ok); }
+.am-status--no { color: var(--err); }
+.am-status--warn { color: var(--warn); }
+.am-status-icon { display: inline-block; width: 1.1em; font-weight: 700; }
+
+/* ── callout ─────────────────────────────── */
+.am-callout {
+  border: 1px solid var(--line-2); border-inline-start: 3px solid var(--accent); background: var(--accent-bg);
+  padding: 10px 14px; border-radius: var(--radius);
+}
+.am-callout--ok { border-inline-start-color: var(--ok); background: var(--ok-bg); }
+.am-callout--warn { border-inline-start-color: var(--warn); background: var(--warn-bg); }
+.am-callout--err { border-inline-start-color: var(--err); background: var(--err-bg); }
+.am-callout-title { font-weight: 600; margin-bottom: 4px; }
+
+/* ── kv title block ─────────────────────────── */
+.am-kv {
+  display: grid; grid-template-columns: repeat(var(--kv-cols, 2), minmax(0, 1fr)); margin: 0;
+  border-top: var(--bw) solid var(--line); border-inline-start: var(--bw) solid var(--line);
+}
+.am-kv-cell { border-inline-end: var(--bw) solid var(--line); border-bottom: var(--bw) solid var(--line); padding: 6px 10px 8px; min-width: 0; }
+.am-kv-cell--wide { grid-column: 1 / -1; }
+.am-kv dt { font: 11px/1.4 var(--font-mono); color: var(--ink-2); }
+.am-kv dd { margin: 2px 0 0; font-size: 14px; font-weight: 500; overflow-wrap: anywhere; }
+.am-kv-cell--wide dd { font-size: 17px; font-weight: 600; }
+
+/* ── timeline ────────────────────────────── */
+.am-timeline { list-style: none; margin: 0; padding: 0; }
+.am-timeline--h { display: grid; grid-template-columns: repeat(var(--n, 1), minmax(0, 1fr)); padding-top: 4px; }
+.am-timeline--h li { position: relative; text-align: center; padding: 0 6px; }
+.am-timeline--h li::before {
+  content: ""; position: absolute; top: 31px; left: 0; right: 0; border-top: var(--bw) solid var(--line);
+}
+.am-timeline--h li:first-child::before { inset-inline-start: 50%; }
+.am-timeline--h li:last-child::before { inset-inline-end: 50%; }
+.am-tl-when { display: block; font-size: 15px; font-weight: 500; height: 24px; }
+.am-tl-dot {
+  position: relative; display: block; width: 11px; height: 11px; margin: 2px auto 8px;
+  border: var(--bw) solid var(--line); border-radius: 50%; background: var(--paper);
+}
+.am-tl-item--hi .am-tl-dot { background: var(--hi-stroke, var(--accent)); border-color: var(--hi-stroke, var(--accent)); }
+.am-tl-title { display: block; font-size: 12.5px; font-weight: 500; }
+.am-tl-text { display: block; font-size: 12px; color: var(--ink-2); line-height: 1.45; }
+.am-timeline--v li { position: relative; padding: 0 0 14px; padding-inline-start: 22px; }
+.am-timeline--v li::before { content: ""; position: absolute; inset-inline-start: 5px; top: 6px; bottom: -6px; border-inline-start: var(--bw) solid var(--line-2); }
+.am-timeline--v li:last-child::before { display: none; }
+.am-timeline--v .am-tl-dot { position: absolute; inset-inline-start: 0; top: 4px; margin: 0; }
+.am-timeline--v .am-tl-when { display: inline; height: auto; font: 12px var(--font-mono); color: var(--ink-2); margin-inline-end: 8px; }
+.am-timeline--v .am-tl-title { display: inline; font-size: 14px; }
+.am-timeline--v .am-tl-text { margin-top: 2px; }
+/* .am-tl-wrap is the container (src/components/timeline.js): a horizontal timeline answers to the width it has, not to the width of the window, since a
+   sheet puts panels two or three to a row. Below 560 px (about 90 px for each of the six items a timeline has by default) its dates
+   wrap and the dots cover them, so it lays out like timeline v: line and dots at the start, text beside them. */
+.am-tl-wrap { container-type: inline-size; }
+@container (max-width: 560px) {
+  .am-timeline--h { display: block; padding-top: 0; }
+  .am-timeline--h li { text-align: start; padding: 0 0 14px; padding-inline-start: 22px; }
+  .am-timeline--h li::before, .am-timeline--h li:first-child::before {
+    top: 6px; bottom: -6px; inset-inline-start: 5px; inset-inline-end: auto; border-top: 0; border-inline-start: var(--bw) solid var(--line-2);
+  }
+  .am-timeline--h li:last-child::before { display: none; }
+  .am-timeline--h .am-tl-dot { position: absolute; inset-inline-start: 0; top: 4px; margin: 0; }
+  .am-timeline--h .am-tl-when { display: inline; height: auto; font: 12px var(--font-mono); color: var(--ink-2); margin-inline-end: 8px; }
+  .am-timeline--h .am-tl-title { display: inline; font-size: 14px; }
+  .am-timeline--h .am-tl-text { margin-top: 2px; }
+}
+
+/* ── annot sentence notes ──────────────────────── */
+.am-annot + .am-annot { border-top: 1px solid var(--line-2); padding-top: 12px; }
+.am-annot-head { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; font-weight: 600; margin-bottom: 8px; }
+.am-annot-meta { font: 11px var(--font-mono); font-weight: 400; color: var(--ink-2); }
+.am-annot-scroll { overflow-x: auto; }
+.am-annot-line {
+  position: relative; display: inline-block; white-space: pre; font: 14px/1.6 var(--font-mono);
+  padding-bottom: calc(var(--rows, 0) * 17px + 14px);
+}
+.am-annot-line--wrap { display: block; white-space: normal; padding-bottom: 10px; }
+.am-annot-line--wrap .am-seg { white-space: nowrap; }
+.am-seg { position: relative; }
+.am-seg::after {
+  content: ""; position: absolute; left: 1px; right: 1px; top: calc(100% + 1px); height: 5px;
+  border: 1px solid var(--accent); border-top: 0;
+}
+.am-seg-n {
+  position: absolute; inset-inline-start: 0; top: calc(100% + 8px + var(--row, 0) * 17px);
+  font: 11px/16px var(--font-sans); color: var(--accent); white-space: nowrap;
+}
+.am-seg--err { color: var(--err); }
+.am-seg--err::after { border-color: var(--err); }
+.am-seg--err .am-seg-n { color: var(--err); }
+.am-annot-caption { font-size: 12px; color: var(--ink-2); }
+
+/* ── limits bars ───────────────────────── */
+.am-lim + .am-lim { margin-top: 14px; }
+.am-lim-head { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; margin-bottom: 4px; }
+.am-lim-val { font: 12px var(--font-mono); color: var(--accent); white-space: nowrap; }
+.am-lim-track { position: relative; height: 12px; border: 1px solid var(--line-2); background: var(--fill); border-radius: calc(var(--radius) / 2); }
+.am-lim-fill { position: absolute; inset-inline-start: 0; top: 0; bottom: 0; background: var(--accent-bg); border-inline-end: 1px solid var(--accent); }
+.am-lim-mark { position: absolute; top: -4px; bottom: -4px; border-left: 2px solid var(--accent); }
+.am-lim.is-over .am-lim-fill { background: var(--err-bg); border-inline-end-color: var(--err); }
+.am-lim.is-over .am-lim-val { color: var(--err); }
+.am-lim-ticks { position: relative; height: 16px; font: 10px/16px var(--font-mono); color: var(--ink-3); }
+.am-lim-ticks span { position: absolute; transform: translateX(-50%); }
+.am-lim-ticks span:first-child { transform: none; }
+.am-lim-note { font-size: 11px; color: var(--ink-2); margin-inline-start: 6px; }
+
+/* ── tree ─────────────────────────── */
+.am-tree { font-size: 13px; }
+.am-tree-root { display: flex; justify-content: center; position: relative; padding-bottom: 18px; }
+.am-tree-root::after { content: ""; position: absolute; bottom: 0; left: 50%; height: 18px; border-left: var(--bw) solid var(--line); }
+.am-tree-root--solo { padding-bottom: 12px; }
+.am-tree-root--solo::after { display: none; }
+.am-tree-box {
+  border: var(--node-width, var(--bw)) solid var(--node-stroke, var(--line)); background: var(--node-fill, var(--paper)); padding: 6px 14px; text-align: center;
+  border-radius: var(--node-radius, var(--radius)); font-weight: 600; color: var(--node-text, inherit); filter: var(--node-shadow, none);
+}
+.am-tree-box small { display: block; font-weight: 400; color: var(--ink-2); font-size: 12px; }
+/* The root box and a highlighted box are emphasis: they take the highlight tokens. With none set the root box keeps its accent tint and a highlighted box looks like any other. */
+.am-tree-box--root, .am-tree-box--hi { border-color: var(--hi-stroke, var(--node-stroke, var(--line))); color: var(--hi-text, var(--node-text, inherit)); }
+.am-tree-box--root { background: var(--hi-fill, var(--accent-bg)); }
+.am-tree-box--hi { background: var(--hi-fill, var(--node-fill, var(--paper))); }
+.am-tree-box--root small, .am-tree-box--hi small { color: var(--hi-text, var(--ink-2)); }
+.am-tree-box--root { font-size: 15px; padding: 8px 28px; }
+.am-tree-cols { display: grid; grid-template-columns: repeat(var(--n, 1), minmax(0, 1fr)); }
+.am-tree-col { position: relative; padding: 18px 8px 0; min-width: 0; }
+.am-tree-col::before { content: ""; position: absolute; top: 0; left: 0; right: 0; border-top: var(--bw) solid var(--line); }
+.am-tree-col:first-child::before { inset-inline-start: 50%; }
+.am-tree-col:last-child::before { inset-inline-end: 50%; }
+.am-tree-col::after { content: ""; position: absolute; top: 0; left: 50%; height: 18px; border-left: var(--bw) solid var(--line); }
+.am-tree-list, .am-tree-list ul { list-style: none; margin: 0; padding: 0; }
+.am-tree-col > .am-tree-list { margin: 8px 0 0; margin-inline-start: 14px; }
+.am-tree-list ul { margin-inline-start: 16px; }
+.am-tree-list li { position: relative; padding: 3px 0; padding-inline-start: 18px; }
+.am-tree-list li::before { content: ""; position: absolute; inset-inline-start: 0; top: 0.95em; width: 12px; border-top: 1px solid var(--ink-3); }
+.am-tree-list li::after { content: ""; position: absolute; inset-inline-start: 0; top: 0; bottom: 0; border-inline-start: 1px solid var(--ink-3); }
+.am-tree-list li:last-child::after { bottom: auto; height: 0.95em; }
+.am-tree-tag { font: 11px var(--font-mono); color: var(--ink-3); margin-inline-end: 4px; }
+.am-tree code { font: 12px var(--font-mono); }
+.am-tree-sub { display: block; font-size: 11.5px; color: var(--ink-2); }
+.am-tree-hi > .am-tree-label { color: var(--accent); font-weight: 600; }
+
+/* ── Diagrams (flow / sequence) ───────────────── */
+.am-diagram { margin: 0; overflow-x: auto; text-align: center; }
+/* Embedded previews can lose html[data-theme]; the fallbacks keep diagrams readable, and defined theme variables still win. */
+.am-diagram svg { max-width: 100%; height: auto; font-family: var(--font-sans, sans-serif); }
+.am-diagram text { fill: var(--ink, #16181d); font-size: 13px; }
+/* Diagram tokens (docs/reference.md, "Diagram tokens"): each painted part reads an optional token and falls back to the look it always had,
+   so a theme that sets none of them draws the same diagram. Font family, size and weight are not tokens: diagram text is measured for the sans font. */
+.am-node-shape { fill: var(--node-fill, var(--paper, #ffffff)); stroke: var(--node-stroke, var(--line, #1d2026)); stroke-width: var(--node-width, var(--bw, 1.5px)); filter: var(--node-shadow, none); }
+/* A cylinder is two shapes (body, then cap): only the body casts the shadow. */
+.am-node-shape ~ .am-node-shape { filter: none; }
+/* The corner radius is an SVG attribute (the fallback for Safari before 17.4, which ignores a CSS rx); the default here equals the attribute. A pill and a diamond keep their shape. */
+.am-node--rect .am-node-shape, .am-node--er .am-node-shape { rx: var(--node-radius, 3px); }
+.am-node--hi .am-node-shape { fill: var(--hi-fill, var(--accent-bg, #e4ecf8)); stroke: var(--hi-stroke, var(--accent, #1d5fbf)); }
+.am-diagram .am-node-text { fill: var(--node-text, var(--ink, #16181d)); }
+.am-node--hi text { fill: var(--hi-text, var(--accent, #1d5fbf)); font-weight: 600; }
+.am-diagram .am-node--hi .am-node-text { fill: var(--hi-text, var(--accent, #1d5fbf)); }
+.am-edge { fill: none; stroke: var(--edge-color, var(--ink-2, #4b5260)); stroke-width: var(--edge-width, 1.3); }
+.am-edge--dashed { stroke-dasharray: 5 4; }
+.am-arrow { fill: var(--edge-color, var(--ink-2, #4b5260)); }
+.am-edge-label rect { fill: var(--paper, #ffffff); }
+.am-diagram .am-edge-label text { fill: var(--edge-label, var(--accent, #1d5fbf)); font-size: 11.5px; }
+.am-cluster { fill: var(--cluster-fill, var(--fill, #f3f5f8)); stroke: var(--cluster-stroke, var(--line-2, #d6dae1)); stroke-width: 1; stroke-dasharray: 4 3; }
+.am-diagram .am-cluster-label { fill: var(--ink-2, #4b5260); font: 11px var(--font-mono, monospace); }
+/* The PK / FK / UK marks of an entity follow the node text, and the highlighted text in a highlighted entity, so they stay readable on the theme's fills. */
+.am-diagram .am-er-key { fill: var(--node-text, var(--ink-2, #4b5260)); }
+.am-diagram .am-node--hi .am-er-key { fill: var(--hi-text, var(--ink-2, #4b5260)); }
+.am-lifeline { stroke: var(--lifeline-color, var(--ink-3, #8b929e)); stroke-width: 1; stroke-dasharray: 4 4; }
+/* An actor (and the box of a divider) looks like a node unless the theme sets the actor tokens. */
+.am-actor { fill: var(--actor-fill, var(--node-fill, var(--paper, #ffffff))); stroke: var(--actor-stroke, var(--node-stroke, var(--line, #1d2026))); stroke-width: var(--node-width, var(--bw, 1.5px)); filter: var(--node-shadow, none); rx: var(--node-radius, 2px); }
+.am-diagram .am-actor-text { fill: var(--actor-text, var(--node-text, var(--ink, #16181d))); }
+.am-note { fill: var(--note-fill, var(--warn-bg, #fdf3e2)); stroke: var(--note-stroke, var(--warn, #a8620a)); stroke-width: var(--note-width, 1); rx: var(--note-radius, 2px); }
+.am-diagram .am-step { fill: var(--ink-3, #8b929e); font: 10px var(--font-mono, monospace); }
+
+.am-diagram-expand {
+  /* In flow and sticky: it sits at the end edge (right on a left-to-right page) and stays in view when the diagram scrolls sideways.
+     It takes its own row above the drawing, so it never covers a node at the top-right corner of the drawing. */
+  position: sticky; inset-inline-start: calc(100% - 36px); z-index: 2;
+  display: flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; padding: 0; margin: 0 0 4px; margin-inline: auto 8px;
+  color: var(--ink-2); background: var(--paper);
+  border: var(--bw, 1px) solid var(--line-2); border-radius: var(--radius);
+  cursor: pointer; opacity: 0.72;
+  transition: opacity 0.15s, color 0.15s, border-color 0.15s, background 0.15s;
+}
+.am-diagram:hover .am-diagram-expand,
+.am-diagram-expand:focus-visible { opacity: 1; }
+.am-diagram-expand:hover {
+  opacity: 1; color: var(--ink); border-color: var(--accent); background: var(--fill);
+}
+.am-diagram-expand:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+/* ── Diagram Lightbox and Pan-Zoom Viewer ─────────── */
+.am-lightbox {
+  position: fixed; inset: 0; z-index: 1000;
+  display: flex; flex-direction: column;
+  touch-action: none;
+}
+.am-lightbox[hidden] { display: none !important; }
+
+.am-lightbox-backdrop {
+  position: absolute; inset: 0;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.am-lightbox-header {
+  position: absolute; top: 12px; left: 24px; right: 24px; height: 36px;
+  display: flex; align-items: center; justify-content: space-between;
+  z-index: 10; pointer-events: none;
+}
+.am-lightbox-title {
+  display: inline-flex; align-items: center; gap: 8px;
+  color: rgba(255, 255, 255, 0.92);
+  font: 13px/1 var(--font-sans, sans-serif); font-weight: 500;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+  pointer-events: auto;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 60vw;
+}
+.am-lightbox-title svg { stroke: rgba(255, 255, 255, 0.85); flex-shrink: 0; }
+.am-lightbox-actions {
+  display: flex; align-items: center; gap: 8px; pointer-events: auto;
+}
+.am-lightbox-close {
+  width: 32px; height: 32px;
+  background: var(--paper);
+  border: var(--bw, 1px) solid var(--line-2);
+  border-radius: 50%;
+  color: var(--ink);
+  font-size: 15px; line-height: 1;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  transition: background 0.15s, color 0.15s, transform 0.15s, border-color 0.15s;
+}
+.am-lightbox-close:hover {
+  color: var(--accent); border-color: var(--accent); background: var(--fill); transform: scale(1.05);
+}
+.am-lightbox-close:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+.am-lightbox-stage {
+  position: absolute;
+  top: 54px; bottom: 20px; left: 24px; right: 24px;
+  background: var(--paper);
+  border: var(--bw, 1px) solid var(--line-2);
+  border-radius: max(var(--radius), 14px);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.am-lightbox-stage.am-panning { cursor: grabbing; }
+
+.am-lightbox-canvas {
+  position: absolute; left: 0; top: 0;
+  transform-origin: 0 0;
+  will-change: transform;
+  pointer-events: none;
+}
+.am-lightbox-canvas svg {
+  max-width: none !important;
+  max-height: none !important;
+  display: block;
+  font-family: var(--font-sans, sans-serif);
+}
+
+/* ── doc template ────────────────────────── */
+.am-doc { max-width: 1120px; margin: 0 auto; padding: 40px 28px 64px; }
+.am-doc-layout { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 32px; align-items: start; }
+.am-doc-layout--notoc { grid-template-columns: minmax(0, 1fr); max-width: 860px; }
+.am-toc { position: sticky; top: 24px; font-size: 13px; }
+.am-toc a { display: block; color: var(--ink-2); text-decoration: none; padding: 4px 0; padding-inline-start: 10px; border-inline-start: 2px solid var(--line-2); }
+.am-toc a:hover { color: var(--ink); border-inline-start-color: var(--accent); }
+.am-doc-body > .am-panel + .am-panel { margin-top: 20px; }
+
+/* ── Responsive and print ─────────────────────────── */
+@media (max-width: 1100px) {
+  .am-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .am-grid > .am-panel { grid-column: auto !important; }
+  .am-grid > .am-panel.am-span-wide { grid-column: 1 / -1 !important; }
+}
+@media (max-width: 760px) {
+  .am-sheet, .am-doc { padding: 56px 12px 24px; }
+  .am-head { padding-inline-end: 0; }
+  .am-grid { grid-template-columns: minmax(0, 1fr); }
+  .am-grid > .am-panel.am-span-wide { grid-column: auto !important; }
+  .am-doc-layout { grid-template-columns: minmax(0, 1fr); }
+  .am-toc { position: static; }
+  .am-tree-cols { grid-template-columns: minmax(0, 1fr); }
+  /* Tables and diagrams keep their size: the wrapper scrolls horizontally when they overflow. A cell is never narrower than about
+     two short words, so a phone does not stack them one per line. On wider screens the sheet layout (src/runtime/layout-dom.js)
+     gives a table panel the width its columns read well at. */
+  .am-md th, .am-md td { min-width: 8em; }
+  .am-diagram svg { max-width: none; }
+  .am-lightbox-header { top: 8px; left: 12px; right: 12px; }
+  .am-lightbox-stage { top: 46px; bottom: 12px; left: 12px; right: 12px; border-radius: max(var(--radius), 10px); }
+}
+.am-colophon { margin: 0 0 8px; font: 11px var(--font-mono); color: var(--ink-3); }
+.am-colophon a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+
+@media print {
+  .am-toolbar, .am-diagram-expand, .am-lightbox, .am-code-copy, .am-comment-btn, .am-comment, .am-reply, .am-reply-bar { display: none !important; }
+  body { background: var(--paper); }
+  .am-panel { break-inside: avoid; box-shadow: none; }
+}
+/* Printed on paper narrower than three columns, the two-column grid left a hole beside every panel next to a full-width one
+   (a wide table, a wide diagram): one panel per row instead. */
+@media print and (max-width: 1100px) {
+  .am-grid { grid-template-columns: minmax(0, 1fr); }
+  .am-grid > .am-panel { grid-column: auto !important; }
+}
+.am-panel--bare { border: 0; background: transparent; box-shadow: none; }
+.am-panel--bare > .am-panel-body { padding: 0; }
+.am-panel--bare .am-kv { background: var(--paper); }
+
+/* Remark mode: block marks with a note, collected into the Reply copy (src/runtime/remark.js). Each kind borrows a status colour of
+   the theme, so a mark reads in light and dark mode on every theme. */
+.am-btn--remark.is-on { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+.am-btn--remark-clear { color: var(--err); }
+.am-btn--remark-clear.is-armed { background: var(--err-bg); border-color: var(--err); }
+.am-remark-hover { outline: 1px dashed var(--ink-3); outline-offset: 2px; cursor: pointer; }
+:is(.am-mark, .am-remark-kind)[data-kind="suggestion"] { --mark: var(--warn); --mark-bg: var(--warn-bg); }
+:is(.am-mark, .am-remark-kind)[data-kind="keep"] { --mark: var(--ok); --mark-bg: var(--ok-bg); }
+:is(.am-mark, .am-remark-kind)[data-kind="question"] { --mark: var(--accent); --mark-bg: var(--accent-bg); }
+:is(.am-mark, .am-remark-kind)[data-kind="concern"] { --mark: var(--err); --mark-bg: var(--err-bg); }
+.am-mark { border-inline-start: 3px solid var(--mark); padding-inline-start: 10px; background: var(--mark-bg); border-radius: 1px; }
+/* The note chip sits inside the marked block (a table takes it as its caption, a list item puts it before its sub-list), so lists and
+   grids keep their children. */
+.am-mark-note {
+  display: block; margin-block-start: 4px; font: 12px/1.5 var(--font-sans); letter-spacing: normal; text-transform: none;
+  color: var(--ink-2); white-space: pre-wrap; caption-side: bottom; text-align: start;
+}
+.am-mark-note b { color: var(--ink); font-weight: 600; }
+caption.am-mark-note { display: table-caption; }
+/* Table rows have their own backgrounds, so a tint on the table would show on every other row only: the bar marks a table. */
+table.am-mark { background: none; }
+.am-remark-pop {
+  position: absolute; z-index: 40; width: min(264px, calc(100vw - 16px)); padding: 8px; display: grid; gap: 6px;
+  color: var(--ink); background: var(--paper); border: 1px solid var(--line-2); border-radius: var(--radius); box-shadow: 0 6px 24px rgba(0, 0, 0, .14);
+}
+.am-remark-pop[hidden] { display: none; }
+.am-remark-kinds { display: flex; gap: 6px; flex-wrap: wrap; }
+.am-remark-kind { font: 12px/1 var(--font-sans); color: var(--ink-2); background: var(--paper); border: 1px solid var(--line-2); border-radius: 999px; padding: 4px 10px; cursor: pointer; }
+.am-remark-kind:hover { border-color: var(--ink-3); }
+.am-remark-kind[aria-pressed="true"] { color: var(--ink); border-color: var(--mark); background: var(--mark-bg); }
+.am-remark-kind:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.am-remark-pop textarea { font: 13px/1.5 var(--font-sans); color: var(--ink); background: var(--paper); border: 1px solid var(--line-2); border-radius: var(--radius); padding: 6px 8px; resize: vertical; }
+.am-remark-actions { display: flex; gap: 6px; }
+.am-remark-actions .am-btn:disabled { opacity: .5; cursor: default; }
+@media print { .am-remark-pop { display: none !important; } }
+
+
+html[data-theme="blueprint"] .am-frame { border: 1px solid var(--line); padding: 30px; }
+html[data-theme="blueprint"] .am-frame::before {
+  content: ""; position: absolute; inset: 18px; border: 1px solid var(--line); pointer-events: none;
+}
+html[data-theme="blueprint"] .am-ruler {
+  display: flex; position: absolute; font: 10px/1 var(--font-mono); color: var(--ink-3);
+}
+@media (max-width: 760px) {
+  html[data-theme="blueprint"] .am-frame { padding: 0; border: 0; }
+  html[data-theme="blueprint"] .am-frame::before, html[data-theme="blueprint"] .am-ruler { display: none; }
+}
+
+html[data-theme="shadcn"] .am-panel-id { border-radius: 6px; min-width: 24px; height: 24px; margin: 9px 0 9px 14px; font-size: 12px; }
+html[data-theme="shadcn"] .am-panel-head { border-bottom-width: 1px; }
+html[data-theme="shadcn"] .am-kv { border-color: var(--line); border-radius: var(--radius); overflow: hidden; }
+
+html[data-theme="paper"]:lang(zh-Hant)[data-mode], html[data-theme="paper"]:lang(zh-TW)[data-mode], html[data-theme="paper"]:lang(zh-HK)[data-mode], html[data-theme="paper"]:lang(zh-MO)[data-mode] { --font-serif: "Iowan Old Style", Palatino, Georgia, "Songti TC", "PMingLiU", "MingLiU", "Noto Serif CJK TC", "Noto Serif TC", "Source Han Serif TC", "Songti SC", serif; }
+html[data-theme="paper"]:lang(ja)[data-mode] { --font-serif: "Iowan Old Style", Palatino, Georgia, "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif CJK JP", "Noto Serif JP", "Songti SC", serif; }
+html[data-theme="paper"]:lang(he)[data-mode] { --font-serif: "Iowan Old Style", Palatino, Georgia, "Noto Serif Hebrew", "Frank Ruehl CLM", David, "Times New Roman", serif; }
+html[data-theme="paper"] .am-head h1, html[data-theme="paper"] .am-panel-head h2, html[data-theme="paper"] .am-md, html[data-theme="paper"] .am-intro, html[data-theme="paper"] .am-callout { font-family: var(--font-serif); }
+html[data-theme="paper"] .am-head h1 { font-weight: 600; letter-spacing: 0; }
+html[data-theme="paper"] .am-md p, html[data-theme="paper"] .am-md li, html[data-theme="paper"] .am-md blockquote, html[data-theme="paper"] .am-intro { font-size: 15.5px; line-height: 1.75; }
+html[data-theme="paper"] .am-md p { margin-bottom: 12px; }
+html[data-theme="paper"] .am-md table { font-family: var(--font-sans); }
+
+
+:root{--nav-width:300px;--page-bg:#fafafa;--brand:#2563eb;--soft:#eff6ff}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:32px}body{margin:0;padding:0;background:var(--page-bg);font-family:var(--font-sans);color:#1f2937;line-height:1.85}.layout{display:grid;grid-template-columns:var(--nav-width) minmax(0,1fr);width:100%;margin:0}.sidebar{position:sticky;top:0;align-self:start;height:100dvh;overflow:auto;padding:28px 18px 36px;background:white;border-right:1px solid #e5e7eb}.brand{font-size:18px;font-weight:750;line-height:1.45;color:#111827;text-decoration:none;display:block}.brand small{display:block;font-weight:400;font-size:12px;color:#64748b;margin-top:8px}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}.sidebar summary{display:none}.nav-search{width:100%;padding:10px 12px;margin:22px 0 5px;border:1px solid #d1d5db;border-radius:8px;background:#fafafa;font:inherit;font-size:13px}.search-count{font-size:12px;color:#64748b;min-height:20px}.nav-group-title{font-size:11px;font-weight:750;letter-spacing:.08em;color:#64748b;margin:24px 8px 8px}.chapter-link{display:block;font-size:13px;line-height:1.55;padding:8px 10px;margin:2px 0;border-radius:7px;color:#475569;text-decoration:none}.chapter-link:hover,.chapter-link.active{color:#1d4ed8;background:#eff6ff}.chapter-link[hidden]{display:none}.content{min-width:0;padding:54px clamp(22px,5vw,70px) 100px}.reading{width:94%;min-width:0;margin:0 auto}.eyebrow{font-size:12px;letter-spacing:.12em;color:#2563eb;font-weight:750}.hero h1{font-size:clamp(29px,4vw,43px);line-height:1.35;letter-spacing:-.04em;margin:16px 0 20px}.hero p{font-size:16px;color:#475569;max-width:750px}.hero-actions{display:flex;gap:12px;flex-wrap:wrap;margin:25px 0 30px}.primary,.secondary{display:inline-block;padding:10px 18px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:650}.primary{background:#2563eb;color:white}.secondary{background:white;border:1px solid #dbe1e8;color:#334155}.course-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:24px 0 40px}.course-card{display:block;background:white;border:1px solid #e2e8f0;border-radius:10px;padding:16px 18px;text-decoration:none;color:inherit}.course-card:hover{border-color:#93b4ed}.course-card span{font-size:11px;color:#2563eb;font-weight:750}.course-card h3{font-size:16px;line-height:1.6;margin:5px 0 7px}.course-card p{font-size:13px;line-height:1.7;margin:0;color:#64748b}.reading-rule{font-size:14px;padding:18px 22px;background:#eff6ff;border-left:3px solid #60a5fa;border-radius:0 8px 8px 0;margin:20px 0 44px}.book-group{padding-top:42px;margin-top:48px;border-top:1px solid #dbe1e8}.book-group>h2{font-size:27px;line-height:1.5;letter-spacing:-.03em;margin:0 0 12px}.group-description{color:#64748b;font-size:14px;margin-bottom:30px}.chapter{padding-top:38px;margin-top:36px;border-top:1px solid #e2e8f0;scroll-margin-top:30px}.chapter-header .kind{font-size:11px;letter-spacing:.08em;color:#64748b}.chapter-header h2{font-size:25px;line-height:1.5;letter-spacing:-.02em;margin:8px 0 26px}.chapter .am-intro{border:0;padding:0;margin:0 0 26px;color:#475569}.chapter .am-md{font-size:15px;line-height:1.9}.lesson-section{margin:34px 0 42px;scroll-margin-top:26px}.lesson-section>h3{font-size:19px;line-height:1.6;margin:0 0 16px;color:#111827}.lesson-body>div.am-md{margin-top:0}.lesson-body>div.am-md+div.am-md{margin-top:18px}.lesson-body h4{font-size:16px;line-height:1.7;margin:26px 0 12px}.scope{font-size:12px;color:#64748b;background:#f1f5f9;padding:7px 10px;border-radius:6px;margin:8px 0 16px}.am-diagram{position:relative;background:white;border:1px solid #e2e8f0;border-radius:10px;padding:26px 16px 18px;margin:24px 0;overflow:auto}.am-diagram svg.lesson-svg{display:block;max-width:100%;height:auto;margin:auto;font-family:var(--font-sans)}.diagram-actions{display:flex;justify-content:flex-end;gap:8px;margin:0 0 12px}.diagram-actions button,.code-copy{background:white;border:1px solid #dbe1e8;border-radius:6px;padding:4px 10px;color:#475569;font:inherit;font-size:12px;cursor:pointer}.chapter-nav{display:flex;justify-content:space-between;gap:12px;margin-top:26px;font-size:13px}.chapter-nav a{color:#2563eb;text-decoration:none}.am-table-wrap{max-width:100%;overflow:auto}.am-table-wrap table{font-size:13px;line-height:1.75}.am-code{position:relative}.am-code pre{white-space:pre;max-height:none;overflow:auto;border-radius:8px}.code-copy{margin-left:auto;flex-shrink:0}.am-code-head{padding-right:75px}#diagram-view{border:1px solid #cbd5e1;border-radius:12px;padding:0;max-width:95vw;max-height:94vh;width:min(1200px,95vw)}#diagram-view::backdrop{background:rgb(15 23 42 / .55)}.dialog-bar{position:sticky;top:0;z-index:1;background:white;border-bottom:1px solid #e2e8f0;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}.dialog-bar button{padding:6px 12px;border:1px solid #cbd5e1;border-radius:6px;background:white;cursor:pointer}.diagram-canvas{padding:30px;overflow:auto;max-height:80vh;background:white}.diagram-canvas svg{display:block;max-width:100%;height:auto;margin:auto}.diagram-canvas.actual svg{max-width:none}.footer{padding-top:35px;border-top:1px solid #dbe1e8;color:#64748b;font-size:13px;margin-top:60px}.footer details{margin-top:20px}.svg-library{position:absolute;width:0;height:0;overflow:hidden;pointer-events:none}.back-top{display:block;margin-top:25px;color:#2563eb;text-decoration:none}[hidden]{display:none!important}
+/* 窄屏将侧栏改为顶部目录，与 tutorial.js 共用 1000px 断点。 */
+@media(max-width:1000px){
+ .reading{width:100%}
+ .layout{display:block}
+ .sidebar{position:relative;height:auto;padding:18px 20px;border-right:0;border-bottom:1px solid #e2e8f0}
+ .sidebar .brand small{margin-top:3px}
+ .sidebar summary{display:block;font-size:13px;cursor:pointer;padding:10px 0}
+ .sidebar details:not([open]) .menu-body{display:none}
+ .menu-body{max-height:350px;overflow:auto}
+ .nav-search{margin-top:6px}
+ .content{padding:34px 26px 70px}
+}
+@media(max-width:720px){.content{padding:30px 20px 60px}.course-grid{grid-template-columns:1fr}.hero h1{font-size:29px}.chapter-header h2{font-size:23px}.am-diagram{padding:16px 9px}.lesson-section{margin-bottom:32px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+@media print{.layout{display:block}.sidebar,.hero-actions,.diagram-actions,.code-copy,.chapter-nav,.back-top{display:none!important}.content{padding:0}.am-diagram{break-inside:avoid;border:0}.chapter{break-before:page}body{background:white}.book-group{border:0}.hero h1{font-size:30px}}
+
+.implementation-status{line-height:1.8;margin:0 0 22px;border-left:3px solid #94a3b8}.reference-extra,.historical-checks{margin:24px 0;padding:15px 18px;border:1px solid #e2e8f0;border-radius:8px;background:#fff}.reference-extra summary,.historical-checks summary{cursor:pointer;font-weight:650;font-size:14px}.reference-extra>p,.historical-checks>div{margin-top:16px}
+
+/* 系统职责地图：层次表达分工，状态文字表达当前实现范围。 */
+.system-map{padding-top:36px;scroll-margin-top:30px}
+.system-map>h2{font-size:27px;line-height:1.5;letter-spacing:-.03em;margin:0 0 12px}
+.system-tree,.system-tree ul{list-style:none;padding:0;margin:0}
+.system-tree>li{margin:22px 0}
+.system-tree>li>strong{display:block;font-size:17px;color:#111827}
+.system-tree ul{border-left:1px solid #dbe1e8;margin:8px 0 0 8px;padding-left:20px}
+.system-tree li li{padding:5px 0;font-size:14px;line-height:1.8}
+.system-tree a,.learning-route a{color:#2563eb;text-decoration:none}
+.system-tree a:hover,.learning-route a:hover{text-decoration:underline}
+.implementation-note{display:block;font-size:12px;color:#64748b}
+.learning-route{padding-left:24px;margin-bottom:0;font-size:14px}
+.learning-route li{margin:8px 0}
+
+/* 分页教程共用资源；正文可通过 file:// 直接阅读。 */
+.chapter-card{padding:14px 18px;border:1px solid var(--line-2);border-radius:8px;margin:10px 0;background:var(--paper)}
+.am-diagram img{display:block;max-width:100%;height:auto;margin:0 auto}
+.diagram-canvas img{display:block;max-width:100%;height:auto;margin:0 auto}
+.diagram-canvas.actual img{max-width:none}
+.chapter pre{max-width:100%;overflow-x:auto}
+
+  /* Custom overrides for standalone viewing */
+  body { margin: 0; padding: 0; background-color: var(--bg); color: var(--ink); }
+  .brand small { display: block; font-size: 11px; color: var(--ink-2); font-weight: normal; margin-top: 4px; }
+  .am-table-wrap { overflow-x: auto; margin: 16px 0; border: 1px solid var(--line); border-radius: var(--radius); }
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; text-align: left; }
+  th, td { padding: 10px 14px; border-bottom: 1px solid var(--line-2); }
+  th { background: var(--fill); color: var(--ink); font-weight: 600; }
+  tr:last-child td { border-bottom: none; }
+  .badge { display: inline-block; padding: 2px 7px; border-radius: 4px; font-size: 11.5px; font-weight: 600; font-family: var(--font-mono); }
+  .badge--blue { background: var(--accent-bg); color: var(--accent); }
+  .badge--green { background: var(--ok-bg); color: var(--ok); }
+  .badge--amber { background: var(--warn-bg); color: var(--warn); }
+  .badge--red { background: var(--err-bg); color: var(--err); }
+  .star-box { border-left: 3px solid var(--accent); padding: 10px 14px; background: var(--fill); margin: 12px 0; border-radius: 0 var(--radius) var(--radius) 0; }
+  .star-box strong { color: var(--accent); }
+  .lesson-section { margin-bottom: 36px; padding-bottom: 24px; border-bottom: 1px solid var(--line-2); }
+  .chapter-header { margin-bottom: 28px; }
+  .chapter-header h1 { font-size: 28px; margin: 0 0 8px 0; letter-spacing: -0.02em; }
+  .chapter-header p { color: var(--ink-2); font-size: 15px; margin: 0; }
+  figure.am-diagram { margin: 20px 0; border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; background: var(--paper); }
+  </style>
+</head>
+<body>
+<div class="layout">
+  <!-- Left Sidebar -->
+  <aside class="sidebar">
+    <a class="brand" href="#overview">
+      Plaud Model Hub
+      <small>统一大模型调用基础设施全景教程</small>
+    </a>
+    <details id="chapter-menu" open>
+      <summary>展开 / 收起目录</summary>
+      <div class="menu-body">
+        <label for="chapter-search" class="sr-only">查找章节</label>
+        <input class="nav-search" id="chapter-search" type="search" placeholder="查找章节标题..." autocomplete="off">
+        <div class="search-count" id="search-count" aria-live="polite"></div>
+        <nav aria-label="教程目录">
+          <div class="nav-group-title">一、系统定位与心智模型</div>
+          <a class="chapter-link active" href="#module-positioning" data-chapter="module-positioning">1. 问题起点与核心心智模型</a>
+          <a class="chapter-link" href="#module-monorepo" data-chapter="module-monorepo">2. Monorepo 架构与包依赖关系</a>
+
+          <div class="nav-group-title">二、架构设计与调用模式</div>
+          <a class="chapter-link" href="#module-architecture" data-chapter="module-architecture">3. 全局架构拓扑与十大核心组件</a>
+          <a class="chapter-link" href="#module-modes" data-chapter="module-modes">4. 三种调用模式与能力复用矩阵</a>
+
+          <div class="nav-group-title">三、数据链路与方言隔离</div>
+          <a class="chapter-link" href="#module-dataflow" data-chapter="module-dataflow">5. 统一模式端到端时序与隔离带</a>
+          <a class="chapter-link" href="#module-passthrough" data-chapter="module-passthrough">6. 参数透传机制与 Provider 方言治理</a>
+
+          <div class="nav-group-title">四、插件系统与容错调度</div>
+          <a class="chapter-link" href="#module-plugins" data-chapter="module-plugins">7. 插件扩展系统与七大能力接口</a>
+          <a class="chapter-link" href="#module-resilience" data-chapter="module-resilience">8. 三层立体容错与三大信号各司其职</a>
+          <a class="chapter-link" href="#module-adaptive-weight" data-chapter="module-adaptive-weight">9. 自适应权重与重分配数学推演</a>
+          <a class="chapter-link" href="#module-fallback-adapter" data-chapter="module-fallback-adapter">10. 跨风格 Fallback 与 Adapter 矩阵</a>
+
+          <div class="nav-group-title">五、生产落地与复盘表达</div>
+          <a class="chapter-link" href="#module-best-practices" data-chapter="module-best-practices">11. 生产配置规范与热更新实践</a>
+          <a class="chapter-link" href="#module-interview-star" data-chapter="module-interview-star">12. STAR 技术复盘与高频面试追问</a>
+        </nav>
+      </div>
+    </details>
+  </aside>
+
+  <!-- Main Content Area -->
+  <main class="content">
+    <div class="chapter">
+      <header class="chapter-header" id="overview">
+        <div class="am-cluster-label">INFRASTRUCTURE MANUAL · PRODUCTION GRADE</div>
+        <h1>Plaud Model Hub 全景教程</h1>
+        <p>Plaud AI Platform 统一大模型调用基础设施的完整架构设计、运行时数据流、自适应调度容错与生产实战手册。</p>
+      </header>
+      <article>
+
+<section class="lesson-section" id="module-positioning">
+  <h2>一、问题起点与核心心智模型</h2>
+  
+  <h3>1. 问题起点：为什么多模型接入会让业务代码陷入混乱？</h3>
+  <div class="lesson-body"><div class="am-md">
+    <p>在没有统一基础设施时，业务团队（Summary 摘要、Transcription 转录、Ask 对话）各自对接模型，导致系统碎片化严重：</p>
+    <ul>
+      <li><strong>SDK 碎片化</strong>：每个团队各自引入 OpenAI、Anthropic、Google GenAI 等 SDK，各管各的 API Key。</li>
+      <li><strong>容错逻辑重复造轮子</strong>：每个业务都要重写重试、退避和超时逻辑，质量参差不齐。</li>
+      <li><strong>物理端点缺乏弹性</strong>：同一模型购买了多个区域的 Endpoint（如 Azure 预付费与 OpenAI 官方按量），业务代码写死 URL，无法平滑负载均衡。</li>
+      <li><strong>换模型代价极高</strong>：更换模型供应商必须修改业务代码并全量发版，无法进行动态灰度与降级。</li>
+    </ul>
+
+    <div class="am-callout am-callout--ok">
+      <div class="am-callout-title">Model Hub 的核心理念</div>
+      <p><strong>业务方只需关心 <code>app_id</code> + <code>logical_model</code> 两个名字</strong>。供应商 API Key、路由策略、健康探测、熔断与跨厂商降级全部由 Hub 内部全托管。</p>
+    </div>
+
+    <h4>痛点分类与治理措施全景映射（两个正交维度）</h4>
+    <p>Model Hub 的设计围绕两大正交维度展开，精准下沉通用能力：</p>
+    <div class="am-table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>分类维度</th>
+            <th>具体痛点</th>
+            <th>不治理的后果</th>
+            <th>Model Hub 核心措施</th>
+            <th>服务目标</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>异构性 · 凭证与 SDK</strong></td>
+            <td>多家 Provider，各自 Key、BaseURL、SDK 碎片化</td>
+            <td>业务代码与供应商强耦合，换模型需重构代码</td>
+            <td><strong>统一配置管理</strong>：YAML / AppConfig 声明，按 <code>logical_model</code> 寻址</td>
+            <td>开发效率</td>
+          </tr>
+          <tr>
+            <td><strong>异构性 · 请求协议</strong></td>
+            <td>各家参数名不同（如 max_tokens vs max_output_tokens）</td>
+            <td>调用方必须了解每家差异，参数极易被静默丢弃</td>
+            <td><strong>统一抽象 ModelRequest</strong> + <strong>方言隔离带</strong></td>
+            <td>接口规范</td>
+          </tr>
+          <tr>
+            <td><strong>异构性 · 接入方式</strong></td>
+            <td>已有原生 SDK 代码，业务方不愿全盘推翻重写</td>
+            <td>迁移成本巨大阻碍基础设施推广</td>
+            <td><strong>同风格透传</strong>：<code>raw_request</code> 原样透传原生 SDK，<strong>0 次对象转换</strong></td>
+            <td>零成本迁移</td>
+          </tr>
+          <tr>
+            <td><strong>运行时 · 429 频发</strong></td>
+            <td>突发并发或小配额导致 429，传统做法踢掉节点引起雪崩</td>
+            <td>原本健康的备用节点被瞬间打崩（雪崩效应）</td>
+            <td><strong>自适应权重</strong>：按 429 错误率连续衰减 + <strong>动态权重重分配</strong></td>
+            <td>高可用 + 成本</td>
+          </tr>
+          <tr>
+            <td><strong>运行时 · 5xx 故障</strong></td>
+            <td>单节点硬性宕机、网络中途闪断</td>
+            <td>用户请求直接报错失败</td>
+            <td><strong>三层容错</strong>：单次重试 → 换同模型备端点 → 跨厂商 Fallback</td>
+            <td>服务稳定性</td>
+          </tr>
+          <tr>
+            <td><strong>运行时 · 计费与成本</strong></td>
+            <td>预付费（GSU）与按量（PayGo）混合，流量调度不合理</td>
+            <td>预付费资源浪费或按量费用意外激增</td>
+            <td><strong>主备比例调度</strong>（如 80:20），过载自动溢出至 PayGo</td>
+            <td>成本最优化</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p><strong>期望达到的效果：</strong></p>
+    <ul>
+      <li><strong>极简业务契约</strong>：业务代码仅需传递逻辑模型名，绝不感知物理 Key 和 BaseURL。</li>
+      <li><strong>零改造成本迁移</strong>：已有 OpenAI SDK 代码只需加一行 Wrapper，完全保持原生调用体验。</li>
+      <li><strong>核心可用性跃升</strong>：高并发下服务可用性从 95.2% 提升至 <strong>99.5%</strong>（+4.3 pp）。</li>
+      <li><strong>调用成本大幅削减</strong>：预付费 GSU 资源利用率最大化，月度 LLM 成本下降 <strong>30%</strong>。</li>
+      <li><strong>故障恢复高度自治</strong>：故障定位与切流从人工 15 分钟降至系统自动 <strong>2 分钟</strong>（-87%）。</li>
+    </ul>
+  </div></div>
+</section>
+
+<section class="lesson-section" id="module-monorepo">
+  <h2>二、Monorepo 架构与包依赖关系</h2>
+  
+  <h3>1. 为什么核心引擎必须“零硬依赖”？</h3>
+  <div class="lesson-body"><div class="am-md">
+    <p>Model Hub 采用 Monorepo 结构管理，确保核心编排能力的高度轻量与可移植：</p>
+    <div class="am-codeblock">
+      <div class="am-code-head"><span class="am-code-title">包依赖拓扑与边界约束</span></div>
+      <pre class="am-code"><code>plaud-model-hub/
+packages/
+├── core/         → model-hub-core   （零硬依赖的核心引擎，纯 Python + Pydantic + PyYAML）
+└── sdk-python/   → model-hub-sdk    （面向业务方的便利包，依赖 core，可选依赖 langchain / openai）
+services/
+└── model-hub-api/    FastAPI 服务   （HTTP 代理服务，依赖 core，不依赖 sdk）
+schemas/         配置 JSON Schema 与自动化校验定义
+tools/           开发运维 CLI（config-validator、sync-appconfig 等）</code></pre>
+    </div>
+
+    <div class="am-callout am-callout--warn">
+      <div class="am-callout-title">架构防腐铁律</div>
+      <p><code>model-hub-core</code> <strong>严禁依赖任何具体供应商 SDK</strong>（如 openai、anthropic、google-genai）。所有对厂商 SDK 的调用全部延迟到动态 Provider / ClientPool 内部，或者由外部可选注入。这确保了在不需要某些厂商的轻量容器中，不会引入臃肿的无用依赖。</p>
+    </div>
+  </div></div>
+</section>
+
+<section class="lesson-section" id="module-architecture">
+  <h2>三、全局架构拓扑与十大核心组件</h2>
+  
+  <h3>1. 一张图理解 Model Hub 运行时体系</h3>
+  <div class="lesson-body"><div class="am-md">
+    <p>调用请求从业务入口发出，历经统一信封封装、调度编排、健康校验、动态路由，最终落入供应商适配器分派执行：</p>
+    <figure class="am-diagram">
+<svg xmlns="http://www.w3.org/2000/svg" class="am-diagram" viewBox="0 0 720 450" aria-label="Plaud Model Hub 全局系统架构与分层总览">
+<defs>
+  <marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <path class="am-arrow" d="M0,1 L10,5 L0,9 z" fill="var(--accent, #2563eb)"/>
+  </marker>
+  <marker id="arrow-gray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <path class="am-arrow" d="M0,1 L10,5 L0,9 z" fill="var(--ink-2, #71717a)"/>
+  </marker>
+</defs>
+
+<!-- Cluster 1: Entry Layer -->
+<rect class="am-cluster" x="20" y="20" width="680" height="75" rx="8"/>
+<text class="am-cluster-label" x="35" y="40">① 业务入口层 · 三种接入形态</text>
+<g class="am-node am-node--rect" transform="translate(40, 48)">
+  <rect class="am-node-shape" width="180" height="34" rx="6"/>
+  <text class="am-node-text" x="90" y="17" text-anchor="middle" dominant-baseline="central">LangChain (ChatModelHub)</text>
+</g>
+<g class="am-node am-node--rect" transform="translate(260, 48)">
+  <rect class="am-node-shape" width="190" height="34" rx="6"/>
+  <text class="am-node-text" x="95" y="17" text-anchor="middle" dominant-baseline="central">原生 SDK Wrapper (无感透传)</text>
+</g>
+<g class="am-node am-node--rect" transform="translate(490, 48)">
+  <rect class="am-node-shape" width="180" height="34" rx="6"/>
+  <text class="am-node-text" x="90" y="17" text-anchor="middle" dominant-baseline="central">ModelHubClient (统一 API)</text>
+</g>
+
+<!-- Arrow 1 -> 2 -->
+<path class="am-edge" d="M360,95 L360,125" marker-end="url(#arrow-blue)" stroke-width="2"/>
+<text class="am-step" x="375" y="112">统一信封 ModelRequest</text>
+
+<!-- Cluster 2: Core Engine & Scheduling -->
+<rect class="am-cluster" x="20" y="130" width="680" height="110" rx="8"/>
+<text class="am-cluster-label" x="35" y="150">② 调度编排与可靠性中枢 (CoreEngine · 单一入口 invoke)</text>
+<g class="am-node am-node--rect am-node--hi" transform="translate(40, 165)">
+  <rect class="am-node-shape" width="180" height="55" rx="6"/>
+  <text class="am-node-text" x="90" y="20" text-anchor="middle" dominant-baseline="central" font-weight="600">自适应权重调节</text>
+  <text class="am-step" x="90" y="38" text-anchor="middle" dominant-baseline="central">429动态降权 + 守恒重分配</text>
+</g>
+<g class="am-node am-node--rect" transform="translate(250, 165)">
+  <rect class="am-node-shape" width="200" height="55" rx="6"/>
+  <text class="am-node-text" x="100" y="20" text-anchor="middle" dominant-baseline="central">熔断器 + 令牌桶限流</text>
+  <text class="am-step" x="100" y="38" text-anchor="middle" dominant-baseline="central">5xx状态机摘除 / Retry-After</text>
+</g>
+<g class="am-node am-node--rect am-node--hi" transform="translate(480, 165)">
+  <rect class="am-node-shape" width="190" height="55" rx="6"/>
+  <text class="am-node-text" x="95" y="20" text-anchor="middle" dominant-baseline="central" font-weight="600">动态路由与三级救援</text>
+  <text class="am-step" x="95" y="38" text-anchor="middle" dominant-baseline="central">重试 → 换端点 → 跨模型兜底</text>
+</g>
+
+<!-- Arrow 2 -> 3 -->
+<path class="am-edge" d="M360,240 L360,270" marker-end="url(#arrow-blue)" stroke-width="2"/>
+<text class="am-step" x="375" y="258">路由决策 RoutingDecision</text>
+
+<!-- Cluster 3: Provider Adaptation Layer -->
+<rect class="am-cluster" x="20" y="275" width="680" height="85" rx="8"/>
+<text class="am-cluster-label" x="35" y="295">③ 供应商适配层 · Provider 三岔分派 (_invoke)</text>
+<g class="am-node am-node--rect" transform="translate(40, 305)">
+  <rect class="am-node-shape" width="180" height="38" rx="6"/>
+  <text class="am-node-text" x="90" y="19" text-anchor="middle" dominant-baseline="central">_invoke_unified (2次转换)</text>
+</g>
+<g class="am-node am-node--rect am-node--hi" transform="translate(250, 305)">
+  <rect class="am-node-shape" width="200" height="38" rx="6"/>
+  <text class="am-node-text" x="100" y="19" text-anchor="middle" dominant-baseline="central" font-weight="600">_invoke_passthrough (0次转换)</text>
+</g>
+<g class="am-node am-node--rect am-node--hi" transform="translate(480, 305)">
+  <rect class="am-node-shape" width="190" height="38" rx="6"/>
+  <text class="am-node-text" x="95" y="19" text-anchor="middle" dominant-baseline="central" font-weight="600">_invoke_adapted (跨风格翻译)</text>
+</g>
+
+<!-- Arrow 3 -> 4 -->
+<path class="am-edge" d="M360,360 L360,385" marker-end="url(#arrow-gray)"/>
+
+<!-- Cluster 4: Physical Providers -->
+<rect class="am-cluster" x="20" y="385" width="680" height="50" rx="8"/>
+<text class="am-cluster-label" x="35" y="402">④ 底层物理供应商矩阵</text>
+<text class="am-node-text" x="360" y="415" text-anchor="middle" dominant-baseline="central" font-weight="500">
+  OpenAI Direct · Azure OpenAI · Anthropic Claude · Google Gemini / Vertex · 字节火山 Ark · 阿里 DashScope · AWS Bedrock
+</text>
+</svg>
+      <figcaption style="margin-top:8px;font-size:12px;color:var(--ink-2);text-align:center;">图 1：Model Hub 四层架构与请求流转拓扑（点击右上角放大查看）</figcaption>
+    </figure>
+
+    <h3>2. 十大核心组件（按数据流生命周期展开）</h3>
+    <ol>
+      <li><strong>业务入口层（Entrypoints）</strong>：提供三种接入形态——ChatModelHub（LangChain）、WrappedOpenAI（原生透传）、ModelHubClient（统一 API）。</li>
+      <li><strong>ModelRequest 统一信封</strong>：上层所有调用无论姿势如何，均封装为该标准信封，统一携带超时、重试上限与 TraceID。</li>
+      <li><strong>Transport 调用解耦层</strong>：CoreEngine 不直接调用 Provider，而是通过 Transport 抽象解耦，便于嵌入进程调用或网络代理调用。</li>
+      <li><strong>CoreEngine 核心引擎</strong>：系统的单一入口 <code>invoke(request) -> ModelResponse</code>，纯编排职责，统筹 Fallback 外循环与 Retry 内循环。</li>
+      <li><strong>ModelProvider._invoke 三岔分派</strong>：所有 Provider 继承该基类，一段 if/else 决定走统一、同风格透传还是跨风格适配。</li>
+      <li><strong>OPENAI_COMPATIBLE 家族</strong>：火山方舟、阿里百炼、DeepSeek、Azure OpenAI 等共享同一套参数与客户端复用逻辑。</li>
+      <li><strong>Adapter 跨风格矩阵</strong>：OpenAI ↔ Anthropic / Gemini 的双向翻译官，负责请求、响应、流式 Chunk 和错误码的无缝对齐。</li>
+      <li><strong>ClientPool 连接复用池</strong>：按 <code>(provider, api_key, base_url)</code> 缓存原生 SDK 客户端实例，避免高频创建销毁 Client 耗尽 socket。</li>
+      <li><strong>Plugin System 插件链</strong>：通过 7 大 Protocol 接口切入生命周期，实现熔断、限流、动态降权与 OTel / Langfuse 可观测性。</li>
+      <li><strong>Configuration Layer 数据底座</strong>：支持 v2 YAML 与 AppConfig 远程热更新，驱动所有路由策略与端点列表动态刷新。</li>
+    </ol>
+  </div></div>
+</section>
+
+<section class="lesson-section" id="module-modes">
+  <h2>四、三种调用模式与能力复用矩阵</h2>
+  
+  <h3>1. 业务代码该如何选型？</h3>
+  <div class="lesson-body"><div class="am-md">
+    <div class="am-table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>调用模式</th>
+            <th>业务代码写法</th>
+            <th>对象转换次数</th>
+            <th>厂商专有参数</th>
+            <th>最适用场景</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>统一模式 (DISABLED)</strong></td>
+            <td><code>client.chat(logical_model="gpt-4", messages=[...])</code></td>
+            <td>2 次（进一次，出一批）</td>
+            <td>受统一字段白名单限制</td>
+            <td>LangChain 业务、不关心底层具体供应商的标准化业务</td>
+          </tr>
+          <tr>
+            <td><strong>同风格透传 (SAME_STYLE)</strong></td>
+            <td><code>wrap_openai(OpenAI()).chat.completions.create(...)</code></td>
+            <td><strong>0 次（纯原生直通）</strong></td>
+            <td><strong>无损保留</strong>（如 reasoning_effort）</td>
+            <td><strong>已有原生 SDK 代码、不想改动业务逻辑（推荐）</strong></td>
+          </tr>
+          <tr>
+            <td><strong>跨风格透传 (CROSS_STYLE)</strong></td>
+            <td><code>wrap_openai(...) → 自动路由到 Anthropic Claude</code></td>
+            <td>2 次（Adapter 内部双向翻译）</td>
+            <td>经 Adapter 矩阵智能映射</td>
+            <td>核心业务需要跨供应商高可用容灾与 Fallback 兜底</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>2. 能力复用矩阵（核心架构保证）</h3>
+    <p>Model Hub 最精妙的设计在于：<strong>业务方无论采用何种接入模式，均百分之百享受底层的完整能力栈</strong>：</p>
+    <div class="am-table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>能力特性</th>
+            <th>统一模式</th>
+            <th>同风格透传</th>
+            <th>跨风格透传</th>
+            <th>实现机制</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>多 Endpoint 负载均衡</strong></td><td><span class="badge badge--green">支持</span></td><td><span class="badge badge--green">支持</span></td><td><span class="badge badge--green">支持</span></td><td>Router.select_endpoint</td></tr>
+          <tr><td><strong>失败自动重试 (Retry)</strong></td><td><span class="badge badge--green">支持</span></td><td><span class="badge badge--green">支持</span></td><td><span class="badge badge--green">支持</span></td><td>CoreEngine 内循环</td></tr>
+          <tr><td><strong>自动切换端点 (Failover)</strong></td><td><span class="badge badge--green">支持</span></td><td><span class="badge badge--green">支持</span></td><td><span class="badge badge--green">支持</span></td><td>CoreEngine 排除失败端点</td></tr>
+          <tr><td><strong>熔断器 (Circuit Breaker)</strong></td><td><span class="badge badge--green">支持</span></td><td><span class="badge badge--green">支持</span></td><td><span class="badge badge--green">支持</span></td><td>CircuitBreakerPlugin (5xx)</td></tr>
+          <tr><td><strong>自适应降权 (Adaptive Weight)</strong></td><td><span class="badge badge--green">支持</span></td><td><span class="badge badge--green">支持</span></td><td><span class="badge badge--green">支持</span></td><td>AdaptiveWeightPlugin (429)</td></tr>
+          <tr><td><strong>跨模型降级 (Fallback)</strong></td><td><span class="badge badge--green">支持</span></td><td><span class="badge badge--green">支持</span></td><td><span class="badge badge--green">支持</span></td><td>CoreEngine 外循环 + Adapter</td></tr>
+          <tr><td><strong>全链路观测 (Langfuse / OTel)</strong></td><td><span class="badge badge--green">支持</span></td><td><span class="badge badge--green">支持</span></td><td><span class="badge badge--green">支持</span></td><td>TracingPlugin (before/after/error)</td></tr>
+          <tr><td><strong>原生流式无损透传</strong></td><td><span class="badge badge--green">支持</span></td><td><span class="badge badge--green">原生直通</span></td><td><span class="badge badge--amber">Chunk 包装</span></td><td>adapt_stream_chunk 双向转换</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div></div>
+</section>
+
+<section class="lesson-section" id="module-dataflow">
+  <h2>五、统一模式数据链路与方言隔离</h2>
+  
+  <h3>1. 端到端执行时序（从请求到响应的全过程）</h3>
+  <div class="lesson-body"><div class="am-md">
+    <p>统一模式的核心价值在于：<strong>上层业务与底层物理 API 完全解耦，格式翻译仅发生在系统两端，中间全链路流转标准结构</strong>。</p>
+    <figure class="am-diagram">
+<svg xmlns="http://www.w3.org/2000/svg" class="am-diagram" viewBox="0 0 720 380" aria-label="统一模式端到端调用时序与方言隔离">
+<defs>
+  <marker id="seq-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <path class="am-arrow" d="M0,1 L10,5 L0,9 z" fill="var(--accent, #2563eb)"/>
+  </marker>
+</defs>
+
+<!-- Lifelines -->
+<g class="am-node am-node--rect" transform="translate(40, 20)"><rect class="am-node-shape" width="90" height="30" rx="4"/><text class="am-node-text" x="45" y="15" text-anchor="middle" dominant-baseline="central">调用方</text></g>
+<path class="am-lifeline" d="M85,50 L85,340"/>
+
+<g class="am-node am-node--rect am-node--hi" transform="translate(180, 20)"><rect class="am-node-shape" width="100" height="30" rx="4"/><text class="am-node-text" x="50" y="15" text-anchor="middle" dominant-baseline="central">CoreEngine</text></g>
+<path class="am-lifeline" d="M230,50 L230,340"/>
+
+<g class="am-node am-node--rect" transform="translate(330, 20)"><rect class="am-node-shape" width="90" height="30" rx="4"/><text class="am-node-text" x="45" y="15" text-anchor="middle" dominant-baseline="central">Plugin 钩子</text></g>
+<path class="am-lifeline" d="M375,50 L375,340"/>
+
+<g class="am-node am-node--rect" transform="translate(460, 20)"><rect class="am-node-shape" width="80" height="30" rx="4"/><text class="am-node-text" x="40" y="15" text-anchor="middle" dominant-baseline="central">Router</text></g>
+<path class="am-lifeline" d="M500,50 L500,340"/>
+
+<g class="am-node am-node--rect am-node--hi" transform="translate(580, 20)"><rect class="am-node-shape" width="100" height="30" rx="4"/><text class="am-node-text" x="50" y="15" text-anchor="middle" dominant-baseline="central">Provider 适配</text></g>
+<path class="am-lifeline" d="M630,50 L630,340"/>
+
+<!-- Step 1 -->
+<path class="am-edge" d="M85,80 L230,80" marker-end="url(#seq-arrow)"/>
+<text class="am-edge-label" x="157" y="72" text-anchor="middle"><text>1. invoke(ModelRequest)</text></text>
+
+<!-- Step 2 -->
+<path class="am-edge" d="M230,115 L375,115" marker-end="url(#seq-arrow)"/>
+<text class="am-edge-label" x="302" y="107" text-anchor="middle"><text>2. before_request 钩子链</text></text>
+
+<!-- Step 3 -->
+<path class="am-edge" d="M230,155 L500,155" marker-end="url(#seq-arrow)"/>
+<text class="am-edge-label" x="365" y="147" text-anchor="middle"><text>3. 综合自适应权重选物理端点</text></text>
+
+<!-- Step 4 -->
+<path class="am-edge" d="M500,185 L230,185" stroke-dasharray="4 3"/>
+<text class="am-step" x="365" y="177" text-anchor="middle">返回 RoutingDecision</text>
+
+<!-- Step 5 -->
+<path class="am-edge" d="M230,225 L630,225" marker-end="url(#seq-arrow)"/>
+<text class="am-edge-label" x="430" y="217" text-anchor="middle"><text>4. _invoke: 翻译方言并调用物理 API</text></text>
+
+<!-- Step 6: Note block -->
+<g class="am-note" transform="translate(530, 240)">
+  <rect width="170" height="38" rx="4"/>
+  <text x="85" y="14" text-anchor="middle" dominant-baseline="central" fill="var(--warn, #d97706)" font-size="11">厂商方言隔离带</text>
+  <text x="85" y="27" text-anchor="middle" dominant-baseline="central" fill="var(--ink-2, #71717a)" font-size="10.5">将厂商响应规范化为统一结构</text>
+</g>
+
+<!-- Step 7 -->
+<path class="am-edge" d="M630,295 L230,295" stroke-dasharray="4 3"/>
+<text class="am-step" x="430" y="287" text-anchor="middle">5. 统一响应 ModelResponse</text>
+
+<!-- Step 8 -->
+<path class="am-edge" d="M230,325 L85,325" stroke-dasharray="4 3"/>
+<text class="am-step" x="157" y="317" text-anchor="middle">6. 返回结果 + 元数据回写</text>
+</svg>
+      <figcaption style="margin-top:8px;font-size:12px;color:var(--ink-2);text-align:center;">图 2：统一模式调用数据流与方言隔离时序</figcaption>
+    </figure>
+
+    <h3>2. Provider 层的核心使命：厂商方言隔离带</h3>
+    <p>各家厂商对同一概念的定义存在大量“微小方言差异”。如果把这些差异暴露给 Engine，Engine 会迅速被各种 <code>if-else</code> 污染：</p>
+    <ul>
+      <li><strong>停止原因</strong>：OpenAI 返回 <code>stop</code> / <code>length</code>，Anthropic 返回 <code>end_turn</code> / <code>max_tokens</code>。</li>
+      <li><strong>Token 计数</strong>：OpenAI 的 <code>prompt_tokens</code> 在 Anthropic 叫 <code>input_tokens</code>，Gemini 叫 <code>prompt_token_count</code>。</li>
+      <li><strong>角色命名</strong>：OpenAI 的 <code>assistant</code> 在 Gemini 叫 <code>model</code>。</li>
+    </ul>
+    <p><strong>Provider 的职责就是“方言隔离带”</strong>：在出入口统一吞吐，把各厂商怪异的协议抹平成标准的 <code>ModelResponse</code>，让上层编排代码极其清爽。</p>
+  </div></div>
+</section>
+
+<section class="lesson-section" id="module-passthrough">
+  <h2>六、参数透传机制与 Provider 方言治理</h2>
+  
+  <h3>1. 为什么在 YAML 里加了参数，底层却悄悄丢弃了？</h3>
+  <div class="lesson-body"><div class="am-md">
+    <p>在实际生产中，最隐蔽的坑是：<strong>在 YAML 中配置了模型专有参数（如 thinking_budget、reasoning_effort），本地不报错，但实际服务端根本没收到</strong>。</p>
+    
+    <h4>实证：BaseChatModel 的 <code>extra='ignore'</code> 陷阱</h4>
+    <p>以 LangChain 业务为例，<code>ChatModelHub</code> 继承自 <code>BaseChatModel</code>（底层基于 Pydantic v2）：</p>
+    <div class="am-codeblock">
+      <div class="am-code-head"><span class="am-code-title">Pydantic 默认策略</span></div>
+      <pre class="am-code"><code># langchain_core.language_models.chat_models.BaseChatModel
+model_config = ConfigDict(
+    extra="ignore",          # 关键陷阱：构造器遇到不在白名单里的字段，直接静默丢弃！
+    arbitrary_types_allowed=True,
+)</code></pre>
+    </div>
+    <p><strong>双通道解决机制：</strong></p>
+    <ul>
+      <li><strong>通道 A（构造器白名单）</strong>：仅 <code>model</code>、<code>temperature</code>、<code>max_tokens</code>、<code>timeout</code> 等高频通用字段被 Pydantic 声明接收。</li>
+      <li><strong>通道 B（调用时 kwargs）</strong>：任何厂商独有参数，必须在调用时作为 <code>**kwargs</code> 传入，或在 YAML 的 <code>endpoint.extra</code> 中配置，由 Hub 内部合并注入 <code>provider_params</code>。</li>
+    </ul>
+
+    <h4>三类 Provider 的处理机制差异对比</h4>
+    <div class="am-table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>供应商分类</th>
+            <th>底层处理方式</th>
+            <th>传入未识别的参数表现</th>
+            <th>治理对策</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>OpenAI 家族</strong></td>
+            <td>整袋解包透传：<code>**provider_params</code></td>
+            <td>服务端返回 HTTP 400（明确报错）</td>
+            <td>严格遵守官方 API 参数命名</td>
+          </tr>
+          <tr>
+            <td><strong>Anthropic</strong></td>
+            <td>显式 pop 通用字段后，整袋透传其余</td>
+            <td>服务端返回 HTTP 400（明确报错）</td>
+            <td>提防 system prompt 必须单独剥离</td>
+          </tr>
+          <tr>
+            <td><strong>Google Gemini</strong></td>
+            <td><strong>白名单逐项 <code>.get()</code> 提取</strong></td>
+            <td><strong><span class="badge badge--red">静默丢弃！</span></strong>（不报错也不生效）</td>
+            <td><strong>必须在 <code>genai.py</code> 中显式补充适配映射</strong></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="am-callout am-callout--ok">
+      <div class="am-callout-title">生产实战：Gemini max_output_tokens 静默丢弃 Bug 攻坚</div>
+      <p>统一模式字段为 <code>max_tokens</code>，而 Gemini SDK 原生仅认 <code>max_output_tokens</code>。原实现中白名单未建立该字段映射，导致配置的 Token 上限全被静默丢弃。<strong>修复方案</strong>：在 <code>genai.py</code> 的 <code>_build_config</code> 中建立三层优先级保障（调用时指定 > endpoint.extra.max_output_tokens > 统一字段 max_tokens），彻底消灭静默丢弃隐患。</p>
+    </div>
+  </div></div>
+</section>
+
+<section class="lesson-section" id="module-plugins">
+  <h2>七、插件扩展系统与七大能力接口</h2>
+  
+  <h3>1. 为什么采用 Python <code>Protocol</code> 而不是 <code>ABC</code> 抽象基类？</h3>
+  <div class="lesson-body"><div class="am-md">
+    <p>Model Hub 的插件系统基于 <code>typing.Protocol</code> 实现<strong>结构化子类型（鸭子类型）</strong>，其核心设计优势为：</p>
+    <ul>
+      <li><strong>彻底解耦依赖</strong>：编写第三方扩展插件时，<strong>无需显式继承 Hub 的任何基类</strong>，只需实现对应签名的方法即可生效。</li>
+      <li><strong>多能力自由组合</strong>：一个插件可以同时兼具“请求前检查”和“权重计算”两种能力，代码组织极其灵活。</li>
+    </ul>
+
+    <h4>七大能力接口全景</h4>
+    <div class="am-table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Protocol 接口名</th>
+            <th>核心方法签名</th>
+            <th>切入时机</th>
+            <th>典型内置插件</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>BeforeRequestHook</code></td>
+            <td><code>before_request(request) -> ModelRequest</code></td>
+            <td>CoreEngine 编排前，可改写请求信封</td>
+            <td>Langfuse / OTel 上下文注入、私有 Header 注入</td>
+          </tr>
+          <tr>
+            <td><code>AfterResponseHook</code></td>
+            <td><code>after_response(request, response) -> ModelResponse</code></td>
+            <td>调用成功返回后，可审计响应内容</td>
+            <td>Langfuse 追踪上报、成本用量统计回写</td>
+          </tr>
+          <tr>
+            <td><code>OnErrorHook</code></td>
+            <td><code>on_error(request, error, decision)</code></td>
+            <td>发生异常时触发健康指标统计</td>
+            <td>CircuitBreakerPlugin (5xx)、AdaptiveWeightPlugin (429)</td>
+          </tr>
+          <tr>
+            <td><code>WeightAdjustmentProvider</code></td>
+            <td><code>get_weight_multiplier(endpoint) -> float</code></td>
+            <td>Router 选端点前动态计算降权比例</td>
+            <td>AdaptiveWeightPlugin（自适应权重插件）</td>
+          </tr>
+          <tr>
+            <td><code>RoutingDecisionProvider</code></td>
+            <td><code>route(request, endpoints) -> RoutingDecision</code></td>
+            <td>接管默认路由逻辑，实现自定义调度</td>
+            <td>租户隔离路由、就近区域路由</td>
+          </tr>
+          <tr>
+            <td><code>RetryConditionProvider</code></td>
+            <td><code>should_retry(request, error, attempt) -> bool</code></td>
+            <td>判断特定异常是否允许进入重试循环</td>
+            <td>供应商私有瞬时故障过滤</td>
+          </tr>
+          <tr>
+            <td><code>StreamChunkHook</code></td>
+            <td><code>on_chunk(chunk, context) -> chunk</code></td>
+            <td>流式输出每个 Token 切片透出时</td>
+            <td>首 Token 延迟打点、敏感词流式截断</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>2. CoreEngine 调度机制内部实现</h3>
+    <ul>
+      <li><strong>构造期一次性分类与稳定排序</strong>：CoreEngine 初始化时根据 <code>order</code> 升序对插件排序，并将插件分类缓存为 7 个私有列表。<strong>运行期请求热路径上零 <code>isinstance</code> 开销</strong>。</li>
+      <li><strong>插件容错铁律</strong>：插件自身的崩溃或抛错<strong>绝不允许阻断核心请求调用</strong>。所有插件调用均由独立 <code>try-except</code> 守卫，捕获后记录 Warning 日志并继续主流程。</li>
+    </ul>
+  </div></div>
+</section>
+
+<section class="lesson-section" id="module-resilience">
+  <h2>八、三层立体容错与三大信号各司其职</h2>
+  
+  <h3>1. 为什么 429 和 5xx 绝不能用同一套逻辑处理？</h3>
+  <div class="lesson-body"><div class="am-md">
+    <p>Model Hub 将故障信号分为三大类，由不同机制各司其职，坚决避免重复惩罚：</p>
+    <figure class="am-diagram">
+<svg xmlns="http://www.w3.org/2000/svg" class="am-diagram" viewBox="0 0 720 340" aria-label="三层立体容错与三大健康信号各司其职">
+<defs>
+  <marker id="res-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <path class="am-arrow" d="M0,1 L10,5 L0,9 z" fill="var(--accent, #2563eb)"/>
+  </marker>
+</defs>
+
+<!-- Box 1: 429 Rate Limit -->
+<g class="am-node am-node--rect" transform="translate(40, 40)">
+  <rect class="am-node-shape" width="200" height="70" rx="8" stroke="var(--warn, #d97706)"/>
+  <text class="am-node-text" x="100" y="25" text-anchor="middle" font-weight="600" fill="var(--warn, #d97706)">信号一：429 限流</text>
+  <text class="am-step" x="100" y="48" text-anchor="middle">本质是“太忙”而不是“坏了”</text>
+</g>
+
+<!-- Box 2: 5xx Failure -->
+<g class="am-node am-node--rect" transform="translate(260, 40)">
+  <rect class="am-node-shape" width="200" height="70" rx="8" stroke="var(--err, #dc2626)"/>
+  <text class="am-node-text" x="100" y="25" text-anchor="middle" font-weight="600" fill="var(--err, #dc2626)">信号二：5xx 服务端故障</text>
+  <text class="am-step" x="100" y="48" text-anchor="middle">节点真实损坏，不可继续发送</text>
+</g>
+
+<!-- Box 3: Traffic Burst -->
+<g class="am-node am-node--rect" transform="translate(480, 40)">
+  <rect class="am-node-shape" width="200" height="70" rx="8" stroke="var(--accent, #2563eb)"/>
+  <text class="am-node-text" x="100" y="25" text-anchor="middle" font-weight="600" fill="var(--accent, #2563eb)">信号三：流量突发过快</text>
+  <text class="am-step" x="100" y="48" text-anchor="middle">客户端发速超过配额上限</text>
+</g>
+
+<!-- Arrows downward -->
+<path class="am-edge" d="M140,110 L140,160" marker-end="url(#res-arrow)"/>
+<path class="am-edge" d="M360,110 L360,160" marker-end="url(#res-arrow)"/>
+<path class="am-edge" d="M580,110 L580,160" marker-end="url(#res-arrow)"/>
+
+<!-- Action Boxes -->
+<g class="am-node am-node--rect am-node--hi" transform="translate(40, 165)">
+  <rect class="am-node-shape" width="200" height="120" rx="8"/>
+  <text class="am-node-text" x="100" y="25" text-anchor="middle" font-weight="600">自适应降权 + 重分配</text>
+  <text class="am-step" x="100" y="50" text-anchor="middle">连续调节乘数 (1.0 → 0.1)</text>
+  <text class="am-step" x="100" y="70" text-anchor="middle">多退流量原比例补给健康节点</text>
+  <text class="am-step" x="100" y="90" text-anchor="middle">不计入熔断统计，避免双重惩罚</text>
+</g>
+
+<g class="am-node am-node--rect" transform="translate(260, 165)">
+  <rect class="am-node-shape" width="200" height="120" rx="8"/>
+  <text class="am-node-text" x="100" y="25" text-anchor="middle" font-weight="600">熔断器状态机 (二值摘除)</text>
+  <text class="am-step" x="100" y="50" text-anchor="middle">CLOSED (正常通行)</text>
+  <text class="am-step" x="100" y="70" text-anchor="middle">OPEN (完全熔断并隔离)</text>
+  <text class="am-step" x="100" y="90" text-anchor="middle">HALF_OPEN (小流量金丝雀试探)</text>
+</g>
+
+<g class="am-node am-node--rect" transform="translate(480, 165)">
+  <rect class="am-node-shape" width="200" height="120" rx="8"/>
+  <text class="am-node-text" x="100" y="25" text-anchor="middle" font-weight="600">令牌桶主动控速</text>
+  <text class="am-step" x="100" y="50" text-anchor="middle">本地令牌桶主动钳制请求速率</text>
+  <text class="am-step" x="100" y="70" text-anchor="middle">严格遵循 Retry-After 规避连环封禁</text>
+  <text class="am-step" x="100" y="90" text-anchor="middle">结合 soft_limit_on_429 动态削峰</text>
+</g>
+</svg>
+      <figcaption style="margin-top:8px;font-size:12px;color:var(--ink-2);text-align:center;">图 3：三大健康信号分类治理与协同防线</figcaption>
+    </figure>
+
+    <div class="star-box">
+      <strong>架构设计精髓：</strong><br>
+      429 的本质是<strong>“节点太忙，少给点流量很快就好”</strong>，适合<strong>渐进降权</strong>；<br>
+      5xx 的本质是<strong>“节点真坏了，发再多也是死”</strong>，必须<strong>二值切断</strong>。<br>
+      如果对 429 直接二值熔断，会导致主节点被瞬间踢掉，全部流量瞬间压死备份节点，引发全链路雪崩！
+    </div>
+
+    <h3>2. 熔断器状态机（Circuit Breaker）</h3>
+    <ul>
+      <li><strong>CLOSED（闭合通行）</strong>：正常转发所有请求。在连续统计窗口内，若 5xx 错误率超过阈值（如 50%），状态跃迁至 <code>OPEN</code>。</li>
+      <li><strong>OPEN（完全熔断）</strong>：物理节点被完全摘除，Router 不再向其分配任何常规请求，直接静默隔离指定时间（如 60 秒冷却期）。</li>
+      <li><strong>HALF_OPEN（半开试探）</strong>：冷却期满后，允许极其微量的金丝雀请求（如 3 个探测请求）试探该节点。若探测全部成功则恢复至 <code>CLOSED</code>；只要发生失败立即回退至 <code>OPEN</code> 重新冷却。</li>
+    </ul>
+  </div></div>
+</section>
+
+<section class="lesson-section" id="module-adaptive-weight">
+  <h2>九、自适应权重与重分配数学推演</h2>
+  
+  <h3>1. 滑动窗口与动态降权公式</h3>
+  <div class="lesson-body"><div class="am-md">
+    <p>自适应权重插件维护每个 Endpoint 的<strong>环形缓冲区滑动窗口</strong>（默认 120 秒）。每次调用记录 <code>(timestamp, is_429)</code>。</p>
+    <p>动态乘数公式为：</p>
+    <div class="am-codeblock">
+      <div class="am-code-head"><span class="am-code-title">Multiplier 计算公式</span></div>
+      <pre class="am-code"><code>error_rate = window_429_count / total_requests_in_window
+multiplier = max(1.0 - penalty_factor * error_rate, min_weight_ratio)
+effective_weight = base_weight * multiplier</code></pre>
+    </div>
+    <p>默认配置（<code>penalty_factor=1.5</code>，<code>min_weight_ratio=0.1</code>）下的动态降权曲线：</p>
+    <div class="am-table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>429 错误率</th>
+            <th>Multiplier (惩罚乘数)</th>
+            <th>主端点有效权重 (base=80)</th>
+            <th>备端点有效权重 (base=20)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>0%</td><td>1.00 (无惩罚)</td><td>80</td><td>20</td></tr>
+          <tr><td>20%</td><td>0.70 (-30%)</td><td>56</td><td>20</td></tr>
+          <tr><td>40%</td><td>0.40 (-60%)</td><td>32</td><td>20</td></tr>
+          <tr><td>60%+</td><td><strong>0.10 (保底试探下限)</strong></td><td><strong>8</strong></td><td>20</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>2. 为什么仅靠“分母效应”不够？权重重分配数学推演</h3>
+    <p><strong>痛点实录：</strong>假设配置了 3 个端点：Gemini(66)、GPT-5(34)、以及一个 weight=1 的应急小端点 GPT-4.1。如果仅靠自己降权（分母效应），当 Gemini 和 GPT-5 同时遭遇 100% 429 降到下限时，GPT-4.1 在总分母中的占比仅能达到 8.3%，根本无法承接足够的应急流量！</p>
+    
+    <div class="am-callout am-callout--ok">
+      <div class="am-callout-title">动态权重重分配算法（Weight Reallocation）</div>
+      <p>将所有受惩罚端点腾出的权重总额（ΔW），按照完全健康端点的<strong>原始权重比例</strong>返还补偿给健康节点：</p>
+      <p style="font-family:var(--font-mono);font-size:13px;margin:8px 0;">
+        ΔW = ∑ (W_j^base - W_j^effective)<br>
+        W_i^final = W_i^effective + ΔW × [ W_i^base / ∑ W_healthy^base ]
+      </p>
+    </div>
+
+    <h4>完整双故障数值演练（base = 66 : 34 : 1 : 1）</h4>
+    <div class="am-table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Endpoint</th>
+            <th>基准权重 (Base)</th>
+            <th>健康状态</th>
+            <th>自然降权后 (Effective)</th>
+            <th>重分配补偿 (+ΔW)</th>
+            <th>最终生效权重 (Final)</th>
+            <th>实际流量承接占比</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>gemini</strong></td>
+            <td>66</td>
+            <td>100% 429</td>
+            <td>6.6 (min_ratio=0.1)</td>
+            <td>0</td>
+            <td>6.6</td>
+            <td>6.6%</td>
+          </tr>
+          <tr>
+            <td><strong>gpt-5</strong></td>
+            <td>34</td>
+            <td>100% 429</td>
+            <td>3.4 (min_ratio=0.1)</td>
+            <td>0</td>
+            <td>3.4</td>
+            <td>3.4%</td>
+          </tr>
+          <tr>
+            <td><strong>gpt-4-1 (应急A)</strong></td>
+            <td>1</td>
+            <td><span class="badge badge--green">完全健康</span></td>
+            <td>1.0</td>
+            <td><strong>+44.5</strong></td>
+            <td><strong>45.5</strong></td>
+            <td><strong>45.0% (跃升45倍!)</strong></td>
+          </tr>
+          <tr>
+            <td><strong>gpt-4-1 (应急B)</strong></td>
+            <td>1</td>
+            <td><span class="badge badge--green">完全健康</span></td>
+            <td>1.0</td>
+            <td><strong>+44.5</strong></td>
+            <td><strong>45.5</strong></td>
+            <td><strong>45.0% (跃升45倍!)</strong></td>
+          </tr>
+          <tr style="font-weight:600;background:var(--fill);">
+            <td>总和</td>
+            <td>102</td>
+            <td>-</td>
+            <td>12.0</td>
+            <td>+89.0</td>
+            <td>101.0</td>
+            <td>100.0% (总权重守恒)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>3. <code>recovery_rate</code> 防雪崩限速恢复</h3>
+    <p>当供应商 429 配额重置时，如果让权重瞬间从 0.1 弹回 1.0，积压的巨大瞬时并发会再次将刚苏醒的端点瞬间打死（二次雪崩）。</p>
+    <p><strong>限速恢复机制</strong>：限制权重每秒最大恢复速率（默认 <code>recovery_rate=0.05/s</code>）。从 0.1 爬坡至 1.0 需历时 18 秒平滑步进，确保流量如涓涓细流逐步回归，彻底告别振荡。</p>
+  </div></div>
+</section>
+
+<section class="lesson-section" id="module-fallback-adapter">
+  <h2>十、跨风格 Fallback 与 Adapter 矩阵</h2>
+  
+  <h3>1. 跨风格 Fallback 的技术难点与破局</h3>
+  <div class="lesson-body"><div class="am-md">
+    <p>当业务方使用 OpenAI 原生 SDK，但在遭遇严重区域性故障需要跨厂商兜底到 Claude 或 Gemini 时，面临三座大山：</p>
+    <ul>
+      <li><strong>参数结构完全异构</strong>：OpenAI 的 <code>messages</code> 为扁平数组，Anthropic 的 <code>system</code> 必须作为顶层字符串抽取；OpenAI 的图片是 <code>image_url</code>，Gemini 则要求 base64 封装在 <code>inline_data</code>。</li>
+      <li><strong>流式响应协议异构</strong>：OpenAI 产生 <code>delta.content</code>，Anthropic 产生 <code>content_block_delta.delta.text</code>。业务方如果写了 <code>for chunk in stream</code>，格式不一致将直接报错。</li>
+      <li><strong>函数调用（Tool Calls）碎片流式拼接</strong>：各家工具调用切片的增量格式完全不同。</li>
+    </ul>
+
+    <h4>Adapter 核心抽象：四大标准方法</h4>
+    <div class="am-codeblock">
+      <div class="am-code-head"><span class="am-code-title">Adapter 规范接口定义</span></div>
+      <pre class="am-code"><code>class BaseAdapter(Protocol):
+    def adapt_request(self, raw_request: dict) -> dict:
+        """将源风格请求体深度转换为目标供应商 API 格式"""
+        ...
+
+    def adapt_response(self, raw_response: Any) -> Any:
+        """将目标供应商响应还原为源风格原生响应对象（如 ChatCompletion）"""
+        ...
+
+    def adapt_stream_chunk(self, raw_chunk: Any) -> Any:
+        """将异构流式切片包装为标准 ChatCompletionChunk"""
+        ...
+
+    def adapt_error(self, raw_error: Exception) -> ModelHubError:
+        """将异构异常统一映射为标准错误体系"""
+        ...</code></pre>
+    </div>
+
+    <div class="am-callout am-callout--ok">
+      <div class="am-callout-title">ADR-023：Fallback 过程中的信封保留策略</div>
+      <p>在触发 Fallback 跨模型降级时，CoreEngine 必须完整保留 <code>passthrough_mode</code>、<code>source_style</code>、<code>raw_request</code> 和 <code>raw_method</code> 四大透传字段，确保下游 Adapter 拥有完整的上下文进行二次翻译，绝不退化为空白请求。</p>
+    </div>
+  </div></div>
+</section>
+
+<section class="lesson-section" id="module-best-practices">
+  <h2>十一、生产配置规范与热更新实践</h2>
+  
+  <h3>1. 生产级配置 YAML 完整参考模板</h3>
+  <div class="lesson-body"><div class="am-md">
+    <div class="am-codeblock">
+      <div class="am-code-head"><span class="am-code-title">model-hub-production.yaml (v2 黄金配置)</span></div>
+      <pre class="am-code"><code>version: "2.0"
+
+# ① Provider 凭证与连接池配置
+providers:
+  openai-official:
+    provider: openai
+    api_key: ${OPENAI_API_KEY}
+    base_url: https://api.openai.com/v1
+    max_connections: 200
+
+  azure-openai-eastus:
+    provider: azure_openai
+    api_key: ${AZURE_OPENAI_KEY}
+    base_url: https://plaud-eastus.openai.azure.com/openai/deployments/gpt-4o
+    api_version: "2024-08-01-preview"
+
+  anthropic-backup:
+    provider: anthropic
+    api_key: ${ANTHROPIC_API_KEY}
+
+# ② 逻辑模型与物理端点映射
+models:
+  plaud-summary:auto:
+    policies:
+      routing: WEIGHTED_RANDOM
+      failover: true
+      max_retries: 2
+      fallback: [claude-3-5-sonnet:backup]
+    endpoints:
+      - provider_ref: azure-openai-eastus   # 主力 GSU 预付费端点
+        model: gpt-4o
+        weight: 80
+        plugins:
+          circuit_breaker: { enabled: true, failure_threshold: 0.5, recovery_timeout: 60 }
+          adaptive_weight: { enabled: true, penalty_factor: 1.5, min_weight_ratio: 0.1, recovery_rate: 0.05 }
+          rate_limiter: { enabled: true, soft_limit_on_429: true }
+
+      - provider_ref: openai-official        # 溢出 PayGo 按量端点
+        model: gpt-4o
+        weight: 20
+        plugins:
+          circuit_breaker: { enabled: true }
+          adaptive_weight: { enabled: true }
+
+  claude-3-5-sonnet:backup:
+    endpoints:
+      - provider_ref: anthropic-backup
+        model: claude-3-5-sonnet-20241022
+        weight: 100</code></pre>
+    </div>
+
+    <h3>2. ConfigStore 存储后端与零停机热更新</h3>
+    <p>为了摆脱每次切流降权必须全量重新发版的痛点，Model Hub 抽象了 <code>ConfigStore</code> 接口，支持三种存储后端：</p>
+    <ul>
+      <li><strong>FileConfigStore</strong>：本地开发与单机部署，监控文件变更或按需读取。</li>
+      <li><strong>AppConfigStore（推荐）</strong>：对接 AWS AppConfig / 携程 Apollo / 阿里云 ACM，通过后台后台轮询（Polling）检测版本号变更，实现<strong>毫秒级动态切流生效</strong>。</li>
+      <li><strong>HttpConfigStore</strong>：对接内部统一配置中台。</li>
+    </ul>
+  </div></div>
+</section>
+
+<section class="lesson-section" id="module-interview-star">
+  <h2>十二、STAR 技术复盘与高频面试追问</h2>
+  
+  <h3>1. 核心贡献明细（独立负责模块）</h3>
+  <div class="lesson-body"><div class="am-md">
+    <div class="am-table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>核心贡献模块</th>
+            <th>角色与职责</th>
+            <th>代码规模与测试</th>
+            <th>落地成效</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>自适应权重插件</strong></td>
+            <td>从 0 到 1 架构设计与核心算法推演</td>
+            <td>520 行核心代码，25 个单元测试</td>
+            <td>解决 429 频发连环雪崩，小端点自动救援承接 45% 溢出流量</td>
+          </tr>
+          <tr>
+            <td><strong>跨风格路由适配层</strong></td>
+            <td>独立实现 OpenAI ↔ Anthropic / Gemini 双向 Adapter</td>
+            <td>350 行核心代码，18 个单元测试</td>
+            <td>业务方无感实现跨供应商流式 Fallback，代码零改造</td>
+          </tr>
+          <tr>
+            <td><strong>Fallback 增强体系</strong></td>
+            <td>多级降级链、环路死循环检测、成本归因元数据回写</td>
+            <td>280 行核心代码，15 个单元测试</td>
+            <td>降级调用链路全量可查，成本归因清晰准确</td>
+          </tr>
+          <tr>
+            <td><strong>LangChain 集成</strong></td>
+            <td>实现 <code>ChatModelHub</code> 适配器与参数双通道管控</td>
+            <td>BaseChatModel 子类深度适配</td>
+            <td>支撑 Plaud 核心业务全量上云接入</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>2. 四大核心技术难点 STAR 深度复盘</h3>
+    
+    <div class="star-box">
+      <strong>STAR 1：参数透传的方言差异与 Gemini 静默丢弃 Bug 攻坚</strong><br>
+      • <strong>S (情境)</strong>：业务上线 Gemini 逻辑模型，配置了 <code>max_tokens</code> 和自定义思考参数，但本地调试不报错，线上实际生成内容频繁超出长度预算。<br>
+      • <strong>T (任务)</strong>：彻底排查参数流转全链路，建立严格防丢弃机制与跨厂商白名单。<br>
+      • <strong>A (行动)</strong>：分析 LangChain Pydantic <code>extra='ignore'</code> 机制，定位到 Gemini SDK 仅接受 <code>max_output_tokens</code> 且采用白名单 <code>.get()</code> 提取；在 <code>genai.py</code> 中重写参数装配器，实现三级优先级兜底。<br>
+      • <strong>R (结果)</strong>：彻底消灭参数静默丢弃隐患，输出 20 页方言排坑文档与全套单测。
+    </div>
+
+    <div class="star-box">
+      <strong>STAR 2：多 Endpoint 的熔断、限流与自适应权重三元协同</strong><br>
+      • <strong>S (情境)</strong>：初期由于错误信号未解耦，端点触发 429 时，熔断器将其当成 5xx 严重错误直接摘除，导致备份节点瞬间承受双倍流量随之挂掉，系统发生连锁振荡。<br>
+      • <strong>T (任务)</strong>：厘清健康信号职责边界，实现三者协同互补。<br>
+      • <strong>A (行动)</strong>：制定“429 降权、5xx 熔断、流量突发主动限流”铁律；在熔断器中显式配置 <code>exclude_429_from_circuit_breaker=true</code>，将 429 错误排除在熔断统计之外；让限流器与自适应权重联动。<br>
+      • <strong>R (结果)</strong>：双重惩罚彻底消除，大促突发流量下系统平滑压制，无任何雪崩事件。
+    </div>
+
+    <div class="star-box">
+      <strong>STAR 3：自适应权重极端双故障与防雪崩限速恢复</strong><br>
+      • <strong>S (情境)</strong>：主备端点在高并发下同时遭遇 100% 429，小端点无法承接流量；且 429 冷却后流量瞬间涌回导致二次崩溃。<br>
+      • <strong>T (任务)</strong>：推导总权重守恒的重分配算法，并设计抗振荡爬坡恢复机制。<br>
+      • <strong>A (行动)</strong>：推导动态权重重分配公式，将降权端点释放的流量按原比例注入健康节点，小端点占比从 8% 跃升至 45%；引入 <code>recovery_rate=0.05/s</code> 限制每秒回弹速率，并注入 Mock 时间源保障单测确定性。<br>
+      • <strong>R (结果)</strong>：高并发故障注入压测下平稳度过双故障，恢复耗时降低 87%。
+    </div>
+
+    <div class="star-box">
+      <strong>STAR 4：跨风格适配器的复杂性处理（流式 Chunk 与 Tool Calls 双向翻译）</strong><br>
+      • <strong>S (情境)</strong>：业务方使用 OpenAI 原生 SDK，跨厂商 Fallback 到 Claude 时，流式返回事件格式不兼容，前端解析器全面报错崩溃。<br>
+      • <strong>T (任务)</strong>：实现透明双向转换，业务层 <code>for chunk in stream</code> 逻辑零改动。<br>
+      • <strong>A (行动)</strong>：实现 <code>adapt_stream_chunk</code>，将 Anthropic <code>content_block_delta</code> 动态封装为标准 <code>ChatCompletionChunk</code>；攻克增量 tool_calls 碎片拼接对齐难题；严格遵循 ADR-023 保留信封上下文。<br>
+      • <strong>R (结果)</strong>：跨厂商 Fallback 达到 100% 无感透明，生产数万次跨厂商降级零客诉。
+    </div>
+
+    <h3>3. 竞品横向深度对比矩阵（为什么不直接用开源网关？）</h3>
+    <div class="am-table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>对比维度</th>
+            <th>Plaud Model Hub</th>
+            <th>LiteLLM Proxy / SDK</th>
+            <th>LangChain (ChatModel)</th>
+            <th>Portkey / OneAPI 网关</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>部署架构</strong></td>
+            <td><strong>进程内内嵌 SDK（零网络跳数）</strong></td>
+            <td>独立 HTTP 代理或 Python SDK</td>
+            <td>纯上层 Python 抽象库</td>
+            <td>独立 Docker / HTTP 代理服务</td>
+          </tr>
+          <tr>
+            <td><strong>原生 SDK 性能</strong></td>
+            <td><strong>0 次转换（同风格原生直通）</strong></td>
+            <td>统一格式二次序列化（有损耗）</td>
+            <td>强制转换为 BaseMessage 对象</td>
+            <td>HTTP 协议二次转发解析</td>
+          </tr>
+          <tr>
+            <td><strong>跨风格 Fallback</strong></td>
+            <td><strong>深度双向 Adapter 翻译</strong></td>
+            <td>基础参数映射，高级流式脆弱</td>
+            <td>不支持原生跨 SDK 透传</td>
+            <td>仅支持标准 OpenAI 协议代理</td>
+          </tr>
+          <tr>
+            <td><strong>429 容错调度</strong></td>
+            <td><strong>连续降权 + 动态重分配 + 限速恢复</strong></td>
+            <td>仅支持被动 Retry-After 或固定轮询</td>
+            <td>无调度与健康感知</td>
+            <td>静态权重，粗粒度二值熔断</td>
+          </tr>
+          <tr>
+            <td><strong>成本结构适配</strong></td>
+            <td><strong>深度契合 GSU + PayGo 混合最优化</strong></td>
+            <td>通用 Token 计费统计</td>
+            <td>无底层调度成本优化</td>
+            <td>仅支持账户额度预扣款</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>4. 面试高频深度追问与应答要点</h3>
+    <details class="am-callout" style="margin-bottom:12px;">
+      <summary style="cursor:pointer;font-weight:600;">Q1：自适应权重和熔断器到底有什么本质区别？为什么不能合并？</summary>
+      <div style="margin-top:8px;">
+        <p><strong>核心应答：</strong>两者针对的故障性质与应对动作完全相反：</p>
+        <ul>
+          <li><strong>自适应权重针对 429（太忙）</strong>：节点没有坏，只是当前发速过快。应对动作是<strong>连续渐进降权</strong>（1.0 → 0.7 → 0.4 → 0.1），少分配流量给它，几秒后配额恢复自动平滑回升。</li>
+          <li><strong>熔断器针对 5xx（坏了）</strong>：节点服务崩溃或网络彻底中断。应对动作是<strong>二值断开</strong>（CLOSED / OPEN / HALF_OPEN），彻底摘除节点，防止请求不断往坑里送。</li>
+        </ul>
+        <p>如果合并处理：把 429 当 5xx 直接切断，会造成主端点瞬间下线，流量全部砸垮备用节点引起雪崩；把 5xx 当 429 渐进降权，则会持续向坏节点送请求导致用户报错。两者必须分工，且通过配置隔离避免重复惩罚。</p>
+      </div>
+    </details>
+
+    <details class="am-callout" style="margin-bottom:12px;">
+      <summary style="cursor:pointer;font-weight:600;">Q2：动态权重重分配为什么要按“原权重比例”分配，而不是平均分？</summary>
+      <div style="margin-top:8px;">
+        <p><strong>核心应答：</strong>因为配置者在 YAML 中写下 <code>gpt-5: 34, gpt-4-1: 1</code> 时，已经显式表达了业务的技术与成本偏好——即“主节点比备节点重要 34 倍”。在发生突发故障时，腾出的流量依然应当尊重这一既定偏好。平均分会粗暴抹平配置者的意图；而按“当前实时权重”分则会出现计算循环依赖。按原始比例重分配在数学上能够证明：<strong>总权重始终守恒，且健康端点之间的相对比值保持严格不变</strong>。</p>
+      </div>
+    </details>
+
+    <details class="am-callout" style="margin-bottom:12px;">
+      <summary style="cursor:pointer;font-weight:600;">Q3：分布式多进程部署下，每个实例各自算自适应权重，会不会产生冲突？</summary>
+      <div style="margin-top:8px;">
+        <p><strong>核心应答：</strong>不会，反而是更优解。在大规模分布式部署下，引入集中式 Redis 维护状态会带来额外的网络延迟跳数与单点故障风险。每个进程维护本地滑动窗口，根据大数定律（Law of Large Numbers），在负载均衡网关后每个实例接收到的流量模式高度相似，各实例独立的调节趋势天然趋于收敛。即使偶有个别实例轻微偏差，也会被本地重试和多端点快速吸收，既获得了极高的局部响应速度，又避免了分布式锁开销。</p>
+      </div>
+    </details>
+  </div></div>
+</section>
+
+      <footer class="footer">
+        <p>Plaud Model Hub 全景架构与生产实战教程 · 页面采用现代轻量语义化 HTML 构建，完全自包含，无需编译构建，开箱即读。</p>
+        <a class="back-top" href="#overview">回到顶部 ↑</a>
+      </footer>
+    </article>
+  </div>
+</main>
+</div>
+
+<!-- Modal Dialog for Diagram Lightbox -->
+<dialog id="diagram-view" aria-labelledby="diagram-title">
+  <div class="dialog-bar">
+    <span id="diagram-title">图示预览</span>
+    <div>
+      <button id="diagram-size" type="button">原始尺寸</button>
+      <button id="diagram-close" type="button">关闭</button>
+    </div>
+  </div>
+  <div id="diagram-canvas" class="diagram-canvas"></div>
+</dialog>
+
+<script>
+(() => {
+ const isEn=document.documentElement.lang.toLowerCase().startsWith('en');
+ const navLinks=[...document.querySelectorAll('[data-chapter]')];
+ const search=document.getElementById('chapter-search');
+ const count=document.getElementById('search-count');
+ const menu=document.getElementById('chapter-menu');
+ const narrowLayout=matchMedia('(max-width:1000px)');
+ // 与 CSS 的断点一致：窄屏默认收起，切回桌面时展开；用户仍可手动切换。
+ const syncMenu=()=>{menu.open=!narrowLayout.matches;};
+ narrowLayout.addEventListener('change',syncMenu);
+ syncMenu();
+ const corpus=new Map(navLinks.map(a=>[a.dataset.chapter,a.textContent.toLowerCase()]));
+ search.addEventListener('input',()=>{
+  const term=search.value.trim().toLowerCase();let found=0;
+  for(const a of navLinks){a.hidden=Boolean(term&&!corpus.get(a.dataset.chapter).includes(term));if(!a.hidden)found++;}
+  count.textContent=term?(isEn?`${found} matching chapters`:`${found} 个相关章节`):'';
+ });
+ const here=location.pathname;
+ for(const a of navLinks){
+  const target=new URL(a.href,location.href);
+  if(target.pathname===here && document.getElementById(a.dataset.chapter)){
+   a.classList.add('active');a.setAttribute('aria-current','page');
+  }
+  a.addEventListener('click',()=>{if(narrowLayout.matches)menu.open=false;});
+ }
+ const dialog=document.getElementById('diagram-view');
+ const canvas=document.getElementById('diagram-canvas');
+ const closeDialog=()=>{dialog.close();canvas.replaceChildren();};
+ document.getElementById('diagram-close').addEventListener('click',closeDialog);
+ document.getElementById('diagram-size').addEventListener('click',e=>{const actual=canvas.classList.toggle('actual');e.target.textContent=actual?(isEn?'Fit window':'适应窗口'):(isEn?'Actual size':'原始尺寸');});
+ dialog.addEventListener('click',e=>{if(e.target===dialog)closeDialog();});
+ for(const figure of document.querySelectorAll('figure.am-diagram')){
+  const svg=figure.querySelector('svg, img');if(!svg)continue;
+  const actions=document.createElement('div');actions.className='diagram-actions';
+  const button=document.createElement('button');button.type='button';button.textContent=isEn?'Enlarge':'放大查看';
+  button.addEventListener('click',()=>{canvas.classList.remove('actual');document.getElementById('diagram-size').textContent=isEn?'Actual size':'原始尺寸';canvas.replaceChildren(svg.cloneNode(true));document.getElementById('diagram-title').textContent=svg.getAttribute('aria-label')||svg.getAttribute('alt')||(isEn?'Diagram':'图示');dialog.showModal();});
+  actions.append(button);figure.prepend(actions);
+ }
+ for(const code of document.querySelectorAll('pre code')){
+  const pre=code.closest('pre');
+  const block=pre.closest('.am-codeblock')||pre.parentElement;
+  const header=block.querySelector('.am-code-head');
+  const button=document.createElement('button');button.className='code-copy';button.type='button';button.textContent=isEn?'Copy code':'复制代码';
+  button.addEventListener('click',async()=>{try{await navigator.clipboard.writeText(code.textContent);button.textContent=isEn?'Copied':'已复制';setTimeout(()=>button.textContent=isEn?'Copy code':'复制代码',1400);}catch{const range=document.createRange();range.selectNodeContents(code);const selection=window.getSelection();selection.removeAllRanges();selection.addRange(range);button.textContent=isEn?'Selected, press Ctrl+C':'已选中，请复制';}});
+  (header||block).append(button);
+ }
+})();
+
+</script>
+</body>
+</html>
