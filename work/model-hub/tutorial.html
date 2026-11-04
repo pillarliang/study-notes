@@ -1526,6 +1526,177 @@ figure.am-diagram figcaption { font-size: 12.5px; color: var(--ink-2, #64748b); 
   margin: 8px 0 !important;
 }
 
+
+/* Extra components for badges, star-box, alerts & code highlights */
+.badge { display: inline-block; padding: 2px 7px; border-radius: 4px; font-size: 11.5px; font-weight: 600; font-family: var(--font-mono); }
+.badge--blue { background: var(--accent-bg, #eff6ff); color: var(--accent, #2563eb); }
+.badge--green { background: var(--ok-bg, #ecfdf5); color: var(--ok, #059669); }
+.badge--amber { background: var(--warn-bg, #fffbeb); color: var(--warn, #d97706); }
+.badge--red { background: var(--err-bg, #fef2f2); color: var(--err, #dc2626); }
+.badge--purple { background: #f3e8ff; color: #9333ea; }
+
+.star-box { border-left: 3px solid var(--accent, #2563eb) !important; padding: 14px 18px !important; background: var(--fill, #f8fafc) !important; margin: 16px 0 !important; border-radius: 0 8px 8px 0 !important; }
+.star-box > strong:first-child { display: block !important; color: var(--accent, #2563eb) !important; font-size: 13.5px !important; margin-bottom: 8px !important; }
+
+.am-table-wrap { overflow-x: auto; margin: 16px 0; border: 1px solid var(--line-2, #e2e8f0); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; }
+th, td { padding: 10px 14px; border-bottom: 1px solid var(--line-2, #e2e8f0); }
+th { background: var(--fill, #f8fafc); color: var(--ink, #1e293b); font-weight: 600; }
+tr:last-child td { border-bottom: none; }
+
+.chapter-header { margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--line-2, #e2e8f0); }
+.chapter-header .kind { font-size: 11.5px; font-weight: 700; color: var(--accent, #2563eb); text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 6px; }
+.chapter-header h2 { font-size: 26px; margin: 0 0 8px 0; letter-spacing: -0.02em; color: var(--ink, #0f172a); }
+.chapter-header .chapter-lead { color: var(--ink-2, #475569); font-size: 14.5px; line-height: 1.6; margin: 0; }
+.lesson-section { margin-bottom: 32px; }
+.lesson-section h3 { font-size: 17px; margin: 20px 0 10px 0; color: var(--ink, #1e293b); font-weight: 650; }
+.lesson-section h4 { font-size: 14.5px; margin: 16px 0 8px 0; color: var(--ink-2, #334155); font-weight: 600; }
+.lesson-body { font-size: 13.5px; line-height: 1.65; color: var(--ink, #1f2937); }
+
+.am-note { border-left: 3px solid var(--warn, #f59e0b); background: var(--warn-bg, #fffbeb); padding: 10px 14px; border-radius: 0 6px 6px 0; margin: 14px 0; }
+.am-note strong { color: var(--warn, #b45309); }
+.am-alert-info { border-left: 3px solid var(--accent, #3b82f6); background: var(--accent-bg, #eff6ff); padding: 10px 14px; border-radius: 0 6px 6px 0; margin: 14px 0; }
+.am-alert-info strong { color: var(--accent, #1d4ed8); }
+.reading-rule { background: var(--fill, #f1f5f9); border: 1px solid var(--line-2, #cbd5e1); border-radius: 6px; padding: 12px 16px; margin: 18px 0; font-size: 13px; line-height: 1.6; }
+.reading-rule strong { color: var(--ink, #0f172a); }
+details.reference-extra { margin: 16px 0; border: 1px solid var(--line-2, #e2e8f0); border-radius: 6px; padding: 12px 16px; background: var(--paper, #ffffff); }
+details.reference-extra summary { font-weight: 600; color: var(--accent, #2563eb); cursor: pointer; user-select: none; }
+
+/* ─── Premium High-Contrast Code Blocks ─── */
+pre.am-code, .am-code, .am-code pre {
+  position: relative !important;
+  margin: 14px 0 !important;
+  padding: 14px 18px !important;
+  background: #0f172a !important;        /* Slate 900 deep dark background */
+  color: #f1f5f9 !important;             /* Slate 100 crisp text */
+  border: 1px solid #1e293b !important;  /* Slate 800 border */
+  border-radius: 8px !important;
+  overflow-x: auto !important;
+  font-family: var(--font-mono, "SF Mono", Monaco, Menlo, Consolas, "JetBrains Mono", monospace) !important;
+  font-size: 12.5px !important;
+  line-height: 1.65 !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.15) !important;
+}
+
+pre.am-code code, .am-code code, .am-code pre code {
+  display: block !important;
+  background: transparent !important;
+  color: #f1f5f9 !important;
+  font-family: inherit !important;
+  font-size: inherit !important;
+  line-height: inherit !important;
+  padding: 0 !important;
+  border: none !important;
+  white-space: pre !important;
+}
+
+/* Syntax Token Palette (VS Code Dark Modern inspired) */
+.c-k { color: #c084fc !important; font-weight: 600 !important; } /* keywords */
+.c-c { color: #38bdf8 !important; font-weight: 600 !important; } /* classes / types */
+.c-f { color: #60a5fa !important; }                              /* functions */
+.c-s { color: #4ade80 !important; }                              /* strings */
+.c-m { color: #93c5fd !important; }                              /* modules */
+.c-v { color: #f8fafc !important; }                              /* variables */
+.c-o { color: #94a3b8 !important; font-style: italic !important; } /* comments */
+.c-n { color: #facc15 !important; }                              /* numbers */
+.c-d { color: #f472b6 !important; }                              /* decorators */
+
+/* Code Copy Button */
+pre.am-code .code-copy, .am-code .code-copy {
+  position: absolute !important;
+  top: 10px !important;
+  right: 10px !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #94a3b8 !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  border-radius: 5px !important;
+  padding: 3px 9px !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+  z-index: 2 !important;
+}
+
+pre.am-code .code-copy:hover, .am-code .code-copy:hover {
+  background: rgba(255, 255, 255, 0.22) !important;
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.4) !important;
+}
+
+/* Inline code tags outside pre */
+:not(pre) > code {
+  background: var(--accent-bg, #eff6ff) !important;
+  color: var(--accent, #1d4ed8) !important;
+  font-family: var(--font-mono) !important;
+  font-size: 0.9em !important;
+  padding: 1.5px 5.5px !important;
+  border-radius: 4px !important;
+  border: 1px solid rgba(37, 99, 235, 0.15) !important;
+}
+
+figure.am-diagram { margin: 20px 0; border: 1px solid var(--line-2, #e2e8f0); border-radius: 8px; padding: 16px; background: var(--paper, #ffffff); text-align: center; }
+figure.am-diagram figcaption { font-size: 12.5px; color: var(--ink-2, #64748b); margin-top: 10px; font-weight: 500; }
+.system-tree { list-style: none; padding-left: 0; }
+.system-tree > li { margin: 12px 0; }
+.system-tree > li > ul { list-style: disc; padding-left: 20px; margin-top: 6px; }
+.system-tree li { line-height: 1.7; }
+.implementation-note { display: inline-block; font-size: 11px; color: var(--accent, #2563eb); background: var(--accent-bg, #eff6ff); padding: 1px 6px; border-radius: 4px; margin-left: 6px; }
+.am-toolbar { position: fixed; top: 12px; inset-inline-end: 12px; z-index: 10; display: flex; gap: 6px; }
+.am-btn, .am-pick { font: 12px/1 var(--font-sans); color: var(--ink); background: var(--paper); border: 1px solid var(--line-2); border-radius: 4px; padding: 6px 10px; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+.am-pick select { background: transparent; border: none; color: inherit; font: inherit; cursor: pointer; outline: none; }
+
+/* ─── Math Formula Cards & Fallback Styling ─── */
+.math-card {
+  background: var(--paper, #ffffff);
+  border: 1px solid var(--line-2, #e2e8f0);
+  border-left: 4px solid var(--accent, #2563eb);
+  border-radius: 8px;
+  padding: 18px 22px;
+  margin: 20px 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+}
+.math-card h4 {
+  margin: 0 0 10px 0;
+  font-size: 15px;
+  color: var(--ink, #0f172a);
+  font-weight: 700;
+}
+.math-block {
+  margin: 14px 0;
+  padding: 14px 18px;
+  background: var(--fill, #f8fafc);
+  border-radius: 6px;
+  text-align: center;
+  font-size: 16px;
+  overflow-x: auto;
+  border: 1px solid var(--line-2, #e2e8f0);
+}
+.formula-desc {
+  font-size: 13.5px;
+  color: var(--ink-2, #475569);
+  line-height: 1.65;
+  margin-bottom: 10px;
+}
+.math-legend {
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--line-2, #cbd5e1);
+  font-size: 12.5px;
+  color: var(--ink-2, #64748b);
+  line-height: 1.6;
+}
+.math-legend ul {
+  margin: 6px 0 0 0;
+  padding-left: 20px;
+}
+.katex {
+  font-size: 1.1em !important;
+}
+.katex-display {
+  margin: 8px 0 !important;
+}
+
 </style>
 </head>
 <body>
@@ -1643,7 +1814,7 @@ figure.am-diagram figcaption { font-size: 12.5px; color: var(--ink-2, #64748b); 
     <li><strong><a href="#part-4">四、自适应算法与防雪崩 (Adaptive Weight Algorithm)</a></strong>
       <ul>
         <li><a href="#part-4-problems">429 限流本质认知</a>：429 是“太忙”非“坏了”，传统二值硬切流是导致备用节点连环雪崩的罪魁祸首。</li>
-        <li><a href="#part-4-math">权重守恒重分配数学推导</a>：动态乘数 \( M_t \)、10% 最小下限探测保护与健康端点比例重分配算法。<span class="implementation-note">核心创新</span></li>
+        <li><a href="#part-4-math">惩罚打折与权重守恒重分配</a>：两句话直观心智模型、极简三步法、10% 保底探测与健康端点比例瓜分。<span class="implementation-note">核心创新</span></li>
         <li><a href="#part-4-recovery">非对称弹性平滑恢复</a>：快速下行阶跃止血，上行受限慢速爬坡，联动 RateLimiter 主动削峰。</li>
       </ul>
     </li>
@@ -2822,51 +2993,127 @@ figure.am-diagram figcaption { font-size: 12.5px; color: var(--ink-2, #64748b); 
     </div>
   </section>
 
-  <!-- 3. 惩罚乘数与权重重分配推导 -->
+  <!-- 3. 惩罚打折与权重守恒重分配 -->
   <section class="lesson-section" id="part-4-math">
-    <h3>3. 核心数学推导：惩罚乘数与权重守恒重分配</h3>
+    <h3>3. 核心机制：惩罚打折与流量守恒分摊（通俗拆解）</h3>
     <div class="lesson-body">
       <div class="am-md">
-        <p>自适应权重插件不仅调整单个受罚端点，更关键的是<strong>将扣除的权重按健康端点的原比例重新分配</strong>，保证全集群总权重与承载能力动态守恒：</p>
+        <p>很多开发者一看到“数学推导”就容易觉得抽象，其实自适应调权的核心算法并没有深奥的微积分，它的工程直觉只有<strong>两句极其朴素的大白话</strong>：</p>
 
-        <h4>步骤一：计算受罚端点的惩罚乘数（Penalty Multiplier）</h4>
-        <p>设当前端点的 429 错误率为 $\text{Rate}_{429}$，敏感度系数为 $\alpha$（默认 1.0），下限保护系数为 $M_{\min}$（默认 0.1）：</p>
-        
-        <div class="math-card">
-          <div class="formula-desc">公式 4-2：动态惩罚乘数与下限保护</div>
-          <div class="math-block">$$ M_t = \max\left(M_{\min}, \; 1.0 - \alpha \times \text{Rate}_{429}\right) $$</div>
-          <div class="math-legend">约束范围：$M_t \in [M_{\min}, 1.0]$。$M_{\min} = 0.1$ 强制保留 10% 探测流量。</div>
+        <div class="star-box">
+          <strong>💡 两句话搞懂核心心智模型：</strong>
+          <ol style="margin: 6px 0 0 0; padding-left: 20px; line-height: 1.8;">
+            <li><strong>犯错就打折，但最低打一折</strong>：哪个端点报 429（被上游厂商限流），就按错误严重程度给它的权重打折降速；但绝不清零，<strong>永远保底保留 10% 流量</strong>默默探路，用真实请求感知厂商限流什么时候解除（实现无探针被动自愈）。</li>
+            <li><strong>扣下的流量不扔掉，按实力分给好兄弟</strong>：从受罚端点身上扣下来的流量份额，如果直接扔掉，网关吞吐就会雪崩式骤降；如果搞平均分配，备用小端点又会被瞬间灌爆。因此必须<strong>按其他健康端点的原始体量比例瓜分</strong>（大个子多扛点，小个子少扛点），让全集群总承载能力一分不差、完全守恒。</li>
+          </ol>
         </div>
 
-        <div class="am-alert-info">
-          <strong>💡 为什么必须保留 10% 下限保护（M_min = 0.1）？</strong><br>
-          如果允许乘数降为 0，该端点将彻底分不到任何流量。没有流量打入，系统就永远无法知道它的 429 是否已经解除！保留 10% 探测流量，是实现<strong>无主动心跳探针、全被动自愈</strong>的关键所在。
+        <h4>极简三步走：10 秒看懂计算过程</h4>
+        <p>假设某个模型在 YAML 中配置了 3 个端点，初始基础权重共计 100 分：</p>
+        <ul>
+          <li><strong>端点 A（主力大节点）</strong>：基础权重 70 分（平时承接 70% 流量）</li>
+          <li><strong>端点 B（辅力节点）</strong>：基础权重 20 分（平时承接 20% 流量）</li>
+          <li><strong>端点 C（应急小节点）</strong>：基础权重 10 分（平时承接 10% 流量）</li>
+        </ul>
+
+        <div class="am-note">
+          <strong>🔥 突发场景：主力端点 A 遭遇高峰限流，429 报错率飙到 100%！</strong><br>
+          看看系统是如何在 1 毫秒内自动计算并无损转移流量的：
         </div>
 
-        <h4>步骤二：计算扣除权重（Deducted Weight）</h4>
-        <p>受罚端点 $i$ 扣除的绝对权重值与受罚后的新临时权重分别为：</p>
-        
-        <div class="math-card">
-          <div class="formula-desc">公式 4-3：受罚端点扣除权重与新临时权重</div>
-          <div class="math-block">$$ \Delta W_i = W_{\text{base}, i} \times (1.0 - M_{t, i}) $$</div>
-          <div class="math-block">$$ W'_i = W_{\text{base}, i} \times M_{t, i} $$</div>
-          <div class="math-legend">其中：$W_{\text{base}, i}$ 为端点 $i$ 在 YAML 配置的基础权重，$\Delta W_i$ 为剥离出的溢出权重。</div>
+        <div class="step-cards" style="display: grid; gap: 12px; margin: 16px 0;">
+          <div style="background: var(--fill, #f8fafc); border: 1px solid var(--line-2, #e2e8f0); border-radius: 6px; padding: 12px 16px;">
+            <strong style="color: var(--accent, #2563eb);">第一步：给端点 A 打折（保底留一折）</strong><br>
+            <span style="font-size: 13px; color: var(--ink-2, #475569); line-height: 1.6; display: block; margin-top: 4px;">
+              打折乘数公式极其简单：$M = \max(0.1, \; 1.0 - \text{报错率})$。<br>
+              报错率 100% 时，A 打一折（乘数 $M = 0.1$）。A 的新权重瞬间下调为：$70 \times 0.1 = \mathbf{7}$ 分。<br>
+              <em>（💡 为什么不降到 0 分？因为如果彻底清零，就没有请求能打到 A 了，系统就永远不知道 A 的限流什么时候解除了！）</em>
+            </span>
+          </div>
+
+          <div style="background: var(--fill, #f8fafc); border: 1px solid var(--line-2, #e2e8f0); border-radius: 6px; padding: 12px 16px;">
+            <strong style="color: var(--warn, #d97706);">第二步：算出从端点 A 身上扣出了多少流量</strong><br>
+            <span style="font-size: 13px; color: var(--ink-2, #475569); line-height: 1.6; display: block; margin-top: 4px;">
+              扣除的溢出流量：$70 - 7 = \mathbf{63}$ 分。
+            </span>
+          </div>
+
+          <div style="background: var(--fill, #f8fafc); border: 1px solid var(--line-2, #e2e8f0); border-radius: 6px; padding: 12px 16px;">
+            <strong style="color: var(--ok, #059669);">第三步：把扣下来的 63 分流量，分给健康的好兄弟（B 和 C）</strong><br>
+            <span style="font-size: 13px; color: var(--ink-2, #475569); line-height: 1.6; display: block; margin-top: 4px;">
+              此时健康端点是 B（原 20 分）与 C（原 10 分），两者的原始实力比例是 $20 : 10 = 2 : 1$（B 占 $2/3$，C 占 $1/3$）。<br>
+              把这 63 分流量按 $2 : 1$ 瓜分：<br>
+              • <strong>B 实力强，多分点</strong>：$63 \times \frac{2}{3} = \mathbf{42}$ 分 $\to$ B 的最终权重变为 $20 + 42 = \mathbf{62}$ 分；<br>
+              • <strong>C 实力弱，少分点</strong>：$63 \times \frac{1}{3} = \mathbf{21}$ 分 $\to$ C 的最终权重变为 $10 + 21 = \mathbf{31}$ 分。
+            </span>
+          </div>
         </div>
 
-        <h4>步骤三：动态守恒重分配（Weight Redistribution）</h4>
-        <p>将扣除出的 $\Delta W_i$，按其他健康端点各自在配置中的<strong>基础权重占比</strong>重新注水：</p>
-
-        <div class="math-card">
-          <div class="formula-desc">公式 4-4：溢出权重按健康端点原权重比例注水（守恒重分配）</div>
-          <div class="math-block">$$ W'_j = W_{\text{base}, j} + \Delta W_i \times \frac{W_{\text{base}, j}}{\sum_{k \neq i, k \in \text{healthy}} W_{\text{base}, k}} $$</div>
-          <div class="math-legend">其中：$W'_j$ 为健康端点 $j$ 获得注水后的最终有效权重。分母为当前所有健康端点的基础权重之和。</div>
+        <h4>调整前后的直观对比表</h4>
+        <div class="am-table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>端点名称与角色</th>
+                <th>原始配置权重</th>
+                <th>遭遇 429 调权后</th>
+                <th>实际流量占比变化</th>
+                <th>工程效果分析</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>端点 A（主力大节点）</strong></td>
+                <td>70</td>
+                <td><strong>7</strong></td>
+                <td>70% $\to$ <span class="badge badge--red">7%</span></td>
+                <td>瞬时削减 90% 流量，让上游厂商配额迅速缓过来，实现止血。</td>
+              </tr>
+              <tr>
+                <td><strong>端点 B（辅力节点）</strong></td>
+                <td>20</td>
+                <td><strong>62</strong></td>
+                <td>20% $\to$ <span class="badge badge--blue">62%</span></td>
+                <td>按自身体量扛起主要溢出流量（+42 分），平稳无感接管。</td>
+              </tr>
+              <tr>
+                <td><strong>端点 C（应急小节点）</strong></td>
+                <td>10</td>
+                <td><strong>31</strong></td>
+                <td>10% $\to$ <span class="badge badge--green">31%</span></td>
+                <td>按自身体量少分点（+21 分），安全增负，绝不至于被超载打爆。</td>
+              </tr>
+              <tr style="background: var(--fill, #f8fafc); font-weight: 700;">
+                <td>全集群总和（守恒检验）</td>
+                <td>100</td>
+                <td><strong>100</strong></td>
+                <td>100% $\to$ 100%</td>
+                <td><strong>总权重恒等为 100！流量一滴没丢，网关吞吐完全不塌方！</strong></td>
+              </tr>
+            </tbody>
+          </table>
         </div>
 
-        <h4>步骤四：集群总承载能力恒等守恒证明</h4>
+        <h4>深度思考：为什么绝不能“直接扔掉”？为什么绝不能“搞平均分”？</h4>
+        <ul>
+          <li><strong>反例一：如果直接扔掉（传统二值硬熔断）</strong><br>
+          A 从 70 变成 0，全集群总权重暴跌为 30。网关吞吐直接缩水 70%，前端海量请求积压超时，造成整个业务线大面积瘫痪。</li>
+          <li><strong>反例二：如果搞平均主义（63 分平分给 B 和 C）</strong><br>
+          B 和 C 各平分 31.5 分。备用小端点 C 瞬间从 10 飙升到 41.5 分（流量暴涨 4 倍以上！）。小端点本来配额就小，瞬间被突发洪水冲垮，引发<strong>次生连环雪崩</strong>！</li>
+          <li><strong>正解：守恒比例重分配（本项目选择）</strong><br>
+          大个子多扛大头、小个子少扛小头，各得其所，全集群平稳度过流量高峰。</li>
+        </ul>
+
+        <h4>附：工程数学公式速查卡片（对照源码时查阅）</h4>
         <div class="math-card">
-          <div class="formula-desc">公式 4-5：全集群总权重恒等守恒定理（数学证明）</div>
-          <div class="math-block">$$ \sum_{e \in \text{all}} W'_e = W'_i + \sum_{j \neq i} W'_j = \left(W_{\text{base}, i} - \Delta W_i\right) + \sum_{j \neq i} W_{\text{base}, j} + \Delta W_i = \sum_{e \in \text{all}} W_{\text{base}, e} $$</div>
-          <div class="math-legend">证明：无论集群中多少个端点遭遇 429 降权，Router 视角的总权重永远恒等于基础权重总和 $\sum W_{\text{base}}$，彻底消除流量断崖或小端点过载雪崩。</div>
+          <div class="formula-desc">自适应权重核心公式汇总（对应源码 <code>AdaptiveWeightPlugin._redistribute_weights()</code>）</div>
+          <div class="math-block">
+            $$ M_t = \max\left(M_{\min}, \; 1.0 - \alpha \times \text{Rate}_{429}\right) \quad (\text{惩罚打折，保底 } M_{\min} = 0.1) $$
+            $$ \Delta W_i = W_{\text{base}, i} \times (1.0 - M_{t, i}), \quad W'_i = W_{\text{base}, i} \times M_{t, i} \quad (\text{受罚端点扣除与新权重}) $$
+            $$ W'_j = W_{\text{base}, j} + \Delta W_i \times \frac{W_{\text{base}, j}}{\sum_{k \in \text{healthy}} W_{\text{base}, k}} \quad (\text{健康端点按比例注水分摊}) $$
+            $$ \sum_{e \in \text{all}} W'_e \equiv \sum_{e \in \text{all}} W_{\text{base}, e} \equiv 100\% \quad (\text{集群总承载能力恒等守恒}) $$
+          </div>
+          <div class="math-legend">源码映射：核心逻辑封装在 <code>model_hub/plugins/adaptive_weights.py</code> 中，每次 429 触发或周期采样时触发重算。</div>
         </div>
       </div>
 <figure class="am-diagram am-flow">
